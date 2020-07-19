@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">HWAREngineDemo</string>
+    <string name="plane_other">Other</string>
+    <string name="plane_floor">Floor</string>
+    <string name="plane_wall">Wall</string>
+    <string name="plane_table">Table</string>
+    <string name="plane_seat">Seat</string>
+    <string name="plane_ceiling">Ceiling</string>
+    <string name="arengine_cancel" priority="translator">CANCEL</string>
+    <string name="arengine_install" priority="translator">INSTALL</string>
+    <string name="arengine_install_app" priority="translator">Install the latest version of HUAWEI AR Engine to continue.</string>
+</resources>
