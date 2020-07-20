@@ -1,4 +1,4 @@
-# HwAREngineDemo
+# HUAWEI AR Engine Demo
 
 ## Table of Contents
 
