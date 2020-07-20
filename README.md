@@ -9,7 +9,7 @@
 * [License](#license)
 
 ## Introduction
-The HwAREngineDemo program demonstrates how to use HUAWEI AR Engine.For
+The HwAREngineDemo program demonstrates how to use HUAWEI AR Engine. For
 more development details, please refer to the following link:
 [HUAWEI AR Engine](https://developer.huawei.com/consumer/en/hms/huawei-arengine/)
 
