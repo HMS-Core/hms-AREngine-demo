@@ -11,10 +11,10 @@
 ## Introduction
 The HwAREngineDemo program demonstrates how to use HUAWEI AR Engine. For
 more development details, please refer to the following link:
-[HUAWEI AR Engine](https://developer.huawei.com/consumer/en/hms/huawei-arengine/)
+[HUAWEI AR Engine](https://developer.huawei.com/consumer/en/hms/huawei-arengine/?ha_source=hms1)
 
 ## Getting Started
-1. Register a [HUAWEI account](https://developer.huawei.com/consumer/).
+1. Register a [HUAWEI account](https://developer.huawei.com/consumer/?ha_source=hms1).
 2. Check whether the Android studio development environment is ready.
    Open the sample code project directory with file "build.gradle" in
    Android Studio. Run HwAREngineDemo on your divice which have
@@ -36,7 +36,7 @@ If you want to evaluate more about HMS Core, [r/HMSCore on Reddit](https://www.r
 If you have questions about how to use HMS samples, try the following options:
 - [Stack Overflow](https://stackoverflow.com/questions/tagged/huawei-mobile-services) is the best place for any programming questions. Be sure to tag your question with 
 `huawei-mobile-services`.
-- [Huawei Developer Forum](https://forums.developer.huawei.com/forumPortal/en/home?fid=0101187876626530001) HMS Core Module is great for general questions, or seeking recommendations and opinions.
+- [Huawei Developer Forum](https://forums.developer.huawei.com/forumPortal/en/home?fid=0101187876626530001?ha_source=hms1) HMS Core Module is great for general questions, or seeking recommendations and opinions.
 
 If you run into a bug in our samples, please submit an [issue](https://github.com/HMS-Core/hms-AREngine-demo/issues) to the Repository. Even better you can submit a [Pull Request](https://github.com/HMS-Core/hms-AREngine-demo/pulls) with a fix.
 
