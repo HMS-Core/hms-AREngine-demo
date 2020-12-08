@@ -29,6 +29,11 @@ import com.huawei.arengine.demos.common.MatrixUtil;
 import com.huawei.arengine.demos.common.ShaderUtil;
 import com.huawei.arengine.demos.java.world.VirtualObject;
 
+import de.javagl.obj.Obj;
+import de.javagl.obj.ObjData;
+import de.javagl.obj.ObjReader;
+import de.javagl.obj.ObjUtils;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
@@ -37,11 +42,6 @@ import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.nio.ShortBuffer;
 import java.util.Optional;
-
-import de.javagl.obj.Obj;
-import de.javagl.obj.ObjData;
-import de.javagl.obj.ObjReader;
-import de.javagl.obj.ObjUtils;
 
 /**
  * Draw a virtual object based on the specified parameters.
@@ -114,7 +114,7 @@ public class ObjectDisplay {
      * @param width Surface's width.
      * @param height Surface's height.
      */
-    void setSize(float width, float height) {
+    public void setSize(float width, float height) {
         mWidth = width;
         mHeight = height;
     }
@@ -125,7 +125,7 @@ public class ObjectDisplay {
      *
      * @param context Context.
      */
-    void init(Context context) {
+    public void init(Context context) {
         ShaderUtil.checkGlError(TAG, "Init start.");
         createProgram();
 
@@ -326,7 +326,7 @@ public class ObjectDisplay {
      * @param event The gesture event.
      * @return Return the click result for determining whether the input virtual object is clicked
      */
-    boolean hitTest(float[] cameraView, float[] cameraPerspective, VirtualObject obj, MotionEvent event) {
+    public boolean hitTest(float[] cameraView, float[] cameraPerspective, VirtualObject obj, MotionEvent event) {
         mModelMatrixs = obj.getModelAnchorMatrix();
         Matrix.multiplyMM(mModelViewMatrixs, 0, cameraView, 0, mModelMatrixs, 0);
         Matrix.multiplyMM(mModelViewProjectionMatrixs, 0, cameraPerspective, 0, mModelViewMatrixs, 0);

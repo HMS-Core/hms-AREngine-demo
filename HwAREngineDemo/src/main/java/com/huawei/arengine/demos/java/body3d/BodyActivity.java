@@ -88,7 +88,6 @@ public class BodyActivity extends Activity {
 
         mSurfaceView.setRenderer(mBodyRenderManager);
         mSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
-        arEngineAbilityCheck();
     }
 
     @Override

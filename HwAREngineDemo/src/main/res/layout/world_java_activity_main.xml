@@ -97,4 +97,37 @@
         tools:layout_editor_absoluteX="315dp"
         tools:layout_editor_absoluteY="4dp" />
 
+    <TextView
+        android:id="@+id/plane_door"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/plane_door"
+        android:visibility="gone"
+        android:rotation="180"
+        android:textColor="#ff2211"
+        tools:layout_editor_absoluteX="315dp"
+        tools:layout_editor_absoluteY="4dp" />
+
+    <TextView
+        android:id="@+id/plane_window"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/plane_window"
+        android:visibility="gone"
+        android:rotation="180"
+        android:textColor="#ff2211"
+        tools:layout_editor_absoluteX="315dp"
+        tools:layout_editor_absoluteY="4dp" />
+
+    <TextView
+        android:id="@+id/plane_bed"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/plane_bed"
+        android:visibility="gone"
+        android:rotation="180"
+        android:textColor="#ff2211"
+        tools:layout_editor_absoluteX="315dp"
+        tools:layout_editor_absoluteY="4dp" />
+
 </RelativeLayout>

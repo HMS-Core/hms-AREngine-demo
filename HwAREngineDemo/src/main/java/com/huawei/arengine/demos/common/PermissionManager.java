@@ -42,6 +42,7 @@ public class PermissionManager {
 
     // List of permissions to be applied for.
     private static List<String> permissionsList = new ArrayList<>();
+    private static boolean isHasPermission = true;
 
     private PermissionManager() {
     }
@@ -52,8 +53,7 @@ public class PermissionManager {
      *
      * @param activity Activity
      */
-    public static void onResume(final Activity activity) {
-        boolean isHasPermission = true;
+    public static void checkPermission(final Activity activity) {
         for (String permission : PERMISSIONS_ARRAYS) {
             if (ContextCompat.checkSelfPermission(activity, permission) != PackageManager.PERMISSION_GRANTED) {
                 isHasPermission = false;
@@ -70,6 +70,7 @@ public class PermissionManager {
                 permissionsList.toArray(new String[permissionsList.size()]), REQUEST_CODE_ASK_PERMISSIONS);
         }
     }
+
 
     /**
      * Check whether the current app has the required permissions.

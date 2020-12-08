@@ -104,9 +104,9 @@ public class WorldRenderManager implements GLSurfaceView.Renderer {
 
     private ArrayBlockingQueue<GestureEvent> mQueuedSingleTaps;
 
-    private ArrayList<VirtualObject> mVirtualObjects = new ArrayList<>();
-
     private VirtualObject mSelectedObj = null;
+
+    private ArrayList<VirtualObject> mVirtualObjects = new ArrayList<>();
 
     /**
      * The constructor passes context and activity. This method will be called when {@link Activity#onCreate}.
@@ -284,6 +284,9 @@ public class WorldRenderManager implements GLSurfaceView.Renderer {
         bitmaps.add(getPlaneBitmap(R.id.plane_seat));
         bitmaps.add(getPlaneBitmap(R.id.plane_table));
         bitmaps.add(getPlaneBitmap(R.id.plane_ceiling));
+        bitmaps.add(getPlaneBitmap(R.id.plane_door));
+        bitmaps.add(getPlaneBitmap(R.id.plane_window));
+        bitmaps.add(getPlaneBitmap(R.id.plane_bed));
         return bitmaps;
     }
 
@@ -350,8 +353,8 @@ public class WorldRenderManager implements GLSurfaceView.Renderer {
 
         int eventType = event.getType();
         switch (eventType) {
-            case GestureEvent.GESTURE_EVENT_TYPE_DOWN: {
-                doWhenEventTypeDown(viewMatrix, projectionMatrix, event);
+            case GestureEvent.GESTURE_EVENT_TYPE_DOUBLETAP: {
+                doWhenEventTypeDoubleTap(viewMatrix, projectionMatrix, event);
                 break;
             }
             case GestureEvent.GESTURE_EVENT_TYPE_SCROLL: {
@@ -364,10 +367,11 @@ public class WorldRenderManager implements GLSurfaceView.Renderer {
                 }
                 break;
             }
-            case GestureEvent.GESTURE_EVENT_TYPE_SINGLETAPUP: {
+            case GestureEvent.GESTURE_EVENT_TYPE_SINGLETAPCONFIRMED: {
                 // Do not perform anything when an object is selected.
                 if (mSelectedObj != null) {
-                    return;
+                    mSelectedObj.setIsSelected(false);
+                    mSelectedObj = null;
                 }
 
                 MotionEvent tap = event.getEventFirst();
@@ -387,7 +391,7 @@ public class WorldRenderManager implements GLSurfaceView.Renderer {
         }
     }
 
-    private void doWhenEventTypeDown(float[] viewMatrix, float[] projectionMatrix, GestureEvent event) {
+    private void doWhenEventTypeDoubleTap(float[] viewMatrix, float[] projectionMatrix, GestureEvent event) {
         if (mSelectedObj != null) {
             mSelectedObj.setIsSelected(false);
             mSelectedObj = null;

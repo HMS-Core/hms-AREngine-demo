@@ -91,7 +91,6 @@ public class HandActivity extends Activity {
 
         mSurfaceView.setRenderer(mHandRenderManager);
         mSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
-        arEngineAbilityCheck();
     }
 
     @Override

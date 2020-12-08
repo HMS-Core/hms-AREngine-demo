@@ -1,4 +1,4 @@
-include ':HwAREngineDemo'
+include ':HwAREngineDemo', ':SampleCodeKotlin'
 
 
 

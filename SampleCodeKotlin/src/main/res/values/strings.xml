@@ -1,0 +1,21 @@
+<resources>
+    <string name="app_name">SampleCodeKotlin</string>
+    <string name="plane_other">Other</string>
+    <string name="plane_floor">Floor</string>
+    <string name="plane_wall">Wall</string>
+    <string name="plane_table">Table</string>
+    <string name="plane_seat">Seat</string>
+    <string name="plane_ceiling">Ceiling</string>
+    <string name="plane_door">Door</string>
+    <string name="plane_window">Window</string>
+    <string name="plane_bed">Bed</string>
+    <string name="arengine_cancel" priority="translator">CANCEL</string>
+    <string name="arengine_install" priority="translator">INSTALL</string>
+    <string name="arengine_install_app" priority="translator">Install the latest version of HUAWEI AR Engine to continue.</string>
+    <string name="world_ar">WorldAR</string>
+    <string name="face_ar">FaceAR</string>
+    <string name="body_ar_3d">BodyAR_3D</string>
+    <string name="hand_ar">HandAR</string>
+    <string name="textView">TextView</string>
+    <string name="tips_move_plane">Please move the mobile phone slowly to find the plane</string>
+</resources>

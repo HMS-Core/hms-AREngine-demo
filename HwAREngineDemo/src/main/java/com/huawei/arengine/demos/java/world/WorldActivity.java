@@ -99,14 +99,19 @@ public class WorldActivity extends Activity {
     private void initGestureDetector() {
         mGestureDetector = new GestureDetector(this, new GestureDetector.SimpleOnGestureListener() {
             @Override
-            public boolean onSingleTapUp(MotionEvent e) {
-                onGestureEvent(GestureEvent.createSingleTapUpEvent(e));
+            public boolean onDoubleTap(MotionEvent motionEvent) {
+                onGestureEvent(GestureEvent.createDoubleTapEvent(motionEvent));
                 return true;
             }
 
             @Override
-            public boolean onDown(MotionEvent e) {
-                onGestureEvent(GestureEvent.createDownEvent(e));
+            public boolean onSingleTapConfirmed(MotionEvent motionEvent) {
+                onGestureEvent(GestureEvent.createSingleTapConfirmEvent(motionEvent));
+                return true;
+            }
+
+            @Override
+            public boolean onDown(MotionEvent motionEvent) {
                 return true;
             }
 

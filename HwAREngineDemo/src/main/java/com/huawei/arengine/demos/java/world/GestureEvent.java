@@ -45,6 +45,16 @@ public class GestureEvent {
      */
     public static final int GESTURE_EVENT_TYPE_SCROLL = 3;
 
+    /**
+     * Define the constant 4, indicating that the gesture type is SINGLETAPCONFIRMED.
+     */
+    public static final int GESTURE_EVENT_TYPE_SINGLETAPCONFIRMED = 4;
+
+    /**
+     * Define the constant 5, indicating that the gesture type is DOUBLETAP.
+     */
+    public static final int GESTURE_EVENT_TYPE_DOUBLETAP = 5;
+
     private int type;
 
     private MotionEvent eventFirst;
@@ -105,6 +115,32 @@ public class GestureEvent {
     }
 
     /**
+     * Create a gesture type: SINGLETAPCONFIRM.
+     *
+     * @param motionEvent The gesture motion event: SINGLETAPCONFIRM.
+     * @return GestureEvent(SINGLETAPCONFIRM).
+     */
+    public static GestureEvent createSingleTapConfirmEvent(MotionEvent motionEvent) {
+        GestureEvent ret = new GestureEvent();
+        ret.type = GESTURE_EVENT_TYPE_SINGLETAPCONFIRMED;
+        ret.eventFirst = motionEvent;
+        return ret;
+    }
+
+    /**
+     * Create a gesture type: DOUBLETAP.
+     *
+     * @param motionEvent The gesture motion event: DOUBLETAP.
+     * @return GestureEvent(DOUBLETAP).
+     */
+    public static GestureEvent createDoubleTapEvent(MotionEvent motionEvent) {
+        GestureEvent ret = new GestureEvent();
+        ret.type = GESTURE_EVENT_TYPE_DOUBLETAP;
+        ret.eventFirst = motionEvent;
+        return ret;
+    }
+
+    /**
      * Create a gesture type: SCROLL.
      *
      * @param e1 The first down motion event that started the scrolling.
@@ -113,7 +149,7 @@ public class GestureEvent {
      * @param distanceY The distance along the Y axis that has been scrolled since the last call to onScroll.
      * @return GestureEvent(SCROLL).
      */
-    static GestureEvent createScrollEvent(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
+    public static GestureEvent createScrollEvent(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
         GestureEvent ret = new GestureEvent();
         ret.type = GESTURE_EVENT_TYPE_SCROLL;
         ret.eventFirst = e1;

@@ -111,7 +111,6 @@ public class FaceActivity extends Activity {
 
         glSurfaceView.setRenderer(mFaceRenderManager);
         glSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
-        arEngineAbilityCheck();
     }
 
     @Override

@@ -103,10 +103,8 @@ public class LabelDisplay {
             GLES20.glActiveTexture(GLES20.GL_TEXTURE0 + idx);
             GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textures[idx]);
 
-            GLES20.glTexParameteri(
-                GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR_MIPMAP_LINEAR);
-            GLES20.glTexParameteri(
-                GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR);
+            GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR_MIPMAP_LINEAR);
+            GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR);
             GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, labelBitmap, 0);
             GLES20.glGenerateMipmap(GLES20.GL_TEXTURE_2D);
             GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0);
@@ -120,8 +118,7 @@ public class LabelDisplay {
         ShaderUtil.checkGlError(TAG, "program start.");
         mProgram = WorldShaderUtil.getLabelProgram();
         glPositionParameter = GLES20.glGetAttribLocation(mProgram, "inPosXZAlpha");
-        glModelViewProjectionMatrix =
-            GLES20.glGetUniformLocation(mProgram, "inMVPMatrix");
+        glModelViewProjectionMatrix = GLES20.glGetUniformLocation(mProgram, "inMVPMatrix");
         glTexture = GLES20.glGetUniformLocation(mProgram, "inTexture");
         glPlaneUvMatrix = GLES20.glGetUniformLocation(mProgram, "inPlanUVMatrix");
         ShaderUtil.checkGlError(TAG, "program end.");
@@ -148,8 +145,7 @@ public class LabelDisplay {
         ArrayList<Pair<ARPlane, Float>> pairPlanes = new ArrayList<>();
         for (ARPlane plane : allPlanes) {
             if ((plane.getType() == ARPlane.PlaneType.UNKNOWN_FACING)
-                || plane.getTrackingState() != ARTrackable.TrackingState.TRACKING
-                || plane.getSubsumedBy() != null) {
+                || plane.getTrackingState() != ARTrackable.TrackingState.TRACKING || plane.getSubsumedBy() != null) {
                 continue;
             }
 
@@ -170,7 +166,7 @@ public class LabelDisplay {
         pairPlanes.sort(new PlanCompare());
 
         ArrayList<ARPlane> sortedPlanes = new ArrayList<>();
-        for (Pair<ARPlane, Float> eachPlane: pairPlanes) {
+        for (Pair<ARPlane, Float> eachPlane : pairPlanes) {
             sortedPlanes.add(eachPlane.first);
         }
         return sortedPlanes;
@@ -196,12 +192,11 @@ public class LabelDisplay {
 
         GLES20.glDepthMask(false);
         GLES20.glEnable(GLES20.GL_BLEND);
-        GLES20.glBlendFuncSeparate(
-            GLES20.GL_DST_ALPHA, GLES20.GL_ONE, GLES20.GL_ZERO, GLES20.GL_ONE_MINUS_SRC_ALPHA);
+        GLES20.glBlendFuncSeparate(GLES20.GL_DST_ALPHA, GLES20.GL_ONE, GLES20.GL_ZERO, GLES20.GL_ONE_MINUS_SRC_ALPHA);
         GLES20.glUseProgram(mProgram);
         GLES20.glEnableVertexAttribArray(glPositionParameter);
 
-        for (ARPlane plane: sortedPlanes) {
+        for (ARPlane plane : sortedPlanes) {
             float[] planeMatrix = new float[MATRIX_SIZE];
             plane.getCenterPose().toMatrix(planeMatrix, 0);
 
@@ -241,16 +236,12 @@ public class LabelDisplay {
 
         float halfWidth = LABEL_WIDTH / 2.0f;
         float halfHeight = LABEL_HEIGHT / 2.0f;
-        float[] vertices = {
-            -halfWidth, -halfHeight, 1,
-            -halfWidth, halfHeight, 1,
-            halfWidth, halfHeight, 1,
-            halfWidth, -halfHeight, 1,
-        };
+        float[] vertices = {-halfWidth, -halfHeight, 1, -halfWidth, halfHeight, 1, halfWidth, halfHeight, 1, halfWidth,
+            -halfHeight, 1};
 
         // The size of each floating point is 4 bits.
-        FloatBuffer vetBuffer = ByteBuffer.allocateDirect(4 * vertices.length)
-            .order(ByteOrder.nativeOrder()).asFloatBuffer();
+        FloatBuffer vetBuffer =
+            ByteBuffer.allocateDirect(4 * vertices.length).order(ByteOrder.nativeOrder()).asFloatBuffer();
         vetBuffer.rewind();
         for (int i = 0; i < vertices.length; ++i) {
             vetBuffer.put(vertices[i]);
@@ -258,15 +249,15 @@ public class LabelDisplay {
         vetBuffer.rewind();
 
         // The size of each floating point is 4 bits.
-        GLES20.glVertexAttribPointer(glPositionParameter, COORDS_PER_VERTEX, GLES20.GL_FLOAT,
-            false, 4 * COORDS_PER_VERTEX, vetBuffer);
+        GLES20.glVertexAttribPointer(glPositionParameter, COORDS_PER_VERTEX, GLES20.GL_FLOAT, false,
+            4 * COORDS_PER_VERTEX, vetBuffer);
 
         // Set the sequence of OpenGL drawing points to generate two triangles that form a plane.
-        short[] indices = {0, 1, 2, 0, 2, 3 };
+        short[] indices = {0, 1, 2, 0, 2, 3};
 
         // Size of the allocated buffer.
-        ShortBuffer idxBuffer = ByteBuffer.allocateDirect(2 * indices.length)
-            .order(ByteOrder.nativeOrder()).asShortBuffer();
+        ShortBuffer idxBuffer =
+            ByteBuffer.allocateDirect(2 * indices.length).order(ByteOrder.nativeOrder()).asShortBuffer();
         idxBuffer.rewind();
         for (int i = 0; i < indices.length; ++i) {
             idxBuffer.put(indices[i]);
