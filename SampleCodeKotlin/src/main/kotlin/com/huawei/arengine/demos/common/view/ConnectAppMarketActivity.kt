@@ -1,5 +1,5 @@
 /**
- * Copyright 2020. Huawei Technologies Co., Ltd. All rights reserved.
+ * Copyright 2021. Huawei Technologies Co., Ltd. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,11 +20,11 @@ import android.app.AlertDialog
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import com.huawei.arengine.demos.R
 import com.huawei.arengine.demos.R.string.arengine_cancel
 import com.huawei.arengine.demos.R.string.arengine_install
 import com.huawei.arengine.demos.R.string.arengine_install_app
+import com.huawei.arengine.demos.common.LogUtil
 import com.huawei.hiar.exceptions.ARFatalException
 
 /**
@@ -91,9 +91,9 @@ class ConnectAppMarketActivity : Activity() {
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK
             }.let { startActivity(it) }
         } catch (e: SecurityException) {
-            Log.w(TAG, "the target app has no permission of media")
+            LogUtil.warn(TAG, "the target app has no permission of media")
         } catch (e: ActivityNotFoundException) {
-            Log.w(TAG, "the target activity is not found!")
+            LogUtil.warn(TAG, "the target activity is not found!")
         }
     }
 }

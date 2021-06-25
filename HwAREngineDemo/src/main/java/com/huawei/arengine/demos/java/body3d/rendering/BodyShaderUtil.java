@@ -1,5 +1,5 @@
 /**
- * Copyright 2020. Huawei Technologies Co., Ltd. All rights reserved.
+ * Copyright 2021. Huawei Technologies Co., Ltd. All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -17,7 +17,8 @@
 package com.huawei.arengine.demos.java.body3d.rendering;
 
 import android.opengl.GLES20;
-import android.util.Log;
+
+import com.huawei.arengine.demos.common.LogUtil;
 
 /**
  * This class provides code and programs related to body rendering shader.
@@ -88,7 +89,7 @@ class BodyShaderUtil {
             int[] linkStatus = new int[1];
             GLES20.glGetProgramiv(program, GLES20.GL_LINK_STATUS, linkStatus, 0);
             if (linkStatus[0] != GLES20.GL_TRUE) {
-                Log.e(TAG, "Could not link program " + GLES20.glGetProgramInfoLog(program));
+                LogUtil.error(TAG, "Could not link program " + GLES20.glGetProgramInfoLog(program));
                 GLES20.glDeleteProgram(program);
                 program = 0;
             }
@@ -104,8 +105,8 @@ class BodyShaderUtil {
             int[] compiled = new int[1];
             GLES20.glGetShaderiv(shader, GLES20.GL_COMPILE_STATUS, compiled, 0);
             if (compiled[0] == 0) {
-                Log.e(TAG, "glError: Could not compile shader " + shaderType);
-                Log.e(TAG, "glError: " + GLES20.glGetShaderInfoLog(shader));
+                LogUtil.error(TAG, "glError: Could not compile shader " + shaderType);
+                LogUtil.error(TAG, "glError: " + GLES20.glGetShaderInfoLog(shader));
                 GLES20.glDeleteShader(shader);
                 shader = 0;
             }

@@ -1,5 +1,5 @@
 /**
- * Copyright 2020. Huawei Technologies Co., Ltd. All rights reserved.
+ * Copyright 2021. Huawei Technologies Co., Ltd. All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -20,9 +20,9 @@ import android.graphics.Bitmap;
 import android.opengl.GLES20;
 import android.opengl.GLUtils;
 import android.opengl.Matrix;
-import android.util.Log;
 import android.util.Pair;
 
+import com.huawei.arengine.demos.common.LogUtil;
 import com.huawei.arengine.demos.common.ShaderUtil;
 import com.huawei.hiar.ARPlane;
 import com.huawei.hiar.ARPose;
@@ -93,7 +93,7 @@ public class LabelDisplay {
     public void init(ArrayList<Bitmap> labelBitmaps) {
         ShaderUtil.checkGlError(TAG, "Init start.");
         if (labelBitmaps.size() == 0) {
-            Log.e(TAG, "No bitmap.");
+            LogUtil.error(TAG, "No bitmap.");
         }
         createProgram();
         int idx = 0;
@@ -212,7 +212,7 @@ public class LabelDisplay {
             planeAngleUvMatrix[3] = scaleV;
 
             int idx = plane.getLabel().ordinal();
-            Log.d(TAG, "Plane getLabel:" + idx);
+            LogUtil.debug(TAG, "Plane getLabel:" + idx);
             idx = Math.abs(idx);
             GLES20.glActiveTexture(GLES20.GL_TEXTURE0 + idx);
             GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textures[idx]);

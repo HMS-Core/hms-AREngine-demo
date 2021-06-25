@@ -1,5 +1,5 @@
 /**
- * Copyright 2020. Huawei Technologies Co., Ltd. All rights reserved.
+ * Copyright 2021. Huawei Technologies Co., Ltd. All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -20,8 +20,8 @@ import android.app.Activity;
 import android.content.Intent;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.ProgressBar;
 import android.widget.TableLayout;
 import android.widget.TextView;
@@ -31,6 +31,8 @@ import androidx.appcompat.app.AppCompatDelegate;
 
 import com.huawei.arengine.demos.R;
 import com.huawei.arengine.demos.common.DisplayRotationManager;
+import com.huawei.arengine.demos.common.LogUtil;
+import com.huawei.arengine.demos.common.PermissionManager;
 import com.huawei.arengine.demos.java.health.rendering.HealthRenderManager;
 import com.huawei.hiar.ARConfigBase;
 import com.huawei.hiar.AREnginesApk;
@@ -48,7 +50,7 @@ import com.huawei.hiar.listener.FaceHealthServiceListener;
 import java.util.EventObject;
 
 /**
- * This class shows the usage of APIs related to health data monitoring.
+ * 该类展示健康数据监测相关接口的使用
  *
  * @author HW
  * @since 2020-08-03
@@ -83,6 +85,8 @@ public class HealthActivity extends Activity {
         super.onCreate(savedInstanceState);
         AppCompatDelegate.setCompatVectorFromResourcesEnabled(true);
         setContentView(R.layout.health_activity_main);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
         mHealthProgressBar = findViewById(R.id.health_progress_bar);
         mGlSurfaceView = findViewById(R.id.healthSurfaceView);
         mProgressTips = findViewById(R.id.process_tips);
@@ -107,7 +111,11 @@ public class HealthActivity extends Activity {
 
     @Override
     protected void onResume() {
+        LogUtil.debug(TAG, "onResume");
         super.onResume();
+        if (!PermissionManager.hasPermission(this)) {
+            this.finish();
+        }
         mMessage = null;
         if (mArSession == null) {
             try {
@@ -118,6 +126,8 @@ public class HealthActivity extends Activity {
                 mArSession = new ARSession(this);
                 mArFaceTrackingConfig = new ARFaceTrackingConfig(mArSession);
                 mArFaceTrackingConfig.setEnableItem(ARConfigBase.ENABLE_HEALTH_DEVICE);
+                mArFaceTrackingConfig
+                    .setFaceDetectMode(ARConfigBase.FaceDetectMode.HEALTH_ENABLE_DEFAULT.getEnumValue());
                 mArSession.configure(mArFaceTrackingConfig);
                 setHealthServiceListener();
             } catch (ARUnavailableServiceNotInstalledException capturedException) {
@@ -149,13 +159,13 @@ public class HealthActivity extends Activity {
     }
 
     private void stopArSession() {
-        Log.i(TAG, "Stop session start.");
+        LogUtil.info(TAG, "Stop session start.");
         Toast.makeText(this, mMessage, Toast.LENGTH_LONG).show();
         if (mArSession != null) {
             mArSession.stop();
             mArSession = null;
         }
-        Log.i(TAG, "Stop session end.");
+        LogUtil.info(TAG, "Stop session end.");
     }
 
     /**
@@ -170,7 +180,7 @@ public class HealthActivity extends Activity {
             Toast.makeText(this, "Please agree to install.", Toast.LENGTH_LONG).show();
             finish();
         }
-        Log.d(TAG, "Is Install AR Engine Apk: " + isInstallArEngineApk);
+        LogUtil.debug(TAG, "Is Install AR Engine Apk: " + isInstallArEngineApk);
         if (!isInstallArEngineApk) {
             startActivity(new Intent(this, com.huawei.arengine.demos.common.ConnectAppMarketActivity.class));
             isRemindInstall = true;
@@ -180,31 +190,31 @@ public class HealthActivity extends Activity {
 
     @Override
     protected void onPause() {
-        Log.i(TAG, "onPause start.");
+        LogUtil.info(TAG, "onPause start.");
         super.onPause();
         if (mArSession != null) {
             mDisplayRotationManager.unregisterDisplayListener();
             mGlSurfaceView.onPause();
             mArSession.pause();
-            Log.i(TAG, "Session paused!");
+            LogUtil.info(TAG, "Session paused!");
         }
-        Log.i(TAG, "onPause end.");
+        LogUtil.info(TAG, "onPause end.");
     }
 
     @Override
     protected void onDestroy() {
-        Log.i(TAG, "onDestroy start.");
+        LogUtil.info(TAG, "onDestroy start.");
         super.onDestroy();
         if (mArSession != null) {
             mArSession.stop();
             mArSession = null;
         }
-        Log.i(TAG, "onDestroy end.");
+        LogUtil.info(TAG, "onDestroy end.");
     }
 
     @Override
     public void onWindowFocusChanged(boolean isHasFocus) {
-        Log.d(TAG, "onWindowFocusChanged");
+        LogUtil.debug(TAG, "onWindowFocusChanged");
         super.onWindowFocusChanged(isHasFocus);
         if (isHasFocus) {
             getWindow().getDecorView()

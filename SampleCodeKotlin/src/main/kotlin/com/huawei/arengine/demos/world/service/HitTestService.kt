@@ -1,5 +1,5 @@
 /**
- * Copyright 2020. Huawei Technologies Co., Ltd. All rights reserved.
+ * Copyright 2021. Huawei Technologies Co., Ltd. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,8 @@
 package com.huawei.arengine.demos.world.service
 
 import android.opengl.Matrix
-import android.util.Log
 import android.view.MotionEvent
+import com.huawei.arengine.demos.common.LogUtil
 import com.huawei.arengine.demos.world.model.VirtualObject
 import com.huawei.arengine.demos.world.pojo.GestureEvent
 import com.huawei.arengine.demos.world.util.Constants
@@ -81,7 +81,7 @@ class HitTestService(private val tapQueue: ArrayBlockingQueue<GestureEvent>,
                 handleSingleTapEvent(hitTest4Result(arFrame, arCamera, event.eventFirst))
             }
             else -> {
-                Log.e(TAG, "Unknown motion event type, and do nothing.")
+                LogUtil.error(TAG, "Unknown motion event type, and do nothing.")
             }
         }
     }
@@ -117,7 +117,7 @@ class HitTestService(private val tapQueue: ArrayBlockingQueue<GestureEvent>,
                 virtualObjects.add(VirtualObject(hitResult.createAnchor(), Constants.GREEN_COLORS))
             }
             else -> {
-                Log.i(TAG, "Hit result is not plane or point.")
+                LogUtil.info(TAG, "Hit result is not plane or point.")
             }
         }
     }

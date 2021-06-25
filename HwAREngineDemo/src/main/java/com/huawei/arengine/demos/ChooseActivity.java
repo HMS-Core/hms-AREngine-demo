@@ -1,5 +1,5 @@
 /**
- * Copyright 2020. Huawei Technologies Co., Ltd. All rights reserved.
+ * Copyright 2021. Huawei Technologies Co., Ltd. All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -103,6 +103,22 @@ public class ChooseActivity extends Activity {
             case R.id.btn_health:
                 startActivity(new Intent(this,
                     com.huawei.arengine.demos.java.health.HealthActivity.class));
+                break;
+            case R.id.btn_scene_mesh:
+                startActivity(new Intent(this,
+                        com.huawei.arengine.demos.java.scenemesh.SceneMeshActivity.class));
+                break;
+            case R.id.btn_augmented_image:
+                startActivity(new Intent(this,
+                    com.huawei.arengine.demos.java.augmentedimage.AugmentedImageActivity.class));
+                break;
+            case R.id.btn_world_body:
+                startActivity(new Intent(this,
+                    com.huawei.arengine.demos.java.worldbody.WorldBodyActivity.class));
+                break;
+            case R.id.btn_cloud_3DObject:
+                startActivity(new Intent(this,
+                        com.huawei.arengine.demos.java.cloudaugmentedobject.CloudAugmentedObjectActivity.class));
                 break;
             default:
                 Log.e(TAG, "onClick error!");

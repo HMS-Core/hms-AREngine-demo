@@ -14,8 +14,12 @@
     <string name="arengine_install_app" priority="translator">Install the latest version of HUAWEI AR Engine to continue.</string>
     <string name="world_ar">WorldAR</string>
     <string name="face_ar">FaceAR</string>
-    <string name="body_ar_3d">BodyAR_3D</string>
+    <string name="body_ar_3d">BodyAR3D</string>
     <string name="hand_ar">HandAR</string>
     <string name="textView">TextView</string>
     <string name="tips_move_plane">Please move the mobile phone slowly to find the plane</string>
+    <string name="worldbody_ar">WorldBody</string>
+    <string name="scene_mesh">SceneMesh</string>
+    <string name="textview_name">TextView</string>
+    <string name="object_name">Object</string>
 </resources>

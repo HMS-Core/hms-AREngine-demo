@@ -1,5 +1,5 @@
 /**
- * Copyright 2020. Huawei Technologies Co., Ltd. All rights reserved.
+ * Copyright 2021. Huawei Technologies Co., Ltd. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 package com.huawei.arengine.demos.hand.service
 
 import android.opengl.GLES20
-import android.util.Log
+import com.huawei.arengine.demos.common.LogUtil
 import com.huawei.arengine.demos.common.util.checkGlError
 import com.huawei.arengine.demos.hand.util.Constants.BYTES_PER_POINT
 import com.huawei.arengine.demos.hand.util.Constants.COORDINATE_DIMENSION_3D
@@ -66,7 +66,7 @@ class HandSkeletonService : HandRenderService() {
          * is three times the number of skeleton points.
          */
         val skeletonPointsNum = handSkeletons.size / COORDINATE_DIMENSION_3D
-        Log.d(TAG, "ARHand HandSkeletonNumber = $skeletonPointsNum")
+        LogUtil.debug(TAG, "ARHand HandSkeletonNumber = $skeletonPointsNum")
         shaderPojo.run {
             GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, vbo)
             pointNum = skeletonPointsNum

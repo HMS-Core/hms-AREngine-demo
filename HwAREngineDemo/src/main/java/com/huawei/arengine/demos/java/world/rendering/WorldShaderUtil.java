@@ -1,5 +1,5 @@
 /**
- * Copyright 2020. Huawei Technologies Co., Ltd. All rights reserved.
+ * Copyright 2021. Huawei Technologies Co., Ltd. All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -17,7 +17,8 @@
 package com.huawei.arengine.demos.java.world.rendering;
 
 import android.opengl.GLES20;
-import android.util.Log;
+
+import com.huawei.arengine.demos.common.LogUtil;
 
 /**
  * This class provides code and program for the rendering shader related to the world scene.
@@ -96,6 +97,25 @@ class WorldShaderUtil {
         + "    gl_FragColor.rgb = objectColor.rgb * + diffuse + specular;" + LS
         + "}";
 
+    private static final String POINTCLOUD_VERTEX =
+        "uniform mat4 u_ModelViewProjection;" + LS
+            + "uniform vec4 u_Color;" + LS
+            + "uniform float u_PointSize;" + LS
+            + "attribute vec4 a_Position;" + LS
+            + "varying vec4 v_Color;" + LS
+            + "void main() {" + LS
+            + "   v_Color = u_Color;" + LS
+            + "   gl_Position = u_ModelViewProjection * vec4(a_Position.xyz, 1.0);" + LS
+            + "   gl_PointSize = u_PointSize;" + LS
+            + "}";
+
+    private static final String POINTCLOUD_FRAGMENT =
+        "precision mediump float;" + LS
+            + "varying vec4 v_Color;" + LS
+            + "void main() {" + LS
+            + "    gl_FragColor = v_Color;" + LS
+            + "}";
+
     private WorldShaderUtil() {
     }
 
@@ -105,6 +125,10 @@ class WorldShaderUtil {
 
     static int getObjectProgram() {
         return createGlProgram(OBJECT_VERTEX, OBJECT_FRAGMENT);
+    }
+
+    static int getPointCloudProgram() {
+        return createGlProgram(POINTCLOUD_VERTEX, POINTCLOUD_FRAGMENT);
     }
 
     private static int createGlProgram(String vertexCode, String fragmentCode) {
@@ -124,7 +148,7 @@ class WorldShaderUtil {
             int[] linkStatus = new int[1];
             GLES20.glGetProgramiv(program, GLES20.GL_LINK_STATUS, linkStatus, 0);
             if (linkStatus[0] != GLES20.GL_TRUE) {
-                Log.e(TAG, "Could not link program " + GLES20.glGetProgramInfoLog(program));
+                LogUtil.error(TAG, "Could not link program " + GLES20.glGetProgramInfoLog(program));
                 GLES20.glDeleteProgram(program);
                 program = 0;
             }
@@ -140,8 +164,8 @@ class WorldShaderUtil {
             int[] compiled = new int[1];
             GLES20.glGetShaderiv(shader, GLES20.GL_COMPILE_STATUS, compiled, 0);
             if (compiled[0] == 0) {
-                Log.e(TAG, "glError: Could not compile shader " + shaderType);
-                Log.e(TAG, "GLES20 Error: " + GLES20.glGetShaderInfoLog(shader));
+                LogUtil.error(TAG, "glError: Could not compile shader " + shaderType);
+                LogUtil.error(TAG, "GLES20 Error: " + GLES20.glGetShaderInfoLog(shader));
                 GLES20.glDeleteShader(shader);
                 shader = 0;
             }

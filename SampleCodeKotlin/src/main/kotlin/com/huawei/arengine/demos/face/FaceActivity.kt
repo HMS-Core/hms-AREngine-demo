@@ -1,5 +1,5 @@
 /**
- * Copyright 2020. Huawei Technologies Co., Ltd. All rights reserved.
+ * Copyright 2021. Huawei Technologies Co., Ltd. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,16 +19,19 @@ package com.huawei.arengine.demos.face
 import android.app.Activity
 import android.opengl.GLSurfaceView
 import android.os.Bundle
-import android.util.Log
 import android.view.View
+import android.view.WindowManager
 import android.widget.Toast
 import com.huawei.arengine.demos.R
+import com.huawei.arengine.demos.common.LogUtil
 import com.huawei.arengine.demos.common.controller.DisplayRotationController
+import com.huawei.arengine.demos.common.service.PermissionManageService
 import com.huawei.arengine.demos.common.util.isAvailableArEngine
 import com.huawei.arengine.demos.common.util.startActivityByType
 import com.huawei.arengine.demos.common.view.ConnectAppMarketActivity
 import com.huawei.arengine.demos.face.controller.CameraController
 import com.huawei.arengine.demos.face.controller.FaceRenderController
+import com.huawei.arengine.demos.face.service.FaceGeometryService
 import com.huawei.hiar.ARConfigBase
 import com.huawei.hiar.ARFaceTrackingConfig
 import com.huawei.hiar.ARSession
@@ -70,6 +73,7 @@ class FaceActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.face_activity_main)
+        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         initUi()
     }
 
@@ -84,8 +88,11 @@ class FaceActivity : Activity() {
     }
 
     override fun onResume() {
-        Log.d(TAG, "onResume")
+        LogUtil.debug(TAG, "onResume")
         super.onResume()
+        if (!PermissionManageService.hasPermission()) {
+            finish()
+        }
         arSession?.let {
             resumeView()
             return
@@ -151,14 +158,14 @@ class FaceActivity : Activity() {
     }
 
     private fun stopArSession() {
-        Log.i(TAG, "Stop session start.")
+        LogUtil.info(TAG, "Stop session start.")
         arSession?.stop()
         arSession = null
-        Log.i(TAG, "Stop session end.")
+        LogUtil.info(TAG, "Stop session end.")
     }
 
     public override fun onPause() {
-        Log.i(TAG, "onPause start.")
+        LogUtil.info(TAG, "onPause start.")
         super.onPause()
         if (isOpenCameraOutside) {
             cameraController.run {
@@ -170,15 +177,15 @@ class FaceActivity : Activity() {
         displayRotationController.unregisterDisplayListener()
         arSession?.pause()
         faceSurfaceView.onPause()
-        Log.i(TAG, "onPause end.")
+        LogUtil.info(TAG, "onPause end.")
     }
 
     override fun onDestroy() {
-        Log.i(TAG, "onDestroy start.")
+        LogUtil.info(TAG, "onDestroy start.")
         super.onDestroy()
         arSession?.stop()
         arSession = null
-        Log.i(TAG, "onDestroy end.")
+        LogUtil.info(TAG, "onDestroy end.")
     }
 
     override fun onWindowFocusChanged(isHasFocus: Boolean) {

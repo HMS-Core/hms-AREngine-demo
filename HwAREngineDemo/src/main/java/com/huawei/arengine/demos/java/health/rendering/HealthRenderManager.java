@@ -1,5 +1,5 @@
 /**
- * Copyright 2020. Huawei Technologies Co., Ltd. All rights reserved.
+ * Copyright 2021. Huawei Technologies Co., Ltd. All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -20,18 +20,19 @@ import android.app.Activity;
 import android.content.Context;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
-import android.util.Log;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
 
-import com.huawei.arengine.demos.common.ArDemoRuntimeException;
 import com.huawei.arengine.demos.common.DisplayRotationManager;
+import com.huawei.arengine.demos.common.LogUtil;
 import com.huawei.arengine.demos.common.TextureDisplay;
 import com.huawei.hiar.ARFace;
 import com.huawei.hiar.ARFrame;
 import com.huawei.hiar.ARSession;
 import com.huawei.hiar.ARTrackable;
+import com.huawei.hiar.exceptions.ARFatalException;
+import com.huawei.hiar.exceptions.ARSessionPausedException;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -40,7 +41,7 @@ import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
 /**
- * This class shows how to render health data obtained from HUAWEI AR Engine.
+ * 背景渲染与健康数据刷新相关逻辑
  *
  * @author HW
  * @since 2020-03-18
@@ -115,15 +116,20 @@ public class HealthRenderManager implements GLSurfaceView.Renderer {
                     }
                 }
             }
-        } catch (ArDemoRuntimeException e) {
-            Log.e(TAG, "Exception on the ArDemoRuntimeException!");
+        } catch (ARSessionPausedException e) {
+            LogUtil.error(TAG, "Exception on the ARSessionPausedException!");
+        } catch (ARFatalException e) {
+            LogUtil.error(TAG, "Exception on the ARFatalException!");
+        } catch (Throwable t) {
+            // This prevents the app from crashing due to unhandled exceptions.
+            LogUtil.error(TAG, "Exception on the OpenGL thread.");
         }
     }
 
     /**
-     *  Sets the health monitoring progress.
+     * 设置健康检测进度
      *
-     * @param progress Progress.
+     * @param progress 进度信息
      */
     public void setHealthCheckProgress(int progress) {
         mProgress = progress;
@@ -137,7 +143,7 @@ public class HealthRenderManager implements GLSurfaceView.Renderer {
      */
     public void setArSession(ARSession arSession) {
         if (arSession == null) {
-            Log.e(TAG, "Set session error, arSession is null!");
+            LogUtil.error(TAG, "Set session error, arSession is null!");
             return;
         }
         mArSession = arSession;
@@ -151,20 +157,20 @@ public class HealthRenderManager implements GLSurfaceView.Renderer {
      */
     public void setDisplayRotationManage(DisplayRotationManager displayRotationManager) {
         if (displayRotationManager == null) {
-            Log.e(TAG, "Set display rotation manage error, displayRotationManage is null!");
+            LogUtil.error(TAG, "Set display rotation manage error, displayRotationManage is null!");
             return;
         }
         mDisplayRotationManager = displayRotationManager;
     }
 
     /**
-     *  Sets the TableLayout used for health data display.
+     * 设置健康显示使用的TableLayout
      *
      * @param tableLayout TableLayout.
      */
     public void setHealthParamTable(TableLayout tableLayout) {
         if (tableLayout == null) {
-            Log.e(TAG, "Set health parameter table failed, tableLayout is null");
+            LogUtil.error(TAG, "Set health parameter table failed, tableLayout is null");
             return;
         }
         mHealthParamTable = tableLayout;
@@ -181,9 +187,6 @@ public class HealthRenderManager implements GLSurfaceView.Renderer {
                 TableRow breathRateTableRow = initTableRow(ARFace.HealthParameter.PARAMETER_BREATH_RATE.toString(),
                     healthParams.getOrDefault(ARFace.HealthParameter.PARAMETER_BREATH_RATE, 0.0f).toString());
                 mHealthParamTable.addView(breathRateTableRow);
-                TableRow faceAgeTableRow = initTableRow(ARFace.HealthParameter.PARAMETER_FACE_AGE.toString(),
-                    healthParams.getOrDefault(ARFace.HealthParameter.PARAMETER_FACE_AGE, 0.0f).toString());
-                mHealthParamTable.addView(faceAgeTableRow);
             }
         });
     }

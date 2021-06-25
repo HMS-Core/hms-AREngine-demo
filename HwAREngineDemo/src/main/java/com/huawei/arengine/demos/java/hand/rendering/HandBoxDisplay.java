@@ -1,5 +1,5 @@
 /**
- * Copyright 2020. Huawei Technologies Co., Ltd. All rights reserved.
+ * Copyright 2021. Huawei Technologies Co., Ltd. All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -17,8 +17,8 @@
 package com.huawei.arengine.demos.java.hand.rendering;
 
 import android.opengl.GLES20;
-import android.util.Log;
 
+import com.huawei.arengine.demos.common.LogUtil;
 import com.huawei.arengine.demos.common.MatrixUtil;
 import com.huawei.arengine.demos.common.ShaderUtil;
 import com.huawei.hiar.ARHand;
@@ -104,7 +104,7 @@ class HandBoxDisplay implements HandRelatedDisplay {
             return;
         }
         if (projectionMatrix != null) {
-            Log.d(TAG, "Camera projection matrix: " + Arrays.toString(projectionMatrix));
+            LogUtil.debug(TAG, "Camera projection matrix: " + Arrays.toString(projectionMatrix));
         }
         for (ARHand hand : hands) {
             float[] gestureHandBoxPoints = hand.getGestureHandBox();
@@ -141,7 +141,7 @@ class HandBoxDisplay implements HandRelatedDisplay {
             }
             GLES20.glBufferData(GLES20.GL_ARRAY_BUFFER, mVboSize, null, GLES20.GL_DYNAMIC_DRAW);
         }
-        Log.d(TAG, "gesture.getGestureHandPointsNum()" + mNumPoints);
+        LogUtil.debug(TAG, "gesture.getGestureHandPointsNum()" + mNumPoints);
         FloatBuffer mVertices = FloatBuffer.wrap(glGesturePoints);
         GLES20.glBufferSubData(GLES20.GL_ARRAY_BUFFER, 0, mNumPoints * BYTES_PER_POINT,
             mVertices);

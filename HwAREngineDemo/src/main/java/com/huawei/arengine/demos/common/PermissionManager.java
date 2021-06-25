@@ -1,5 +1,5 @@
 /**
- * Copyright 2020. Huawei Technologies Co., Ltd. All rights reserved.
+ * Copyright 2021. Huawei Technologies Co., Ltd. All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -37,12 +37,10 @@ import java.util.List;
  */
 public class PermissionManager {
     private static final int REQUEST_CODE_ASK_PERMISSIONS = 1;
-    private static final String[] PERMISSIONS_ARRAYS = new String[]{
-        Manifest.permission.CAMERA};
 
-    // List of permissions to be applied for.
-    private static List<String> permissionsList = new ArrayList<>();
-    private static boolean isHasPermission = true;
+    private static final int MAX_ARRAYS = 10;
+
+    private static final String[] PERMISSIONS_ARRAYS = new String[]{Manifest.permission.CAMERA};
 
     private PermissionManager() {
     }
@@ -54,6 +52,13 @@ public class PermissionManager {
      * @param activity Activity
      */
     public static void checkPermission(final Activity activity) {
+        /**
+         * List of permissions to be applied for.
+         */
+        List<String> permissionsList = new ArrayList<>(MAX_ARRAYS);
+
+        boolean isHasPermission = true;
+
         for (String permission : PERMISSIONS_ARRAYS) {
             if (ContextCompat.checkSelfPermission(activity, permission) != PackageManager.PERMISSION_GRANTED) {
                 isHasPermission = false;
@@ -70,7 +75,6 @@ public class PermissionManager {
                 permissionsList.toArray(new String[permissionsList.size()]), REQUEST_CODE_ASK_PERMISSIONS);
         }
     }
-
 
     /**
      * Check whether the current app has the required permissions.

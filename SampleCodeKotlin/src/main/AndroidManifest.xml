@@ -1,7 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
         package="com.huawei.arengine.demos"
-        android:versionCode="120"
-        android:versionName="2.15.0.1">
+        android:versionCode="130"
+        android:versionName="3.0.0.11">
 
     <uses-permission android:name="android.permission.CAMERA" />
 
@@ -35,6 +35,18 @@
                 android:value="androidhwext:style/Theme.Emui" />
         </activity>
         <activity
+            android:name="com.huawei.arengine.demos.scenemesh.SceneMeshActivity"
+            android:theme="@style/Theme.AppCompat.NoActionBar"
+            android:configChanges="orientation|screenSize"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name="com.huawei.arengine.demos.worldbody.WorldBodyActivity"
+            android:theme="@style/Theme.AppCompat.NoActionBar"
+            android:configChanges="orientation|screenSize"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+        <activity
             android:name="com.huawei.arengine.demos.world.WorldActivity"
             android:theme="@style/Theme.AppCompat.NoActionBar"
             android:configChanges="orientation|screenSize"
@@ -58,5 +70,11 @@
             android:configChanges="orientation|screenSize"
             android:exported="false"
             android:screenOrientation="portrait" />
+        <activity
+            android:name="com.huawei.arengine.demos.augmentedimage.AugmentedImageActivity"
+            android:configChanges="orientation|screenSize"
+            android:screenOrientation="locked"
+            android:exported="false"
+            android:theme="@style/Theme.AppCompat.NoActionBar" />
     </application>
 </manifest>

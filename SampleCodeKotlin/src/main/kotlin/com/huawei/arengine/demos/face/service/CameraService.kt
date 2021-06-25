@@ -1,5 +1,5 @@
 /**
- * Copyright 2020. Huawei Technologies Co., Ltd. All rights reserved.
+ * Copyright 2021. Huawei Technologies Co., Ltd. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,12 +28,12 @@ import android.hardware.camera2.CameraManager
 import android.hardware.camera2.CaptureRequest
 import android.os.Handler
 import android.os.HandlerThread
-import android.util.Log
 import android.util.Range
 import android.util.Size
 import android.view.Surface
 import androidx.core.app.ActivityCompat
 import com.huawei.arengine.demos.MainApplication
+import com.huawei.arengine.demos.common.LogUtil
 import com.huawei.arengine.demos.common.exception.SampleAppException
 import java.io.Serializable
 import java.lang.Long.signum
@@ -85,21 +85,21 @@ class CameraService {
     private val mStateCallback: CameraDevice.StateCallback = object : CameraDevice.StateCallback() {
         override fun onOpened(camera: CameraDevice) {
             mCameraDevice = camera
-            Log.i(TAG, "CameraDevice onOpened!")
+            LogUtil.info(TAG, "CameraDevice onOpened!")
             startPreview()
         }
 
         override fun onDisconnected(camera: CameraDevice) {
             mCameraOpenCloseLock.release()
             camera.close()
-            Log.i(TAG, "CameraDevice onDisconnected!")
+            LogUtil.info(TAG, "CameraDevice onDisconnected!")
             mCameraDevice = null
         }
 
         override fun onError(camera: CameraDevice, error: Int) {
             mCameraOpenCloseLock.release()
             camera.close()
-            Log.i(TAG, "CameraDevice onError!")
+            LogUtil.info(TAG, "CameraDevice onError!")
             mCameraDevice = null
         }
     }
@@ -125,12 +125,12 @@ class CameraService {
                 }
                 mPreviewSize = getOptimalSize(maps.getOutputSizes(SurfaceTexture::class.java), width, height)
                 mCameraId = id
-                Log.i(TAG, "Preview width = " + mPreviewSize.width + ", height = "
+                LogUtil.info(TAG, "Preview width = " + mPreviewSize.width + ", height = "
                     + mPreviewSize.height + ", cameraId = " + mCameraId)
                 break
             }
         } catch (e: CameraAccessException) {
-            Log.e(TAG, "Set upCamera error")
+            LogUtil.error(TAG, "Set upCamera error")
         }
     }
 
@@ -157,7 +157,7 @@ class CameraService {
             mCameraThread = null
             mCameraHandler = null
         } catch (e: InterruptedException) {
-            Log.e(TAG, "StopCameraThread error")
+            LogUtil.error(TAG, "StopCameraThread error")
         }
     }
 
@@ -167,7 +167,7 @@ class CameraService {
      * @return Open success or failure.
      */
     fun openCamera(): Boolean {
-        Log.i(TAG, "OpenCamera!")
+        LogUtil.info(TAG, "OpenCamera!")
         val cameraManager =
             if (MainApplication.context.getSystemService(Context.CAMERA_SERVICE) is CameraManager) {
                 MainApplication.context.getSystemService(Context.CAMERA_SERVICE) as CameraManager
@@ -186,10 +186,10 @@ class CameraService {
             }
             cameraManager.openCamera(mCameraId, mStateCallback, mCameraHandler)
         } catch (e: CameraAccessException) {
-            Log.e(TAG, "OpenCamera error.")
+            LogUtil.error(TAG, "OpenCamera error.")
             return false
         } catch (e: InterruptedException) {
-            Log.e(TAG, "OpenCamera error.")
+            LogUtil.error(TAG, "OpenCamera error.")
             return false
         }
         return true
@@ -278,10 +278,10 @@ class CameraService {
     }
 
     private fun startPreview() {
-        Log.i(TAG, "StartPreview!")
+        LogUtil.info(TAG, "StartPreview!")
         mSurfaceTexture?.setDefaultBufferSize(mPreviewSize.width, mPreviewSize.height)
         if (mCameraDevice == null) {
-            Log.i(TAG, "mCameraDevice is null!")
+            LogUtil.info(TAG, "mCameraDevice is null!")
             return
         }
         try {
@@ -298,7 +298,7 @@ class CameraService {
             }
             captureSession(surfaces)
         } catch (e: CameraAccessException) {
-            Log.e(TAG, "StartPreview error")
+            LogUtil.error(TAG, "StartPreview error")
         }
     }
 
@@ -326,24 +326,24 @@ class CameraService {
                         mCameraCaptureSession?.setRepeatingBurst(captureRequests, null, mCameraHandler)
                         mCameraOpenCloseLock.release()
                     } catch (e: CameraAccessException) {
-                        Log.e(TAG, "CaptureSession onConfigured error")
+                        LogUtil.error(TAG, "CaptureSession onConfigured error")
                     }
                 }
 
                 override fun onConfigureFailed(session: CameraCaptureSession) {}
                 override fun onClosed(session: CameraCaptureSession) {
-                    Log.i(TAG, "CameraCaptureSession stopped!")
+                    LogUtil.info(TAG, "CameraCaptureSession stopped!")
                 }
             }, mCameraHandler)
         } catch (e: CameraAccessException) {
-            Log.e(TAG, "CaptureSession error")
+            LogUtil.error(TAG, "CaptureSession error")
         }
     }
 
     private fun stopPreview() {
-        Log.i(TAG, "Stop CameraCaptureSession begin!")
+        LogUtil.info(TAG, "Stop CameraCaptureSession begin!")
         mCameraCaptureSession?.close()
         mCameraCaptureSession = null
-        Log.i(TAG, "Stop CameraCaptureSession end!")
+        LogUtil.info(TAG, "Stop CameraCaptureSession end!")
     }
 }

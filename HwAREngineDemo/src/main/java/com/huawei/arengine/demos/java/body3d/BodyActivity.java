@@ -1,5 +1,5 @@
 /**
- * Copyright 2020. Huawei Technologies Co., Ltd. All rights reserved.
+ * Copyright 2021. Huawei Technologies Co., Ltd. All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -20,13 +20,15 @@ import android.app.Activity;
 import android.content.Intent;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.huawei.arengine.demos.R;
 import com.huawei.arengine.demos.common.DisplayRotationManager;
+import com.huawei.arengine.demos.common.LogUtil;
+import com.huawei.arengine.demos.common.PermissionManager;
 import com.huawei.arengine.demos.java.body3d.rendering.BodyRenderManager;
 import com.huawei.hiar.ARBodyTrackingConfig;
 import com.huawei.hiar.ARConfigBase;
@@ -68,6 +70,7 @@ public class BodyActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.body3d_activity_main);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         mTextView = findViewById(R.id.bodyTextView);
         mSurfaceView = findViewById(R.id.bodySurfaceview);
         mDisplayRotationManager = new DisplayRotationManager(this);
@@ -92,9 +95,11 @@ public class BodyActivity extends Activity {
 
     @Override
     protected void onResume() {
-        Log.d(TAG, "onResume");
+        LogUtil.debug(TAG, "onResume");
         super.onResume();
-        Exception exception = null;
+        if (!PermissionManager.hasPermission(this)) {
+            this.finish();
+        }
         message = null;
         if (mArSession == null) {
             try {
@@ -108,12 +113,11 @@ public class BodyActivity extends Activity {
                 mArSession.configure(config);
                 mBodyRenderManager.setArSession(mArSession);
             } catch (Exception capturedException) {
-                exception = capturedException;
                 setMessageWhenError(capturedException);
             }
             if (message != null) {
                 Toast.makeText(this, message, Toast.LENGTH_LONG).show();
-                Log.e(TAG, "Creating session", exception);
+                LogUtil.error(TAG, "Creating session");
                 if (mArSession != null) {
                     mArSession.stop();
                     mArSession = null;
@@ -142,7 +146,7 @@ public class BodyActivity extends Activity {
             Toast.makeText(this, "Please agree to install.", Toast.LENGTH_LONG).show();
             finish();
         }
-        Log.d(TAG, "Is Install AR Engine Apk: " + isInstallArEngineApk);
+        LogUtil.debug(TAG, "Is Install AR Engine Apk: " + isInstallArEngineApk);
         if (!isInstallArEngineApk) {
             startActivity(new Intent(this, com.huawei.arengine.demos.common.ConnectAppMarketActivity.class));
             isRemindInstall = true;
@@ -166,30 +170,30 @@ public class BodyActivity extends Activity {
 
     @Override
     protected void onPause() {
-        Log.i(TAG, "onPause start.");
+        LogUtil.info(TAG, "onPause start.");
         super.onPause();
         if (mArSession != null) {
             mDisplayRotationManager.unregisterDisplayListener();
             mSurfaceView.onPause();
             mArSession.pause();
         }
-        Log.i(TAG, "onPause end.");
+        LogUtil.info(TAG, "onPause end.");
     }
 
     @Override
     protected void onDestroy() {
-        Log.i(TAG, "onDestroy start.");
+        LogUtil.info(TAG, "onDestroy start.");
         super.onDestroy();
         if (mArSession != null) {
             mArSession.stop();
             mArSession = null;
         }
-        Log.i(TAG, "onDestroy end.");
+        LogUtil.info(TAG, "onDestroy end.");
     }
 
     @Override
     public void onWindowFocusChanged(boolean isHasFocus) {
-        Log.d(TAG, "onWindowFocusChanged");
+        LogUtil.debug(TAG, "onWindowFocusChanged");
         super.onWindowFocusChanged(isHasFocus);
         if (isHasFocus) {
             getWindow().getDecorView()

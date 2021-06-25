@@ -1,5 +1,5 @@
 /**
- * Copyright 2020. Huawei Technologies Co., Ltd. All rights reserved.
+ * Copyright 2021. Huawei Technologies Co., Ltd. All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -22,8 +22,8 @@ import android.graphics.BitmapFactory;
 import android.opengl.GLES20;
 import android.opengl.GLUtils;
 import android.opengl.Matrix;
-import android.util.Log;
 
+import com.huawei.arengine.demos.common.LogUtil;
 import com.huawei.arengine.demos.common.ShaderUtil;
 import com.huawei.hiar.ARCamera;
 import com.huawei.hiar.ARFace;
@@ -162,7 +162,7 @@ public class FaceGeometryDisplay {
         try (InputStream inputStream = context.getAssets().open("face_geometry.png")) {
             textureBitmap = BitmapFactory.decodeStream(inputStream);
         } catch (IllegalArgumentException | IOException e) {
-            Log.e(TAG, "Open bitmap error!");
+            LogUtil.error(TAG, "Open bitmap error!");
             return;
         }
 
@@ -205,7 +205,7 @@ public class FaceGeometryDisplay {
             int[] linkStatus = new int[1];
             GLES20.glGetProgramiv(program, GLES20.GL_LINK_STATUS, linkStatus, 0);
             if (linkStatus[0] != GLES20.GL_TRUE) {
-                Log.e(TAG, "Could not link program: " + GLES20.glGetProgramInfoLog(program));
+                LogUtil.error(TAG, "Could not link program: " + GLES20.glGetProgramInfoLog(program));
                 GLES20.glDeleteProgram(program);
                 program = 0;
             }
@@ -221,8 +221,8 @@ public class FaceGeometryDisplay {
             int[] compiled = new int[1];
             GLES20.glGetShaderiv(shader, GLES20.GL_COMPILE_STATUS, compiled, 0);
             if (compiled[0] == 0) {
-                Log.e(TAG, "glError: Could not compile shader " + shaderType);
-                Log.e(TAG, "GLES20 Error: " + GLES20.glGetShaderInfoLog(shader));
+                LogUtil.error(TAG, "glError: Could not compile shader " + shaderType);
+                LogUtil.error(TAG, "GLES20 Error: " + GLES20.glGetShaderInfoLog(shader));
                 GLES20.glDeleteShader(shader);
                 shader = 0;
             }
@@ -257,7 +257,7 @@ public class FaceGeometryDisplay {
         // Obtain the number of geometric texture coordinates of the
         // face (the texture coordinates are two-dimensional).
         int texNum = textureCoordinates.limit() / 2;
-        Log.d(TAG, "Update face geometry data: texture coordinates size:" + texNum);
+        LogUtil.debug(TAG, "Update face geometry data: texture coordinates size:" + texNum);
 
         GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, mVerticeId);
         if (mVerticeBufferSize < (mPointsNum + texNum) * BYTES_PER_POINT) {
@@ -275,7 +275,7 @@ public class FaceGeometryDisplay {
 
         mTrianglesNum = faceGeometry.getTriangleCount();
         IntBuffer faceTriangleIndices = faceGeometry.getTriangleIndices();
-        Log.d(TAG, "update face geometry data: faceTriangleIndices.size: " + faceTriangleIndices.limit());
+        LogUtil.debug(TAG, "update face geometry data: faceTriangleIndices.size: " + faceTriangleIndices.limit());
 
         GLES20.glBindBuffer(GLES20.GL_ELEMENT_ARRAY_BUFFER, mTriangleId);
         if (mTriangleBufferSize < mTrianglesNum * BYTES_PER_POINT) {
@@ -308,11 +308,10 @@ public class FaceGeometryDisplay {
      */
     private void drawFaceGeometry() {
         ShaderUtil.checkGlError(TAG, "Before draw.");
-        Log.d(TAG, "Draw face geometry: mPointsNum: " + mPointsNum + " mTrianglesNum: " + mTrianglesNum);
+        LogUtil.debug(TAG, "Draw face geometry: mPointsNum: " + mPointsNum + " mTrianglesNum: " + mTrianglesNum);
 
         GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mTextureName);
-        GLES20.glUniform1i(mTextureUniform, 0);
         ShaderUtil.checkGlError(TAG, "Init texture.");
 
         GLES20.glEnable(GLES20.GL_DEPTH_TEST);

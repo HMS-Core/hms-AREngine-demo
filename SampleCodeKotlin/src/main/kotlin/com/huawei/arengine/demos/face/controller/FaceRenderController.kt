@@ -1,5 +1,5 @@
 /**
- * Copyright 2020. Huawei Technologies Co., Ltd. All rights reserved.
+ * Copyright 2021. Huawei Technologies Co., Ltd. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,8 @@ package com.huawei.arengine.demos.face.controller
 import android.app.Activity
 import android.opengl.GLES20
 import android.opengl.GLSurfaceView
-import android.util.Log
 import com.huawei.arengine.demos.R
+import com.huawei.arengine.demos.common.LogUtil
 import com.huawei.arengine.demos.common.controller.DisplayRotationController
 import com.huawei.arengine.demos.common.exception.SampleAppException
 import com.huawei.arengine.demos.common.service.BackgroundTextureService
@@ -66,7 +66,7 @@ class FaceRenderController(private val activity: Activity,
 
     override fun onSurfaceCreated(gl: GL10, config: EGLConfig) {
         GLES20.glClearColor(0.1f, 0.1f, 0.1f, 1.0f)
-        Log.i(TAG, "On surface created textureId= $mTextureId")
+        LogUtil.info(TAG, "On surface created textureId= $mTextureId")
         if (isOpenCameraOutside) {
             backgroundTextureService.init(mTextureId)
         } else {
@@ -101,7 +101,7 @@ class FaceRenderController(private val activity: Activity,
             backgroundTextureService.renderBackgroundTexture(frame)
             renderFace(frame)
         } catch (exception: SampleAppException) {
-            Log.e(TAG, "Exception on the ArDemoRuntimeException!")
+            LogUtil.error(TAG, "Exception on the ArDemoRuntimeException!")
         }
     }
 

@@ -1,5 +1,5 @@
 /**
- * Copyright 2020. Huawei Technologies Co., Ltd. All rights reserved.
+ * Copyright 2021. Huawei Technologies Co., Ltd. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.huawei.arengine.demos.world.util
 
 import android.opengl.Matrix
@@ -84,6 +85,23 @@ object Constants {
         + "    gl_FragColor.rgb = objectColor.rgb * + diffuse + specular;"
         + "}")
 
+    const val POINTCLOUD_VERTEX = ("uniform mat4 u_ModelViewProjection;"
+            + "uniform vec4 u_Color;"
+            + "uniform float u_PointSize;"
+            + "attribute vec4 a_Position;"
+            + "varying vec4 v_Color;"
+            + "void main() {"
+            + "   v_Color = u_Color;"
+            + "   gl_Position = u_ModelViewProjection * vec4(a_Position.xyz, 1.0);"
+            + "   gl_PointSize = u_PointSize;"
+            + "}")
+
+    const val POINTCLOUD_FRAGMENT = ("precision mediump float;"
+            + "varying vec4 v_Color;"
+            + "void main() {"
+            + "    gl_FragColor = v_Color;"
+            + "}")
+
     const val PROJ_MATRIX_NEAR = 0.1f
 
     const val PROJ_MATRIX_FAR = 100.0f
@@ -111,6 +129,16 @@ object Constants {
     val BLUE_COLORS = floatArrayOf(66.0f, 133.0f, 244.0f, 255.0f)
 
     val GREEN_COLORS = floatArrayOf(66.0f, 133.0f, 244.0f, 255.0f)
+
+    const val POSITION_COMPONENTS_NUMBERS = 4
+
+    const val BYTES_FLOAT = java.lang.Float.SIZE / 8
+
+    const val FLOATS_POINT = 4
+
+    const val BYTES_POINT = BYTES_FLOAT * FLOATS_POINT
+
+    const val INITIAL_BUFFER_POINT_SIZE = 1000
 
     /**
      * Set the default light direction.

@@ -1,5 +1,5 @@
 /**
- * Copyright 2020. Huawei Technologies Co., Ltd. All rights reserved.
+ * Copyright 2021. Huawei Technologies Co., Ltd. All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -17,8 +17,8 @@
 package com.huawei.arengine.demos.java.hand.rendering;
 
 import android.opengl.GLES20;
-import android.util.Log;
 
+import com.huawei.arengine.demos.common.LogUtil;
 import com.huawei.arengine.demos.common.ShaderUtil;
 import com.huawei.hiar.ARHand;
 
@@ -100,7 +100,7 @@ class HandSkeletonLineDisplay implements HandRelatedDisplay {
         // Verify external input. If the hand data is empty, the projection matrix is empty,
         // or the projection matrix is not 4 * 4, rendering is not performed.
         if (hands.isEmpty() || projectionMatrix == null || projectionMatrix.length != 16) {
-            Log.e(TAG, "onDrawFrame Illegal external input!");
+            LogUtil.error(TAG, "onDrawFrame Illegal external input!");
             return;
         }
         for (ARHand hand : hands) {
@@ -151,8 +151,8 @@ class HandSkeletonLineDisplay implements HandRelatedDisplay {
             GLES20.glBufferData(GLES20.GL_ARRAY_BUFFER, mVboSize, null, GLES20.GL_DYNAMIC_DRAW);
         }
         FloatBuffer linePoints = FloatBuffer.wrap(linePoint);
-        Log.d(TAG, "Skeleton skeleton line points num: " + mPointsNum);
-        Log.d(TAG, "Skeleton line points: " + linePoints.toString());
+        LogUtil.debug(TAG, "Skeleton skeleton line points num: " + mPointsNum);
+        LogUtil.debug(TAG, "Skeleton line points: " + linePoints.toString());
         GLES20.glBufferSubData(GLES20.GL_ARRAY_BUFFER, 0, mPointsNum * BYTES_PER_POINT,
             linePoints);
         GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, 0);

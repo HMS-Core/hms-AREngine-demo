@@ -1,5 +1,5 @@
 /**
- * Copyright 2020. Huawei Technologies Co., Ltd. All rights reserved.
+ * Copyright 2021. Huawei Technologies Co., Ltd. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,15 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.huawei.arengine.demos.world.controller
 
 import android.app.Activity
 import android.opengl.GLES20
 import android.opengl.GLSurfaceView
-import android.util.Log
 import android.view.View
 import android.widget.TextView
 import com.huawei.arengine.demos.R
+import com.huawei.arengine.demos.common.LogUtil
 import com.huawei.arengine.demos.common.controller.DisplayRotationController
 import com.huawei.arengine.demos.common.exception.SampleAppException
 import com.huawei.arengine.demos.common.service.BackgroundTextureService
@@ -31,6 +32,7 @@ import com.huawei.arengine.demos.common.util.findViewById
 import com.huawei.arengine.demos.common.util.showScreenTextView
 import com.huawei.arengine.demos.world.service.LabelService
 import com.huawei.arengine.demos.world.service.ObjectService
+import com.huawei.arengine.demos.world.service.PointService
 import com.huawei.arengine.demos.world.service.updateScreenText
 import com.huawei.arengine.demos.world.util.Constants
 import com.huawei.hiar.ARFrame
@@ -65,6 +67,8 @@ class WorldRenderController(private val activity: Activity,
 
     private val labelService by lazy { LabelService() }
 
+    private val pointCloudRenderer by lazy { PointService() }
+
     private val objectService by lazy { ObjectService() }
 
     override fun onSurfaceCreated(gl: GL10, config: EGLConfig) {
@@ -73,6 +77,7 @@ class WorldRenderController(private val activity: Activity,
         backgroundTextureService.init()
         objectService.init()
         labelService.init(activity)
+        pointCloudRenderer.init()
         worldTextService.setListener { text ->
             showScreenTextView(activity, findViewById(activity, R.id.wordTextView), text)
         }
@@ -107,9 +112,9 @@ class WorldRenderController(private val activity: Activity,
 
             renderLabelAndObjects(frame)
         } catch (e: SampleAppException) {
-            Log.e(TAG, "Exception on the ArDemoRuntimeException!")
+            LogUtil.error(TAG, "Exception on the ArDemoRuntimeException!")
         } catch (t: Throwable) {
-            Log.e(TAG, "Exception on the OpenGL thread: ", t)
+            LogUtil.error(TAG, "Exception on the OpenGL thread: $t")
         }
     }
 
@@ -123,6 +128,7 @@ class WorldRenderController(private val activity: Activity,
             }
         }
 
+        // projectionMatrix、viewMatrix 均为 4*4 矩阵
         val projectionMatrix = FloatArray(16)
         val viewMatrix = FloatArray(16)
         frame.camera.apply {
@@ -144,9 +150,18 @@ class WorldRenderController(private val activity: Activity,
             }
         }
         drawAllObjects(projectionMatrix, viewMatrix, lightPixelIntensity)
+        val arPointCloud = frame.acquirePointCloud()
+        pointCloudRenderer.renderPoints(arPointCloud!!, viewMatrix, projectionMatrix)
         return
     }
 
+    /**
+     * 绘制虚拟物体
+     *
+     * @param projectionMatrix 投影矩阵
+     * @param viewMatrix 视图矩阵
+     * @param lightPixelIntensity 光照参数
+     */
     private fun drawAllObjects(projectionMatrix: FloatArray, viewMatrix: FloatArray, lightPixelIntensity: Float) {
         val ite = gestureController.virtualObjects.iterator()
         while (ite.hasNext()) {

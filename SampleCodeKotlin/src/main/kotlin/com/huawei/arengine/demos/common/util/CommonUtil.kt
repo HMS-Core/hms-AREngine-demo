@@ -1,5 +1,5 @@
 /**
- * Copyright 2020. Huawei Technologies Co., Ltd. All rights reserved.
+ * Copyright 2021. Huawei Technologies Co., Ltd. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,10 +17,10 @@ package com.huawei.arengine.demos.common.util
 
 import android.app.Activity
 import android.content.Intent
-import android.util.Log
 import android.view.View
 import android.widget.Toast
 import com.huawei.arengine.demos.MainApplication
+import com.huawei.arengine.demos.common.LogUtil
 import com.huawei.arengine.demos.common.view.ConnectAppMarketActivity
 import com.huawei.hiar.AREnginesApk
 
@@ -52,7 +52,7 @@ fun isAvailableArEngine(activity: Activity): Boolean {
         Toast.makeText(activity, "Please agree to install.", Toast.LENGTH_LONG).show()
         activity.finish()
     }
-    Log.d("isAvailableArEngine", "Is Install AR Engine Apk: $isAREngineApkReady")
+    LogUtil.debug("isAvailableArEngine", "Is Install AR Engine Apk: $isAREngineApkReady")
     if (!isAREngineApkReady) {
         startActivityByType<ConnectAppMarketActivity>()
         isRemindInstall = true

@@ -1,5 +1,5 @@
 /**
- * Copyright 2020. Huawei Technologies Co., Ltd. All rights reserved.
+ * Copyright 2021. Huawei Technologies Co., Ltd. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ import android.app.Activity
 import android.opengl.GLES20
 import android.opengl.GLUtils
 import android.opengl.Matrix
-import android.util.Log
+import com.huawei.arengine.demos.common.LogUtil
 import com.huawei.arengine.demos.common.util.checkGlError
 import com.huawei.arengine.demos.common.util.createGlProgram
 import com.huawei.arengine.demos.world.pojo.LabelShaderPojo
@@ -86,7 +86,7 @@ class LabelService {
     private fun initLabelTextures(activity: Activity) {
         val labelBitmaps = getPlaneBitmaps(activity)
         if (labelBitmaps.isEmpty()) {
-            Log.e(TAG, "No bitmap.")
+            LogUtil.error(TAG, "No bitmap.")
         }
         GLES20.glGenTextures(textures.size, textures, 0)
         for ((i, labelBitmap) in labelBitmaps.withIndex()) {

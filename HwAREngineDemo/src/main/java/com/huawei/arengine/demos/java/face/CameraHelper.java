@@ -1,5 +1,5 @@
 /**
- * Copyright 2020. Huawei Technologies Co., Ltd. All rights reserved.
+ * Copyright 2021. Huawei Technologies Co., Ltd. All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -30,7 +30,6 @@ import android.hardware.camera2.CaptureRequest;
 import android.hardware.camera2.params.StreamConfigurationMap;
 import android.os.Handler;
 import android.os.HandlerThread;
-import android.util.Log;
 import android.util.Range;
 import android.util.Size;
 import android.view.Surface;
@@ -39,6 +38,7 @@ import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 
 import com.huawei.arengine.demos.common.ArDemoRuntimeException;
+import com.huawei.arengine.demos.common.LogUtil;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -88,7 +88,7 @@ public class CameraHelper {
         @Override
         public void onOpened(@NonNull CameraDevice camera) {
             mCameraDevice = camera;
-            Log.i(TAG, "CameraDevice onOpened!");
+            LogUtil.info(TAG, "CameraDevice onOpened!");
             startPreview();
         }
 
@@ -96,7 +96,7 @@ public class CameraHelper {
         public void onDisconnected(@NonNull CameraDevice camera) {
             mCameraOpenCloseLock.release();
             camera.close();
-            Log.i(TAG, "CameraDevice onDisconnected!");
+            LogUtil.info(TAG, "CameraDevice onDisconnected!");
             mCameraDevice = null;
         }
 
@@ -104,7 +104,7 @@ public class CameraHelper {
         public void onError(@NonNull CameraDevice camera, int error) {
             mCameraOpenCloseLock.release();
             camera.close();
-            Log.i(TAG, "CameraDevice onError!");
+            LogUtil.info(TAG, "CameraDevice onError!");
             mCameraDevice = null;
         }
     };
@@ -127,6 +127,10 @@ public class CameraHelper {
      */
     void setupCamera(int width, int height) {
         CameraManager cameraManager = (CameraManager) mActivity.getSystemService(Context.CAMERA_SERVICE);
+        if (cameraManager == null) {
+            LogUtil.error(TAG, "Set upCamera error. cameraManager == null");
+            return;
+        }
         try {
             for (String id : cameraManager.getCameraIdList()) {
                 CameraCharacteristics characteristics = cameraManager.getCameraCharacteristics(id);
@@ -144,12 +148,12 @@ public class CameraHelper {
                 }
                 mPreviewSize = getOptimalSize(maps.getOutputSizes(SurfaceTexture.class), width, height);
                 mCameraId = id;
-                Log.i(TAG, "Preview width = " + mPreviewSize.getWidth() + ", height = "
+                LogUtil.info(TAG, "Preview width = " + mPreviewSize.getWidth() + ", height = "
                     + mPreviewSize.getHeight() + ", cameraId = " + mCameraId);
                 break;
             }
         } catch (CameraAccessException e) {
-            Log.e(TAG, "Set upCamera error");
+            LogUtil.error(TAG, "Set upCamera error");
         }
     }
 
@@ -160,7 +164,7 @@ public class CameraHelper {
         mCameraThread = new HandlerThread("CameraThread");
         mCameraThread.start();
         if (mCameraThread.getLooper() != null) {
-            Log.e(TAG, "startCameraThread mCameraThread.getLooper() null!");
+            LogUtil.error(TAG, "startCameraThread mCameraThread.getLooper() null!");
             return;
         }
         mCameraHandler = new Handler(mCameraThread.getLooper());
@@ -177,7 +181,7 @@ public class CameraHelper {
             mCameraThread = null;
             mCameraHandler = null;
         } catch (InterruptedException e) {
-            Log.e(TAG, "StopCameraThread error");
+            LogUtil.error(TAG, "StopCameraThread error");
         }
     }
 
@@ -187,11 +191,15 @@ public class CameraHelper {
      * @return Open success or failure.
      */
     boolean openCamera() {
-        Log.i(TAG, "OpenCamera!");
+        LogUtil.info(TAG, "OpenCamera!");
         CameraManager cameraManager = null;
         if (mActivity.getSystemService(Context.CAMERA_SERVICE) instanceof CameraManager) {
             cameraManager = (CameraManager) mActivity.getSystemService(Context.CAMERA_SERVICE);
         } else {
+            return false;
+        }
+        if (cameraManager == null) {
+            LogUtil.error(TAG, "OpenCamera error. cameraManager == null");
             return false;
         }
         try {
@@ -206,7 +214,7 @@ public class CameraHelper {
             }
             cameraManager.openCamera(mCameraId, mStateCallback, mCameraHandler);
         } catch (CameraAccessException | InterruptedException e) {
-            Log.e(TAG, "OpenCamera error.");
+            LogUtil.error(TAG, "OpenCamera error.");
             return false;
         }
         return true;
@@ -218,14 +226,14 @@ public class CameraHelper {
     void closeCamera() {
         try {
             mCameraOpenCloseLock.acquire();
-            Log.i(TAG, "Stop CameraCaptureSession begin!");
+            LogUtil.info(TAG, "Stop CameraCaptureSession begin!");
             stopPreview();
-            Log.i(TAG, "Stop CameraCaptureSession stopped!");
+            LogUtil.info(TAG, "Stop CameraCaptureSession stopped!");
             if (mCameraDevice != null) {
-                Log.i(TAG, "Stop Camera!");
+                LogUtil.info(TAG, "Stop Camera!");
                 mCameraDevice.close();
                 mCameraDevice = null;
-                Log.i(TAG, "Stop Camera stopped!");
+                LogUtil.info(TAG, "Stop Camera stopped!");
             }
         } catch (InterruptedException e) {
             throw new ArDemoRuntimeException("Interrupted while trying to lock camera closing.", e);
@@ -302,14 +310,14 @@ public class CameraHelper {
 
     private void startPreview() {
         if (mSurfaceTexture == null) {
-            Log.i(TAG, "mSurfaceTexture is null!");
+            LogUtil.info(TAG, "mSurfaceTexture is null!");
             return;
         }
-        Log.i(TAG, "StartPreview!");
+        LogUtil.info(TAG, "StartPreview!");
         mSurfaceTexture.setDefaultBufferSize(mPreviewSize.getWidth(), mPreviewSize.getHeight());
 
         if (mCameraDevice == null) {
-            Log.i(TAG, "mCameraDevice is null!");
+            LogUtil.info(TAG, "mCameraDevice is null!");
             return;
         }
         try {
@@ -326,7 +334,7 @@ public class CameraHelper {
             }
             captureSession(surfaces);
         } catch (CameraAccessException e) {
-            Log.e(TAG, "StartPreview error");
+            LogUtil.error(TAG, "StartPreview error");
         }
     }
 
@@ -337,7 +345,7 @@ public class CameraHelper {
                 public void onConfigured(@NonNull CameraCaptureSession session) {
                     try {
                         if (mCameraDevice == null) {
-                            Log.w(TAG, "CameraDevice stop!");
+                            LogUtil.warn(TAG, "CameraDevice stop!");
                             return;
                         }
                         if (mPreViewSurface != null) {
@@ -359,7 +367,7 @@ public class CameraHelper {
                         mCameraCaptureSession.setRepeatingBurst(captureRequests, null, mCameraHandler);
                         mCameraOpenCloseLock.release();
                     } catch (CameraAccessException e) {
-                        Log.e(TAG, "CaptureSession onConfigured error");
+                        LogUtil.error(TAG, "CaptureSession onConfigured error");
                     }
                 }
 
@@ -369,11 +377,11 @@ public class CameraHelper {
 
                 @Override
                 public void onClosed(@NonNull CameraCaptureSession session) {
-                    Log.i(TAG, "CameraCaptureSession stopped!");
+                    LogUtil.info(TAG, "CameraCaptureSession stopped!");
                 }
             }, mCameraHandler);
         } catch (CameraAccessException e) {
-            Log.e(TAG, "CaptureSession error");
+            LogUtil.error(TAG, "CaptureSession error");
         }
     }
 
@@ -382,7 +390,7 @@ public class CameraHelper {
             mCameraCaptureSession.close();
             mCameraCaptureSession = null;
         } else {
-            Log.i(TAG, "mCameraCaptureSession is null!");
+            LogUtil.info(TAG, "mCameraCaptureSession is null!");
         }
     }
 }

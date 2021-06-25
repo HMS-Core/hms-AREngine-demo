@@ -1,5 +1,5 @@
 /**
- * Copyright 2020. Huawei Technologies Co., Ltd. All rights reserved.
+ * Copyright 2021. Huawei Technologies Co., Ltd. All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -20,11 +20,11 @@ import android.app.Activity;
 import android.graphics.Color;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
-import android.util.Log;
 import android.widget.TextView;
 
 import com.huawei.arengine.demos.common.ArDemoRuntimeException;
 import com.huawei.arengine.demos.common.DisplayRotationManager;
+import com.huawei.arengine.demos.common.LogUtil;
 import com.huawei.arengine.demos.common.TextDisplay;
 import com.huawei.arengine.demos.common.TextureDisplay;
 import com.huawei.hiar.ARBody;
@@ -97,7 +97,7 @@ public class BodyRenderManager implements GLSurfaceView.Renderer {
      */
     public void setArSession(ARSession arSession) {
         if (arSession == null) {
-            Log.e(TAG, "Set session error, arSession is null!");
+            LogUtil.error(TAG, "Set session error, arSession is null!");
             return;
         }
         mSession = arSession;
@@ -110,7 +110,7 @@ public class BodyRenderManager implements GLSurfaceView.Renderer {
      */
     public void setDisplayRotationManage(DisplayRotationManager displayRotationManager) {
         if (displayRotationManager == null) {
-            Log.e(TAG, "Set display rotation manage error, display rotation manage is null!");
+            LogUtil.error(TAG, "Set display rotation manage error, display rotation manage is null!");
             return;
         }
         mDisplayRotationManager = displayRotationManager;
@@ -123,7 +123,7 @@ public class BodyRenderManager implements GLSurfaceView.Renderer {
      */
     public void setTextView(TextView textView) {
         if (textView == null) {
-            Log.e(TAG, "Set textView error, text view is null!");
+            LogUtil.error(TAG, "Set textView error, text view is null!");
             return;
         }
         mTextView = textView;
@@ -222,10 +222,10 @@ public class BodyRenderManager implements GLSurfaceView.Renderer {
                 bodyRelatedDisplay.onDrawFrame(bodies, projectionMatrix);
             }
         } catch (ArDemoRuntimeException e) {
-            Log.e(TAG, "Exception on the ArDemoRuntimeException!");
+            LogUtil.error(TAG, "Exception on the ArDemoRuntimeException!");
         } catch (Throwable t) {
             // This prevents the app from crashing due to unhandled exceptions.
-            Log.e(TAG, "Exception on the OpenGL thread");
+            LogUtil.error(TAG, "Exception on the OpenGL thread");
         }
     }
 

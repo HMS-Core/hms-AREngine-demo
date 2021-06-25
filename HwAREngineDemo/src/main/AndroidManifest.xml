@@ -1,7 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.huawei.arengine.demos"
-    android:versionCode="120"
-    android:versionName="2.15.0.1">
+    android:versionCode="130"
+    android:versionName="3.0.0.11">
     <uses-permission android:name="android.permission.CAMERA" />
 
     <application
@@ -16,7 +16,7 @@
         <activity
             android:name="com.huawei.arengine.demos.ChooseActivity"
             android:exported="true"
-            android:screenOrientation="locked">
+            android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -35,27 +35,55 @@
         <activity
             android:name="com.huawei.arengine.demos.java.world.WorldActivity"
             android:configChanges="orientation|screenSize"
-            android:screenOrientation="locked"
+            android:exported="false"
+            android:screenOrientation="portrait"
             android:theme="@style/Theme.AppCompat.NoActionBar" />
         <activity
             android:name="com.huawei.arengine.demos.java.face.FaceActivity"
             android:configChanges="orientation|screenSize"
-            android:screenOrientation="locked"
+            android:exported="false"
+            android:screenOrientation="portrait"
             android:theme="@style/Theme.AppCompat.NoActionBar" />
         <activity
             android:name="com.huawei.arengine.demos.java.body3d.BodyActivity"
             android:configChanges="orientation|screenSize"
-            android:screenOrientation="locked"
+            android:exported="false"
+            android:screenOrientation="portrait"
             android:theme="@style/Theme.AppCompat.NoActionBar" />
         <activity
             android:name="com.huawei.arengine.demos.java.hand.HandActivity"
             android:configChanges="orientation|screenSize"
-            android:screenOrientation="locked"
+            android:exported="false"
+            android:screenOrientation="portrait"
             android:theme="@style/Theme.AppCompat.NoActionBar" />
         <activity
             android:name="com.huawei.arengine.demos.java.health.HealthActivity"
             android:theme="@style/Theme.AppCompat.NoActionBar"
             android:configChanges="orientation|screenSize"
+            android:exported="false"
             android:screenOrientation="portrait" />
+        <activity android:name=".java.scenemesh.SceneMeshActivity"
+            android:theme="@style/Theme.AppCompat.NoActionBar"
+            android:configChanges="orientation|screenSize"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name="com.huawei.arengine.demos.java.augmentedimage.AugmentedImageActivity"
+            android:configChanges="orientation|screenSize"
+            android:screenOrientation="portrait"
+            android:exported="false"
+            android:theme="@style/Theme.AppCompat.NoActionBar" />
+        <activity
+            android:name="com.huawei.arengine.demos.java.worldbody.WorldBodyActivity"
+            android:configChanges="orientation|screenSize"
+            android:screenOrientation="portrait"
+            android:exported="false"
+            android:theme="@style/Theme.AppCompat.NoActionBar" />
+        <activity
+            android:name="com.huawei.arengine.demos.java.cloudaugmentedobject.CloudAugmentedObjectActivity"
+            android:configChanges="orientation|screenSize"
+            android:screenOrientation="portrait"
+            android:exported="false"
+            android:theme="@style/Theme.AppCompat.NoActionBar" />
     </application>
 </manifest>

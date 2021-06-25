@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.huawei.arengine.demos.java.augmentedimage.AugmentedImageActivity">
+
+    <android.opengl.GLSurfaceView
+        android:id="@+id/ImageSurfaceview"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_gravity="top" />
+
+    <TextView
+        android:id="@+id/image_science_park"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/label_border"
+        android:text="Tech Park"
+        android:visibility="gone"
+        android:textColor="#fafad2"
+        tools:layout_editor_absoluteX="315dp"
+        tools:layout_editor_absoluteY="4dp" />
+</RelativeLayout>

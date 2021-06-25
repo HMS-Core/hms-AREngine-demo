@@ -1,5 +1,5 @@
 /**
- * Copyright 2020. Huawei Technologies Co., Ltd. All rights reserved.
+ * Copyright 2021. Huawei Technologies Co., Ltd. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +20,8 @@ import android.graphics.BitmapFactory
 import android.opengl.GLES20
 import android.opengl.GLUtils
 import android.opengl.Matrix
-import android.util.Log
 import com.huawei.arengine.demos.MainApplication
+import com.huawei.arengine.demos.common.LogUtil
 import com.huawei.arengine.demos.common.util.MatrixUtil.normalizeVec3
 import com.huawei.arengine.demos.common.util.checkGlError
 import com.huawei.arengine.demos.common.util.createGlProgram
@@ -95,10 +95,10 @@ class ObjectService {
                 textureBitmap = BitmapFactory.decodeStream(inputStream)
             }
         } catch (e: IllegalArgumentException) {
-            Log.e(TAG, "Get data error!")
+            LogUtil.error(TAG, "Get data error!")
             return
         } catch (e: IOException) {
-            Log.e(TAG, "Get data error!")
+            LogUtil.error(TAG, "Get data error!")
             return
         }
         GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, textureBitmap, 0)

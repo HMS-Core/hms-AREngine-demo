@@ -1,5 +1,5 @@
 /**
- * Copyright 2020. Huawei Technologies Co., Ltd. All rights reserved.
+ * Copyright 2021. Huawei Technologies Co., Ltd. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,8 @@
  */
 package com.huawei.arengine.demos.world.util
 
-import android.util.Log
 import com.huawei.arengine.demos.MainApplication
+import com.huawei.arengine.demos.common.LogUtil
 import com.huawei.arengine.demos.world.pojo.ObjectPojo
 import de.javagl.obj.Obj
 import de.javagl.obj.ObjData
@@ -49,10 +49,10 @@ object ObjectUtil {
                 obj = ObjUtils.convertToRenderable(obj)
             }
         } catch (e: IllegalArgumentException) {
-            Log.e(TAG, "Get data failed!")
+            LogUtil.error(TAG, "Get data failed!")
             return null
         } catch (e: IOException) {
-            Log.e(TAG, "Get data failed!")
+            LogUtil.error(TAG, "Get data failed!")
             return null
         }
 

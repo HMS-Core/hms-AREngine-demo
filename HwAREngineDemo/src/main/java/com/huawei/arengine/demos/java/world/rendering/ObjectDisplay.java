@@ -22,9 +22,9 @@ import android.graphics.BitmapFactory;
 import android.opengl.GLES20;
 import android.opengl.GLUtils;
 import android.opengl.Matrix;
-import android.util.Log;
 import android.view.MotionEvent;
 
+import com.huawei.arengine.demos.common.LogUtil;
 import com.huawei.arengine.demos.common.MatrixUtil;
 import com.huawei.arengine.demos.common.ShaderUtil;
 import com.huawei.arengine.demos.java.world.VirtualObject;
@@ -164,7 +164,7 @@ public class ObjectDisplay {
         try (InputStream inputStream = context.getAssets().open("AR_logo.png")) {
             textureBitmap = BitmapFactory.decodeStream(inputStream);
         } catch (IllegalArgumentException | IOException e) {
-            Log.e(TAG, "Get data error!");
+            LogUtil.error(TAG, "Get data error!");
             return;
         }
         GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, textureBitmap, 0);
@@ -180,7 +180,7 @@ public class ObjectDisplay {
         if (objectDataOptional.isPresent()) {
             objectData = objectDataOptional.get();
         } else {
-            Log.e(TAG, "Read object error.");
+            LogUtil.error(TAG, "Read object error.");
             return;
         }
         mTexCoordsBaseAddress = FLOAT_BYTE_SIZE * objectData.objectIndices.limit();
@@ -209,7 +209,7 @@ public class ObjectDisplay {
             obj = ObjReader.read(objInputStream);
             obj = ObjUtils.convertToRenderable(obj);
         } catch (IllegalArgumentException | IOException e) {
-            Log.e(TAG, "Get data failed!");
+            LogUtil.error(TAG, "Get data failed!");
             return Optional.empty();
         }
 

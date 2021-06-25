@@ -1,5 +1,5 @@
 /**
- * Copyright 2020. Huawei Technologies Co., Ltd. All rights reserved.
+ * Copyright 2021. Huawei Technologies Co., Ltd. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -73,7 +73,7 @@ class HandSkeletonLineService : HandRenderService() {
          * handSkeletonConnection saves the node indexes. Two indexes obtain a set of connection point data.
          * Therefore, j = j + 2. This loop obtains related coordinates and saves them in linePoint.
          */
-        for (i in 0..handSkeletonConnection.size step 2) {
+        for (i in 0..(handSkeletonConnection.size - 2) step 2) {
             for (j in 0..2) {
                 linePoints[i * 3 + j] = handSkeletons[3 * handSkeletonConnection[i] + j]
                 linePoints[i * 3 + j + 3] = handSkeletons[3 * handSkeletonConnection[i + 1] + j]

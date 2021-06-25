@@ -1,5 +1,5 @@
 /**
- * Copyright 2020. Huawei Technologies Co., Ltd. All rights reserved.
+ * Copyright 2021. Huawei Technologies Co., Ltd. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,8 @@ import android.app.Activity
 import android.graphics.SurfaceTexture
 import android.opengl.GLES20
 import android.util.DisplayMetrics
-import android.util.Log
 import android.view.Surface
+import com.huawei.arengine.demos.common.LogUtil
 import com.huawei.arengine.demos.face.service.CameraService
 import com.huawei.hiar.ARConfigBase
 import com.huawei.hiar.ARSession
@@ -54,7 +54,7 @@ class CameraController(private val activity: Activity) {
 
     fun startCameraService() {
         if (cameraService == null) {
-            Log.i(TAG, "new Camera")
+            LogUtil.info(TAG, "new Camera")
             val displayMetrics = DisplayMetrics()
             cameraService = CameraService().apply {
                 setupCamera(displayMetrics.widthPixels, displayMetrics.heightPixels)
@@ -76,7 +76,7 @@ class CameraController(private val activity: Activity) {
             setVgaSurface(vgaSurface)
             setDepthSurface(depthSurface)
             if (!openCamera()) {
-                Log.e(TAG, "Open camera failed!")
+                LogUtil.error(TAG, "Open camera failed!")
                 activity.finish()
             }
         }
@@ -85,7 +85,7 @@ class CameraController(private val activity: Activity) {
     private fun initSurface() {
         val surfaceTypeList: MutableList<ARConfigBase.SurfaceType> = arConfig.imageInputSurfaceTypes
         val surfaceList = arConfig.imageInputSurfaces
-        Log.i(TAG, "surfaceList size : " + surfaceList.size)
+        LogUtil.info(TAG, "surfaceList size : " + surfaceList.size)
         val size = surfaceTypeList.size
         for (i in 0 until size) {
             val type = surfaceTypeList[i]
@@ -95,9 +95,9 @@ class CameraController(private val activity: Activity) {
                 ARConfigBase.SurfaceType.VGA -> vgaSurface = surface
                 ARConfigBase.SurfaceType.METADATA -> metaDataSurface = surface
                 ARConfigBase.SurfaceType.DEPTH -> depthSurface = surface
-                else -> Log.i(TAG, "Unknown type.")
+                else -> LogUtil.info(TAG, "Unknown type.")
             }
-            Log.i(TAG, "list[$i] get surface : $surface, type : $type")
+            LogUtil.info(TAG, "list[$i] get surface : $surface, type : $type")
         }
     }
 

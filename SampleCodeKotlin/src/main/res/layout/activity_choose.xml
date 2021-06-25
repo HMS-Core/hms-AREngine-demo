@@ -69,6 +69,49 @@
                 android:text="@string/hand_ar"
                 android:textAllCaps="false"
                 android:textColor="@color/white" />
+
+            <Button
+                android:id="@+id/btn_augmented_image"
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:layout_marginLeft="20dp"
+                android:layout_marginRight="20dp"
+                android:layout_marginBottom="20dp"
+                android:textAllCaps="false"
+                android:background="@drawable/selector_reset"
+                android:gravity="center"
+                android:onClick="onClick"
+                android:text="AugmentedImage"
+                android:textColor="@color/white" />
+
+            <Button
+                android:id="@+id/btn_scence_mesh"
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:layout_marginBottom="20dp"
+                android:layout_marginLeft="20dp"
+                android:layout_marginRight="20dp"
+                android:background="@drawable/selector_reset"
+                android:gravity="center"
+                android:onClick="onClick"
+                android:text="@string/scene_mesh"
+                android:textAllCaps="false"
+                android:textColor="@color/white" />
+
+            <Button
+                android:id="@+id/btn_worldbody_ar"
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:layout_marginBottom="20dp"
+                android:layout_marginLeft="20dp"
+                android:layout_marginRight="20dp"
+                android:background="@drawable/selector_reset"
+                android:gravity="center"
+                android:onClick="onClick"
+                android:text="@string/worldbody_ar"
+                android:textAllCaps="false"
+                android:textColor="@color/white" />
+
         </LinearLayout>
     </ScrollView>
 </RelativeLayout>

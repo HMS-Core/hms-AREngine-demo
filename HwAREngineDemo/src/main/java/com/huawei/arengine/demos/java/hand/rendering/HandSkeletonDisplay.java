@@ -1,5 +1,5 @@
 /**
- * Copyright 2020. Huawei Technologies Co., Ltd. All rights reserved.
+ * Copyright 2021. Huawei Technologies Co., Ltd. All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -17,8 +17,8 @@
 package com.huawei.arengine.demos.java.hand.rendering;
 
 import android.opengl.GLES20;
-import android.util.Log;
 
+import com.huawei.arengine.demos.common.LogUtil;
 import com.huawei.arengine.demos.common.ShaderUtil;
 import com.huawei.hiar.ARHand;
 
@@ -96,7 +96,7 @@ class HandSkeletonDisplay implements HandRelatedDisplay {
         // Verify external input. If the hand data is empty, the projection matrix is empty,
         // or the projection matrix is not 4 x 4, rendering is not performed.
         if (hands.isEmpty() || projectionMatrix == null || projectionMatrix.length != 16) {
-            Log.e(TAG, "onDrawFrame Illegal external input!");
+            LogUtil.error(TAG, "onDrawFrame Illegal external input!");
             return;
         }
         for (ARHand hand : hands) {
@@ -118,7 +118,7 @@ class HandSkeletonDisplay implements HandRelatedDisplay {
         // Each point has a 3D coordinate. The total number of coordinates
         // is three times the number of skeleton points.
         int mPointsNum = handSkeletons.length / 3;
-        Log.d(TAG, "ARHand HandSkeletonNumber = " + mPointsNum);
+        LogUtil.debug(TAG, "ARHand HandSkeletonNumber = " + mPointsNum);
         GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, mVbo);
         mNumPoints = mPointsNum;
         if (mVboSize < mNumPoints * BYTES_PER_POINT) {

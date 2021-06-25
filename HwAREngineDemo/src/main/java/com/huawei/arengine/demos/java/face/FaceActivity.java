@@ -1,5 +1,5 @@
 /**
- * Copyright 2020. Huawei Technologies Co., Ltd. All rights reserved.
+ * Copyright 2021. Huawei Technologies Co., Ltd. All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -23,14 +23,16 @@ import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.Surface;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.huawei.arengine.demos.R;
 import com.huawei.arengine.demos.common.DisplayRotationManager;
+import com.huawei.arengine.demos.common.LogUtil;
+import com.huawei.arengine.demos.common.PermissionManager;
 import com.huawei.arengine.demos.java.face.rendering.FaceRenderManager;
 import com.huawei.hiar.ARConfigBase;
 import com.huawei.hiar.AREnginesApk;
@@ -91,6 +93,7 @@ public class FaceActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.face_activity_main);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         mTextView = findViewById(R.id.faceTextView);
         glSurfaceView = findViewById(R.id.faceSurfaceview);
 
@@ -115,10 +118,12 @@ public class FaceActivity extends Activity {
 
     @Override
     protected void onResume() {
-        Log.d(TAG, "onResume");
+        LogUtil.debug(TAG, "onResume");
         super.onResume();
+        if (!PermissionManager.hasPermission(this)) {
+            this.finish();
+        }
         mDisplayRotationManager.registerDisplayListener();
-        Exception exception = null;
         message = null;
         if (mArSession == null) {
             try {
@@ -136,11 +141,10 @@ public class FaceActivity extends Activity {
                 }
                 mArSession.configure(mArConfig);
             } catch (Exception capturedException) {
-                exception = capturedException;
                 setMessageWhenError(capturedException);
             }
             if (message != null) {
-                stopArSession(exception);
+                stopArSession();
                 return;
             }
         }
@@ -169,7 +173,7 @@ public class FaceActivity extends Activity {
             Toast.makeText(this, "Please agree to install.", Toast.LENGTH_LONG).show();
             finish();
         }
-        Log.d(TAG, "Is Install AR Engine Apk: " + isInstallArEngineApk);
+        LogUtil.debug(TAG, "Is Install AR Engine Apk: " + isInstallArEngineApk);
         if (!isInstallArEngineApk) {
             startActivity(new Intent(this, com.huawei.arengine.demos.common.ConnectAppMarketActivity.class));
             isRemindInstall = true;
@@ -191,20 +195,19 @@ public class FaceActivity extends Activity {
         }
     }
 
-    private void stopArSession(Exception exception) {
-        Log.i(TAG, "Stop session start.");
+    private void stopArSession() {
+        LogUtil.info(TAG, "Stop session start.");
         Toast.makeText(this, message, Toast.LENGTH_LONG).show();
-        Log.e(TAG, "Creating session error ", exception);
         if (mArSession != null) {
             mArSession.stop();
             mArSession = null;
         }
-        Log.i(TAG, "Stop session end.");
+        LogUtil.info(TAG, "Stop session end.");
     }
 
     private void setCamera() {
         if (isOpenCameraOutside && mCamera == null) {
-            Log.i(TAG, "new Camera");
+            LogUtil.info(TAG, "new Camera");
             DisplayMetrics dm = new DisplayMetrics();
             mCamera = new CameraHelper(this);
             mCamera.setupCamera(dm.widthPixels, dm.heightPixels);
@@ -230,7 +233,7 @@ public class FaceActivity extends Activity {
             mCamera.setDepthSurface(mDepthSurface);
             if (!mCamera.openCamera()) {
                 String showMessage = "Open camera filed!";
-                Log.e(TAG, showMessage);
+                LogUtil.error(TAG, showMessage);
                 Toast.makeText(this, showMessage, Toast.LENGTH_LONG).show();
                 finish();
             }
@@ -241,7 +244,7 @@ public class FaceActivity extends Activity {
         List<ARConfigBase.SurfaceType> surfaceTypeList = mArConfig.getImageInputSurfaceTypes();
         List<Surface> surfaceList = mArConfig.getImageInputSurfaces();
 
-        Log.i(TAG, "surfaceList size : " + surfaceList.size());
+        LogUtil.info(TAG, "surfaceList size : " + surfaceList.size());
         int size = surfaceTypeList.size();
         for (int i = 0; i < size; i++) {
             ARConfigBase.SurfaceType type = surfaceTypeList.get(i);
@@ -255,15 +258,15 @@ public class FaceActivity extends Activity {
             } else if (ARConfigBase.SurfaceType.DEPTH.equals(type)) {
                 mDepthSurface = surface;
             } else {
-                Log.i(TAG, "Unknown type.");
+                LogUtil.info(TAG, "Unknown type.");
             }
-            Log.i(TAG, "list[" + i + "] get surface : " + surface + ", type : " + type);
+            LogUtil.info(TAG, "list[" + i + "] get surface : " + surface + ", type : " + type);
         }
     }
 
     @Override
     protected void onPause() {
-        Log.i(TAG, "onPause start.");
+        LogUtil.info(TAG, "onPause start.");
         super.onPause();
         if (isOpenCameraOutside) {
             if (mCamera != null) {
@@ -277,27 +280,27 @@ public class FaceActivity extends Activity {
             mDisplayRotationManager.unregisterDisplayListener();
             glSurfaceView.onPause();
             mArSession.pause();
-            Log.i(TAG, "Session paused!");
+            LogUtil.info(TAG, "Session paused!");
         }
-        Log.i(TAG, "onPause end.");
+        LogUtil.info(TAG, "onPause end.");
     }
 
     @Override
     protected void onDestroy() {
-        Log.i(TAG, "onDestroy start.");
+        LogUtil.info(TAG, "onDestroy start.");
         super.onDestroy();
         if (mArSession != null) {
-            Log.i(TAG, "Session onDestroy!");
+            LogUtil.info(TAG, "Session onDestroy!");
             mArSession.stop();
             mArSession = null;
-            Log.i(TAG, "Session stop!");
+            LogUtil.info(TAG, "Session stop!");
         }
-        Log.i(TAG, "onDestroy end.");
+        LogUtil.info(TAG, "onDestroy end.");
     }
 
     @Override
     public void onWindowFocusChanged(boolean isHasFocus) {
-        Log.d(TAG, "onWindowFocusChanged");
+        LogUtil.debug(TAG, "onWindowFocusChanged");
         super.onWindowFocusChanged(isHasFocus);
         if (isHasFocus) {
             getWindow().getDecorView()

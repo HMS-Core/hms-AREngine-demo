@@ -1,5 +1,5 @@
 /**
- * Copyright 2020. Huawei Technologies Co., Ltd. All rights reserved.
+ * Copyright 2021. Huawei Technologies Co., Ltd. All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -22,7 +22,6 @@ import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.TextView;
@@ -30,6 +29,7 @@ import android.widget.TextView;
 import com.huawei.arengine.demos.R;
 import com.huawei.arengine.demos.common.ArDemoRuntimeException;
 import com.huawei.arengine.demos.common.DisplayRotationManager;
+import com.huawei.arengine.demos.common.LogUtil;
 import com.huawei.arengine.demos.common.TextDisplay;
 import com.huawei.arengine.demos.common.TextureDisplay;
 import com.huawei.arengine.demos.java.world.GestureEvent;
@@ -40,6 +40,7 @@ import com.huawei.hiar.ARHitResult;
 import com.huawei.hiar.ARLightEstimate;
 import com.huawei.hiar.ARPlane;
 import com.huawei.hiar.ARPoint;
+import com.huawei.hiar.ARPointCloud;
 import com.huawei.hiar.ARPose;
 import com.huawei.hiar.ARSession;
 import com.huawei.hiar.ARTrackable;
@@ -74,7 +75,7 @@ public class WorldRenderManager implements GLSurfaceView.Renderer {
 
     private static final float[] BLUE_COLORS = new float[] {66.0f, 133.0f, 244.0f, 255.0f};
 
-    private static final float[] GREEN_COLORS = new float[] {66.0f, 133.0f, 244.0f, 255.0f};
+    private static final float[] GREEN_COLORS = new float[] {66.0f, 244.0f, 133.0f, 255.0f};
 
     private ARSession mSession;
 
@@ -99,6 +100,8 @@ public class WorldRenderManager implements GLSurfaceView.Renderer {
     private LabelDisplay mLabelDisplay = new LabelDisplay();
 
     private ObjectDisplay mObjectDisplay = new ObjectDisplay();
+
+    private PointCloudRenderer mPointCloud = new PointCloudRenderer();
 
     private DisplayRotationManager mDisplayRotationManager;
 
@@ -128,7 +131,7 @@ public class WorldRenderManager implements GLSurfaceView.Renderer {
      */
     public void setArSession(ARSession arSession) {
         if (arSession == null) {
-            Log.e(TAG, "setSession error, arSession is null!");
+            LogUtil.error(TAG, "setSession error, arSession is null!");
             return;
         }
         mSession = arSession;
@@ -141,7 +144,7 @@ public class WorldRenderManager implements GLSurfaceView.Renderer {
      */
     public void setQueuedSingleTaps(ArrayBlockingQueue<GestureEvent> queuedSingleTaps) {
         if (queuedSingleTaps == null) {
-            Log.e(TAG, "setSession error, arSession is null!");
+            LogUtil.error(TAG, "setSession error, arSession is null!");
             return;
         }
         mQueuedSingleTaps = queuedSingleTaps;
@@ -154,7 +157,7 @@ public class WorldRenderManager implements GLSurfaceView.Renderer {
      */
     public void setDisplayRotationManage(DisplayRotationManager displayRotationManager) {
         if (displayRotationManager == null) {
-            Log.e(TAG, "SetDisplayRotationManage error, displayRotationManage is null!");
+            LogUtil.error(TAG, "SetDisplayRotationManage error, displayRotationManage is null!");
             return;
         }
         mDisplayRotationManager = displayRotationManager;
@@ -176,6 +179,8 @@ public class WorldRenderManager implements GLSurfaceView.Renderer {
         mLabelDisplay.init(getPlaneBitmaps());
 
         mObjectDisplay.init(mContext);
+
+        mPointCloud.init(mContext);
     }
 
     /**
@@ -250,16 +255,18 @@ public class WorldRenderManager implements GLSurfaceView.Renderer {
                 projectionMatrix);
             handleGestureEvent(arFrame, arCamera, projectionMatrix, viewMatrix);
             ARLightEstimate lightEstimate = arFrame.getLightEstimate();
+            ARPointCloud arPointCloud = arFrame.acquirePointCloud();
             float lightPixelIntensity = 1;
             if (lightEstimate.getState() != ARLightEstimate.State.NOT_VALID) {
                 lightPixelIntensity = lightEstimate.getPixelIntensity();
             }
             drawAllObjects(projectionMatrix, viewMatrix, lightPixelIntensity);
+            mPointCloud.onDrawFrame(arPointCloud, viewMatrix, projectionMatrix);
         } catch (ArDemoRuntimeException e) {
-            Log.e(TAG, "Exception on the ArDemoRuntimeException!");
+            LogUtil.error(TAG, "Exception on the ArDemoRuntimeException!");
         } catch (Throwable t) {
             // This prevents the app from crashing due to unhandled exceptions.
-            Log.e(TAG, "Exception on the OpenGL thread: ", t);
+            LogUtil.error(TAG, "Exception on the OpenGL thread.");
         }
     }
 
@@ -386,7 +393,7 @@ public class WorldRenderManager implements GLSurfaceView.Renderer {
                 break;
             }
             default: {
-                Log.e(TAG, "Unknown motion event type, and do nothing.");
+                LogUtil.error(TAG, "Unknown motion event type, and do nothing.");
             }
         }
     }
@@ -419,7 +426,7 @@ public class WorldRenderManager implements GLSurfaceView.Renderer {
         } else if (currentTrackable instanceof ARPlane) {
             mVirtualObjects.add(new VirtualObject(hitResult.createAnchor(), GREEN_COLORS));
         } else {
-            Log.i(TAG, "Hit result is not plane or point.");
+            LogUtil.info(TAG, "Hit result is not plane or point.");
         }
     }
 

@@ -1,5 +1,5 @@
 /**
- * Copyright 2020. Huawei Technologies Co., Ltd. All rights reserved.
+ * Copyright 2021. Huawei Technologies Co., Ltd. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +20,8 @@ import android.graphics.BitmapFactory
 import android.opengl.GLES20
 import android.opengl.GLUtils
 import android.opengl.Matrix
-import android.util.Log
 import com.huawei.arengine.demos.MainApplication
+import com.huawei.arengine.demos.common.LogUtil
 import com.huawei.arengine.demos.common.util.checkGlError
 import com.huawei.arengine.demos.common.util.createGlProgram
 import com.huawei.arengine.demos.face.pojo.ShaderPojo
@@ -111,10 +111,10 @@ class FaceGeometryService {
                 textureBitmap = BitmapFactory.decodeStream(inputStream)
             }
         } catch (e: IllegalArgumentException) {
-            Log.e(TAG, "Open bitmap error!")
+            LogUtil.error(TAG, "Open bitmap error!")
             return
         } catch (e: IOException) {
-            Log.e(TAG, "Open bitmap error!")
+            LogUtil.error(TAG, "Open bitmap error!")
             return
         }
         GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE)
@@ -171,7 +171,7 @@ class FaceGeometryService {
 
         // Obtain the number of geometric texture coordinates of the face (two-dimensional).
         val texNum = textureCoordinates.limit() / 2
-        Log.d(TAG, "Update face geometry data: texture coordinates size: $texNum")
+        LogUtil.debug(TAG, "Update face geometry data: texture coordinates size: $texNum")
         GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, vertexId)
         if (vertexBufferSize < (pointsNum + texNum) * Constants.BYTES_PER_POINT) {
             while (vertexBufferSize < (pointsNum + texNum) * Constants.BYTES_PER_POINT) {
@@ -189,7 +189,7 @@ class FaceGeometryService {
     private fun updateFaceTriangles(faceGeometry: ARFaceGeometry) {
         trianglesNum = faceGeometry.triangleCount
         val faceTriangleIndices = faceGeometry.triangleIndices
-        Log.d(TAG, "update face geometry data: faceTriangleIndices.size: " + faceTriangleIndices.limit())
+        LogUtil.debug(TAG, "update face geometry data: faceTriangleIndices.size: " + faceTriangleIndices.limit())
         GLES20.glBindBuffer(GLES20.GL_ELEMENT_ARRAY_BUFFER, triangleId)
         if (triangleBufferSize < trianglesNum * Constants.BYTES_PER_POINT) {
             while (triangleBufferSize < trianglesNum * Constants.BYTES_PER_POINT) {

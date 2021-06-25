@@ -71,6 +71,20 @@
                 android:textColor="@color/white" />
 
             <Button
+                android:id="@+id/btn_augmented_image"
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:layout_marginLeft="20dp"
+                android:layout_marginRight="20dp"
+                android:layout_marginBottom="20dp"
+                android:textAllCaps="false"
+                android:background="@drawable/selector_reset"
+                android:gravity="center"
+                android:onClick="onClick"
+                android:text="AugmentedImage"
+                android:textColor="@color/white" />
+
+            <Button
                 android:id="@+id/btn_health"
                 android:layout_width="match_parent"
                 android:layout_height="40dp"
@@ -82,6 +96,48 @@
                 android:gravity="center"
                 android:onClick="onClick"
                 android:text="HealthAR"
+                android:textColor="@color/white" />
+
+            <Button
+                android:id="@+id/btn_scene_mesh"
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:layout_marginLeft="20dp"
+                android:layout_marginRight="20dp"
+                android:layout_marginBottom="20dp"
+                android:textAllCaps="false"
+                android:background="@drawable/selector_reset"
+                android:gravity="center"
+                android:onClick="onClick"
+                android:text="SceneMesh"
+                android:textColor="@color/white" />
+
+            <Button
+                android:id="@+id/btn_world_body"
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:layout_marginLeft="20dp"
+                android:layout_marginRight="20dp"
+                android:layout_marginBottom="20dp"
+                android:textAllCaps="false"
+                android:background="@drawable/selector_reset"
+                android:gravity="center"
+                android:onClick="onClick"
+                android:text="WorldBody"
+                android:textColor="@color/white" />
+
+            <Button
+                android:id="@+id/btn_cloud_3DObject"
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:layout_marginLeft="20dp"
+                android:layout_marginRight="20dp"
+                android:layout_marginBottom="20dp"
+                android:textAllCaps="false"
+                android:background="@drawable/selector_reset"
+                android:gravity="center"
+                android:onClick="onClick"
+                android:text="Cloud3DObject"
                 android:textColor="@color/white" />
         </LinearLayout>
     </ScrollView>

@@ -1,5 +1,5 @@
 /**
- * Copyright 2020. Huawei Technologies Co., Ltd. All rights reserved.
+ * Copyright 2021. Huawei Technologies Co., Ltd. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,8 @@ package com.huawei.arengine.demos.hand.controller
 import android.app.Activity
 import android.opengl.GLES20
 import android.opengl.GLSurfaceView
-import android.util.Log
 import com.huawei.arengine.demos.R
+import com.huawei.arengine.demos.common.LogUtil
 import com.huawei.arengine.demos.common.controller.DisplayRotationController
 import com.huawei.arengine.demos.common.exception.SampleAppException
 import com.huawei.arengine.demos.common.service.BackgroundTextureService
@@ -112,7 +112,7 @@ class HandRenderController(private val activity: Activity,
 
             renderHand(frame)
         } catch (e: SampleAppException) {
-            Log.e(TAG, "Exception on the OpenGL thread!")
+            LogUtil.error(TAG, "Exception on the OpenGL thread!")
         }
     }
 

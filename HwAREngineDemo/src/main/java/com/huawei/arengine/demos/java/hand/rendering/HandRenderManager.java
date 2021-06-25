@@ -1,5 +1,5 @@
 /**
- * Copyright 2020. Huawei Technologies Co., Ltd. All rights reserved.
+ * Copyright 2021. Huawei Technologies Co., Ltd. All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -20,11 +20,11 @@ import android.app.Activity;
 import android.graphics.Color;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
-import android.util.Log;
 import android.widget.TextView;
 
 import com.huawei.arengine.demos.common.ArDemoRuntimeException;
 import com.huawei.arengine.demos.common.DisplayRotationManager;
+import com.huawei.arengine.demos.common.LogUtil;
 import com.huawei.arengine.demos.common.TextDisplay;
 import com.huawei.arengine.demos.common.TextureDisplay;
 import com.huawei.hiar.ARCamera;
@@ -97,7 +97,7 @@ public class HandRenderManager implements GLSurfaceView.Renderer {
      */
     public void setArSession(ARSession arSession) {
         if (arSession == null) {
-            Log.e(TAG, "set session error, arSession is null!");
+            LogUtil.error(TAG, "set session error, arSession is null!");
             return;
         }
         mSession = arSession;
@@ -110,7 +110,7 @@ public class HandRenderManager implements GLSurfaceView.Renderer {
      */
     public void setDisplayRotationManage(DisplayRotationManager displayRotationManager) {
         if (displayRotationManager == null) {
-            Log.e(TAG, "SetDisplayRotationManage error, displayRotationManage is null!");
+            LogUtil.error(TAG, "SetDisplayRotationManage error, displayRotationManage is null!");
             return;
         }
         mDisplayRotationManager = displayRotationManager;
@@ -123,7 +123,7 @@ public class HandRenderManager implements GLSurfaceView.Renderer {
      */
     public void setTextView(TextView textView) {
         if (textView == null) {
-            Log.e(TAG, "Set text view error, textView is null!");
+            LogUtil.error(TAG, "Set text view error, textView is null!");
             return;
         }
         mTextView = textView;
@@ -218,10 +218,10 @@ public class HandRenderManager implements GLSurfaceView.Renderer {
                 handRelatedDisplay.onDrawFrame(hands, projectionMatrix);
             }
         } catch (ArDemoRuntimeException e) {
-            Log.e(TAG, "Exception on the ArDemoRuntimeException!");
+            LogUtil.error(TAG, "Exception on the ArDemoRuntimeException!");
         } catch (Throwable t) {
             // This prevents the app from crashing due to unhandled exceptions.
-            Log.e(TAG, "Exception on the OpenGL thread", t);
+            LogUtil.error(TAG, "Exception on the OpenGL thread");
         }
     }
 
@@ -242,7 +242,7 @@ public class HandRenderManager implements GLSurfaceView.Renderer {
         sb.append("GestureHandBox length:[").append(gestureHandBoxPoints.length).append("]")
             .append(System.lineSeparator());
         for (int i = 0; i < gestureHandBoxPoints.length; i++) {
-            Log.i(TAG, "gesturePoints:" + gestureHandBoxPoints[i]);
+            LogUtil.info(TAG, "gesturePoints:" + gestureHandBoxPoints[i]);
             sb.append("gesturePoints[").append(i).append("]:[").append(gestureHandBoxPoints[i]).append("]")
                 .append(System.lineSeparator());
         }
@@ -256,7 +256,7 @@ public class HandRenderManager implements GLSurfaceView.Renderer {
         sb.append("gestureOrientation length:[").append(gestureOrientation.length).append("]")
             .append(System.lineSeparator());
         for (int i = 0; i < gestureOrientation.length; i++) {
-            Log.i(TAG, "gestureOrientation:" + gestureOrientation[i]);
+            LogUtil.info(TAG, "gestureOrientation:" + gestureOrientation[i]);
             sb.append("gestureOrientation[").append(i).append("]:[").append(gestureOrientation[i])
                 .append("]").append(System.lineSeparator());
         }
@@ -267,7 +267,7 @@ public class HandRenderManager implements GLSurfaceView.Renderer {
         int[] gestureAction = hand.getGestureAction();
         sb.append("gestureAction length:[").append(gestureAction.length).append("]").append(System.lineSeparator());
         for (int i = 0; i < gestureAction.length; i++) {
-            Log.i(TAG, "GestureAction:" + gestureAction[i]);
+            LogUtil.info(TAG, "GestureAction:" + gestureAction[i]);
             sb.append("gestureAction[").append(i).append("]:[").append(gestureAction[i])
                 .append("]").append(System.lineSeparator());
         }
@@ -278,7 +278,7 @@ public class HandRenderManager implements GLSurfaceView.Renderer {
         float[] gestureCenter = hand.getGestureCenter();
         sb.append("gestureCenter length:[").append(gestureCenter.length).append("]").append(System.lineSeparator());
         for (int i = 0; i < gestureCenter.length; i++) {
-            Log.i(TAG, "GestureCenter:" + gestureCenter[i]);
+            LogUtil.info(TAG, "GestureCenter:" + gestureCenter[i]);
             sb.append("gestureCenter[").append(i).append("]:[").append(gestureCenter[i])
                 .append("]").append(System.lineSeparator());
         }
@@ -293,17 +293,17 @@ public class HandRenderManager implements GLSurfaceView.Renderer {
         float[] skeletonArray = hand.getHandskeletonArray();
         sb.append("HandskeletonArray length:[").append(skeletonArray.length).append("]")
             .append(System.lineSeparator());
-        Log.i(TAG, "SkeletonArray.length:" + skeletonArray.length);
+        LogUtil.info(TAG, "SkeletonArray.length:" + skeletonArray.length);
         for (int i = 0; i < skeletonArray.length; i++) {
-            Log.i(TAG, "SkeletonArray:" + skeletonArray[i]);
+            LogUtil.info(TAG, "SkeletonArray:" + skeletonArray[i]);
         }
         sb.append(System.lineSeparator());
         int[] handSkeletonConnection = hand.getHandSkeletonConnection();
         sb.append("HandSkeletonConnection length:[").append(handSkeletonConnection.length)
             .append("]").append(System.lineSeparator());
-        Log.i(TAG, "handSkeletonConnection.length:" + handSkeletonConnection.length);
+        LogUtil.info(TAG, "handSkeletonConnection.length:" + handSkeletonConnection.length);
         for (int i = 0; i < handSkeletonConnection.length; i++) {
-            Log.i(TAG, "handSkeletonConnection:" + handSkeletonConnection[i]);
+            LogUtil.info(TAG, "handSkeletonConnection:" + handSkeletonConnection[i]);
         }
         sb.append(System.lineSeparator()).append("-----------------------------------------------------");
     }
