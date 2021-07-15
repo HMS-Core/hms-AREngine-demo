@@ -43,6 +43,12 @@ import com.huawei.hiar.exceptions.*
 import kotlinx.android.synthetic.main.scenemesh_activity_main.surfaceview
 import java.util.concurrent.ArrayBlockingQueue
 
+/**
+ * The following example demonstrates how to use the grid in AR Engine.
+ *
+ * @author HW
+ * @since 2021-04-21
+ */
 class SceneMeshActivity : Activity() {
     companion object {
         private const val TAG = "SceneMeshActivity"
@@ -88,7 +94,7 @@ class SceneMeshActivity : Activity() {
                 mArSession!!.configure(config)
                 mSceneMeshRenderController.setArSession(mArSession)
 
-                // 检测当前手机相机是否为深度相机。
+                // Detect whether the current mobile phone camera is a depth camera.
                 if (config.enableItem and ARConfigBase.ENABLE_MESH.toLong() == 0L) {
                     findViewById<TextView>(this, R.id.scene_mesh_searchingTextView).visibility = View.GONE
                     throw ARUnSupportedConfigurationException()
@@ -154,7 +160,7 @@ class SceneMeshActivity : Activity() {
     }
 
     /**
-     * 停止AR Session。
+     * Stop the AR session.
      */
     private fun stopArSession() {
         LogUtil.info(TAG, "stopArSession start.")
@@ -167,9 +173,9 @@ class SceneMeshActivity : Activity() {
     }
 
     /**
-     * 输入捕获的异常项，并输出相应的异常信息。
+     * Input the captured exception items and output the corresponding exception information.
      *
-     * @param catchException 捕获到的异常。
+     * @param catchException Captured exception.
      */
     private fun setMessageWhenError(catchException: java.lang.Exception) {
         when (catchException) {
@@ -218,9 +224,9 @@ class SceneMeshActivity : Activity() {
     }
 
     /**
-     * 点击事件记录方法，将点击事件存入列表。
+     * Click event recording method, which saves the click event to the list.
      *
-     * @param event 点击事件。
+     * @param event Click event.
      */
     private fun onSingleTap(event: MotionEvent) {
         LogUtil.debug(TAG, "onSingleTap, add MotionEvent to mQueuedSingleTaps$event")

@@ -18,7 +18,7 @@ package com.huawei.arengine.demos.common
 import android.util.Log
 
 /**
- * log的工具类，提供更便捷的打印日志信息的方式。
+ * Log utility class, which provides a more convenient method of printing logs.
  *
  * @author HW
  * @since 2021-03-18
@@ -27,21 +27,21 @@ object LogUtil {
     private const val PROJECT_NAME = "ArEngine_Kt"
 
     /**
-     * 所在的方法名。
+     * Method name.
      */
     private var methodName: String? = null
 
     /**
-     * 所在行号。
+     * Line number.
      */
     private var lineNumber = 0
 
     /**
-     * 创建日志信息。
+     * Create log information.
      *
-     * @param tag TAG标记。
-     * @param logMsg 日志信息。
-     * @return 包装后的日志信息。
+     * @param tag Tag.
+     * @param logMsg Log messages.
+     * @return Packaged log messages.
      */
     private fun createLog(tag: String, logMsg: String): String {
         val buffer = StringBuffer()
@@ -53,9 +53,9 @@ object LogUtil {
     }
 
     /**
-     * 获取打印日志部分的方法名、行号。
+     * Obtain the method name and line number in the printed log.
      *
-     * @param stackElements 堆栈信息。
+     * @param stackElements Stack elements.
      */
     private fun getMethodNames(stackElements: Array<StackTraceElement>) {
         methodName = stackElements[1].methodName
@@ -63,10 +63,10 @@ object LogUtil {
     }
 
     /**
-     * 打印verbose级别的日志。
+     * Print verbose logs.
      *
-     * @param tag TAG标记。
-     * @param message 日志信息。
+     * @param tag Tag.
+     * @param message Log messages.
      */
     fun verbose(tag: String, message: String) {
         getMethodNames(Throwable().stackTrace)
@@ -74,10 +74,10 @@ object LogUtil {
     }
 
     /**
-     * 打印debug级别的日志。
+     * Print debug logs.
      *
-     * @param tag TAG标记。
-     * @param message 日志信息。
+     * @param tag Tag.
+     * @param message Log messages.
      */
     fun debug(tag: String, message: String) {
         getMethodNames(Throwable().stackTrace)
@@ -85,10 +85,10 @@ object LogUtil {
     }
 
     /**
-     * 打印info级别的日志。
+     * Print info logs.
      *
-     * @param tag TAG标记。
-     * @param message 日志信息。
+     * @param tag Tag.
+     * @param message Log messages.
      */
     fun info(tag: String, message: String) {
         getMethodNames(Throwable().stackTrace)
@@ -96,10 +96,10 @@ object LogUtil {
     }
 
     /**
-     * 打印warn级别的日志。
+     * Print warn logs.
      *
-     * @param tag TAG标记。
-     * @param message 日志信息。
+     * @param tag Tag.
+     * @param message Log messages.
      */
     fun warn(tag: String, message: String) {
         getMethodNames(Throwable().stackTrace)
@@ -107,10 +107,10 @@ object LogUtil {
     }
 
     /**
-     * 打印error级别的日志。
+     * Print error logs.
      *
-     * @param tag TAG标记。
-     * @param message 日志信息。
+     * @param tag Tag.
+     * @param message Log messages.
      */
     fun error(tag: String, message: String) {
         getMethodNames(Throwable().stackTrace)

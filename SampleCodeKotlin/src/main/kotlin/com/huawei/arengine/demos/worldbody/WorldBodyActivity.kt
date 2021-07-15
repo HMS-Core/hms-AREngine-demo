@@ -57,7 +57,7 @@ class WorldBodyActivity : Activity() {
     }
 
     /**
-     * 初始化UI，设置gestureController、worldbodyRenderController、GL参数
+     * Initializes the UI and sets gestureController, worldbodyRenderController, and GL parameters.
      */
     private fun initUi() {
         surfaceView.apply {

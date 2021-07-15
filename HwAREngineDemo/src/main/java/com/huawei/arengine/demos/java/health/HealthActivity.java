@@ -50,7 +50,7 @@ import com.huawei.hiar.listener.FaceHealthServiceListener;
 import java.util.EventObject;
 
 /**
- * 该类展示健康数据监测相关接口的使用
+ * Shows the usage of APIs related to health data monitoring.
  *
  * @author HW
  * @since 2020-08-03

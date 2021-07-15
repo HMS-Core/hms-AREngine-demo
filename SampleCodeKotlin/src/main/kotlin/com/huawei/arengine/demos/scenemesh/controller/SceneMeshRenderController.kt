@@ -88,15 +88,15 @@ class SceneMeshRenderController(private val mActivity: Activity,
             arCamera.getViewMatrix(viewmtxs, 0)
             showSearchingMessage(View.GONE)
 
-            // 网格绘制。
+            // Draw a grid.
             mSceneMeshService.onDrawFrame(arFrame, viewmtxs, projmtxs)
 
-            // 处理点击事件，添加虚拟模型。
+            // Process the click event and add a virtual model.
             mHitResultService.onDrawFrame(arFrame, viewmtxs, projmtxs)
         } catch (e: SampleAppException) {
             LogUtil.error(TAG, "Exception on the ArDemoRuntimeException!")
         } catch (t: Throwable) {
-            // 防止应用程序因未处理的异常而崩溃。
+            // Prevent apps from crashing due to unprocessed exceptions.
             LogUtil.error(TAG, "Exception on the OpenGL thread.")
         }
     }
@@ -113,7 +113,7 @@ class SceneMeshRenderController(private val mActivity: Activity,
         ++frames
         val timeNow = System.currentTimeMillis()
 
-        // 将毫秒转换为秒。
+        // Convert millisecond to second.
         if ((timeNow - lastInterval) / 1000.0f > updateInterval) {
             fps = frames / ((timeNow - lastInterval) / 1000.0f)
             frames = 0
@@ -123,15 +123,15 @@ class SceneMeshRenderController(private val mActivity: Activity,
     }
 
     /**
-     * 展示文本视图。
+     * Display the text view.
      *
-     * @param text 需要展示的文本。
+     * @param text Text to display.
      */
     private fun showFpsTextView(text: String?) {
         mActivity.runOnUiThread(Runnable {
             findViewById<TextView>(mActivity, R.id.fpsTextView).setTextColor(Color.WHITE)
 
-            // 设置屏幕显示的字体大小。
+            // Set the font size.
             findViewById<TextView>(mActivity, R.id.fpsTextView).setTextSize(Constants.FPS_TEXT_SIZE)
             if (text != null) {
                 findViewById<TextView>(mActivity, R.id.fpsTextView).setText(text)
@@ -148,7 +148,7 @@ class SceneMeshRenderController(private val mActivity: Activity,
     }
 
     override fun onSurfaceCreated(gl: GL10?, config: EGLConfig?) {
-        // 设置窗口颜色。
+        // Set the window color.
         GLES20.glClearColor(0.1f, 0.1f, 0.1f, 1.0f)
         mBackgroundTextureService.init()
         mHitResultService.init(mContext)
@@ -156,9 +156,9 @@ class SceneMeshRenderController(private val mActivity: Activity,
     }
 
     /**
-     * 设置“AR Session”，将更新并获取“On Draw Frame”中的最新数据。
+     * Set the AR Session to update and obtain the latest data in onDrawFrame.
      *
-     * @param arSession AR会话。
+     * @param arSession AR session.
      */
     fun setArSession(arSession: ARSession?) {
         if (arSession == null) {
@@ -169,9 +169,9 @@ class SceneMeshRenderController(private val mActivity: Activity,
     }
 
     /**
-     * 设置“DisplayRotationManage”对象，该对象将在“onSurfaceChanged”和“onDrawFrame”中使用。
+     * Set the DisplayRotationManage object, which is used in onSurfaceChanged and onDrawFrame.
      *
-     * @param displayRotationController DisplayRotationManage为自定义对象。
+     * @param displayRotationController DisplayRotationManage is the customized object.
      */
     fun setDisplayRotationController(displayRotationController: DisplayRotationController?) {
         if (displayRotationController == null) {
@@ -182,9 +182,9 @@ class SceneMeshRenderController(private val mActivity: Activity,
     }
 
     /**
-     * 设置手势类型队列。
+     * Set a gesture type queue.
      *
-     * @param queuedSingleTaps 手势类型队列。
+     * @paramparam queuedSingleTaps Gesture type queue.
      */
     fun setQueuedSingleTaps(queuedSingleTaps: ArrayBlockingQueue<MotionEvent>?) {
         if (queuedSingleTaps == null) {

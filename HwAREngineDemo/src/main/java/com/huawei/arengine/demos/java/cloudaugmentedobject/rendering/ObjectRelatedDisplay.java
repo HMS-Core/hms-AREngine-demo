@@ -21,7 +21,7 @@ import com.huawei.hiar.ARObject;
 import java.util.Collection;
 
 /**
- * 绘制呈现3D物体相关数据.
+ * Draws and displays data related to 3D object.
  *
  * @author HW
  * @since 2021-04-02

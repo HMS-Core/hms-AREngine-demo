@@ -22,23 +22,23 @@ package com.huawei.arengine.demos.augmentedimage.controller
 import com.huawei.hiar.ARAugmentedImage
 
 /**
- * 渲染增强图像接口。
+ * API for rendering the augmented image.
  *
  * @author HW
  * @since 2021-03-29
  */
 interface AugmentedImageComponentDisplay {
     /**
-     * 初始化渲染器。
+     * Initialize the renderer.
      */
     fun init()
 
     /**
-     * 渲染增强图像对象，每帧调用。
+     * Render the augmented image object, which is called for each frame.
      *
-     * @param augmentedImage AugmentedImage对象。
-     * @param viewMatrix 视图矩阵。
-     * @param projectionMatrix 相机投影矩阵。
+     * @param augmentedImage AugmentedImage object.
+     * @param viewMatrix View matrix.
+     * @param projectionMatrix Camera projection matrix.
      */
     fun onDrawFrame(augmentedImage: ARAugmentedImage, viewMatrix: FloatArray, projectionMatrix: FloatArray)
 }

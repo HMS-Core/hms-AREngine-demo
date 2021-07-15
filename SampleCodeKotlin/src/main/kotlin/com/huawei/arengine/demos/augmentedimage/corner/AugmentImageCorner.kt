@@ -25,14 +25,17 @@ import com.huawei.hiar.ARAugmentedImage
 import com.huawei.hiar.ARPose
 
 /**
- * 获取图像四角顶点的坐标数组。
+ * Obtains the coordinate array of the four vertices of an image.
  *
  * @author HW
  * @since 2021-03-29
  */
 class AugmentImageCorner {
     companion object {
-        //0.5f表示宽、高的一半，与枚举值组合成坐标数据。
+        /**
+         * 0.5f indicates half of the width and height, which are combined with enumerated values to
+         * form the coordinate data.
+         */
         private val COEFFICIENTS = floatArrayOf(0.5f, 0.5f)
     }
 
@@ -41,10 +44,11 @@ class AugmentImageCorner {
     var index = 0
 
     /**
-     * 获取增强图片的四角顶点坐标，写入cornerPointCoordinates数组。
+     * Obtain the vertex coordinates of the four corners of the augmented image and write them to the
+     * cornerPointCoordinates array.
      *
-     * @param augmentedImage 增强图像对象。
-     * @param cornerType 边角类型。
+     * @param augmentedImage Augmented image object.
+     * @param cornerType Corner type.
      */
     fun createImageCorner(augmentedImage: ARAugmentedImage, cornerType: CornerType) {
         val localBoundaryPose: ARPose
@@ -64,7 +68,7 @@ class AugmentImageCorner {
         val cornerCoordinatePos = index * Constants.BYTES_PER_CORNER
         composeCenterPose = centerPose.compose(localBoundaryPose)
 
-        //每个顶点的坐标又x,y,z坐标及系数组成。
+        // The coordinates of each vertex consist of the x, y, and z coordinates and factors.
         cornerPointCoordinates!![cornerCoordinatePos] = composeCenterPose.tx()
         cornerPointCoordinates!![cornerCoordinatePos + 1] = composeCenterPose.ty()
         cornerPointCoordinates!![cornerCoordinatePos + 2] = composeCenterPose.tz()
@@ -78,7 +82,8 @@ class AugmentImageCorner {
             coefficient[i] = coefficentX * COEFFICIENTS[i]
             coefficient[i + 1] = coefficentZ * COEFFICIENTS[i + 1]
 
-            //以识别到的图片中心点为坐标轴原点，在xoz平面上计算出每个四角顶点的坐标，y值为常量无需计算。
+            // Use the center of the recognized image as the origin of the coordinate axis and calculate the coordinates
+            // of each vertex on the xoz plane. The value of y is a constant and does not need to be calculated.
             i += 2
         }
     }

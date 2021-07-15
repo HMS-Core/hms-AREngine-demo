@@ -21,25 +21,25 @@ import android.content.Context;
 import com.huawei.hiar.ARFrame;
 
 /**
- * 网格场景渲染接口类
+ * Mesh scene rendering API class.
  *
  * @author hw
  * @since 2021-01-26
  */
 interface SceneMeshComponenDisplay {
     /**
-     * 初始化渲染。
+     * Initialize the rendering.
      *
-     * @param context 上下文信息。
+     * @param context Context information.
      */
     void init(Context context);
 
     /**
-     * 呈现对象，每帧调用。
+     * Displayed object, which is called for each frame.
      *
-     * @param arFrame 处理AR帧。
-     * @param cameraView 投影矩阵。
-     * @param cameraPerspective 摄像机投影矩阵。
+     * @param arFrame Process the AR frame.
+     * @param cameraView Projection matrix.
+     * @param cameraPerspective Camera projection matrix.
      */
     void onDrawFrame(ARFrame arFrame, float[] cameraView, float[] cameraPerspective);
 }

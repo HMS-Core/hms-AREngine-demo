@@ -34,7 +34,7 @@ import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 
 /**
- * 根据指定参数绘制虚拟对象。
+ * Draws a virtual object based on specified parameters.
  *
  * @author hw
  * @since 2021-01-26
@@ -95,9 +95,9 @@ public class HitResultDisplay implements SceneMeshComponenDisplay {
     }
 
     /**
-     * 设置手势类型队列。
+     * Set a gesture type queue.
      *
-     * @param queuedSingleTaps 手势类型队列。
+     * @param queuedSingleTaps Gesture type queue.
      */
     public void setQueuedSingleTaps(ArrayBlockingQueue<MotionEvent> queuedSingleTaps) {
         if (queuedSingleTaps == null) {
@@ -108,9 +108,10 @@ public class HitResultDisplay implements SceneMeshComponenDisplay {
     }
 
     /**
-     * 因为与帧速率相比，点击频率通常较低。每帧只处理一次点击。
+     * This is because the click frequency is usually lower than the frame rate.
+     * Only one click is processed for each frame.
      *
-     * @param frame 需要处理的帧。
+     * @param frame Frame to be processed.
      */
     private void handleTap(ARFrame frame) {
         MotionEvent tap = mQueuedSingleTaps.poll();
@@ -127,7 +128,7 @@ public class HitResultDisplay implements SceneMeshComponenDisplay {
 
         List<ARHitResult> hitTestResults = frame.hitTest(tap);
         for (int i = 0; i < hitTestResults.size(); i++) {
-            // 检查是否有平面被击中，以及是否在平面多边形内被击中
+            // Check whether a plane is hit and whether it is hit in a plane polygon.
             ARHitResult hitResultTemp = hitTestResults.get(i);
             trackable = hitResultTemp.getTrackable();
             if (trackable instanceof ARPoint
@@ -141,15 +142,16 @@ public class HitResultDisplay implements SceneMeshComponenDisplay {
             return;
         }
 
-        // 按深度排序。只考虑在平面或定向点上最近的撞击。限制创建的对象数量。
-        // 这样可以避免渲染系统和AREngine都过载。
+        // Sort by depth. Only the nearest hit on the plane or on the directional point is considered.
+        // Limit the number of objects that can be created.
+        // This prevents the rendering system and AR Engine from being overloaded.
         if (mAnchors.size() >= 16) {
             mAnchors.get(0).getAnchor().detach();
             mAnchors.remove(0);
         }
 
-        // 根据此锚点附加的可跟踪类型，为对象分配颜色以进行呈现。
-        // AR_TRACKABLE_POINT为蓝色，AR_TRACKABLE_PLANE为绿色。
+        // Assign a color to the object for display based on the trackable type attached to the anchor point.
+        // AR_TRACKABLE_POINT is blue and AR_TRACKABLE_PLANE is green.
         String objColor;
         trackable = hitResult.getTrackable();
         if (trackable instanceof ARPoint) {
@@ -160,17 +162,18 @@ public class HitResultDisplay implements SceneMeshComponenDisplay {
             objColor = ColoredArAnchor.AR_DEFAULT_COLOR;
         }
 
-        // 添加一个锚点通知AREngine ，它应该在空间中跟踪这个位置。
-        // 在平面上创建这个锚点，以便将3D模型置于相对于外界和平面的正确位置。
+        // Add an anchor to notify AR Engine that it should track the location in space.
+        // Create the anchor on the plane so that the 3D model can be placed in the correct position
+        // relative to the external environment and plane.
         mAnchors.add(new ColoredArAnchor(hitResult.createAnchor(), objColor));
 
         LogUtil.debug(TAG, "Add anchor Success!!: ");
     }
 
     /**
-     * 显示AR姿势。
+     * Displays the AR posture.
      *
-     * @param coloredAnchor 着色的AR锚点。
+     * @param coloredAnchor AR anchor for coloring.
      */
     private void showArPose(ColoredArAnchor coloredAnchor) {
         ARPose anchorPose = coloredAnchor.getAnchor().getPose();

@@ -70,7 +70,7 @@ object Constants {
     const val PROJ_MATRIX_FAR = 100.0f
 
     /**
-     * 3D坐标，每个坐标有四个分量（x,y,z,alpha），且一个float数据占4个字节。
+     * 3D coordinates. The coordinates have four components (x, y, z, and alpha). One float occupies 4 bytes.
      */
     const val BYTES_PER_POINT = 4 * 4
 

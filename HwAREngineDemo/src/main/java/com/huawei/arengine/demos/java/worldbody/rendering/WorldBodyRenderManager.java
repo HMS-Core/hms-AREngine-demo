@@ -88,10 +88,14 @@ public class WorldBodyRenderManager implements GLSurfaceView.Renderer {
 
     private float fps;
 
-    // Drawing of Camera Background Textures
+    /**
+     * Drawing of Camera Background Textures.
+     */
     private TextureDisplay mTextureDisplay = new TextureDisplay();
 
-    // Display of text prompts on the screen
+    /**
+     * Display of text prompts on the screen.
+     */
     private TextDisplay mTextDisplay = new TextDisplay();
 
     private ObjectDisplay mObjectDisplay = new ObjectDisplay();

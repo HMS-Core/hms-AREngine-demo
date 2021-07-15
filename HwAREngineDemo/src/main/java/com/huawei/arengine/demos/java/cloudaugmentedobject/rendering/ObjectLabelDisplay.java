@@ -36,7 +36,7 @@ import java.nio.ShortBuffer;
 import java.util.Collection;
 
 /**
- * 根据所识别的3D物体ARPose绘制label，label跟随3D物体运动.
+ * Draws a label based on the recognized 3D object ARPose. The label moves with the 3D object.
  *
  * @author HW
  * @since 2021-04-02
@@ -61,7 +61,8 @@ public class ObjectLabelDisplay implements ObjectRelatedDisplay {
     private static final int MATRIX_SIZE = 16;
 
     /**
-     * 平面角度uv矩阵，调整label的旋转角度及纵向横向的缩放比例。
+     * Plane angle UV matrix, which is used to adjust the rotation angle of the label and
+     * vertical/horizontal scaling ratio.
      */
     private final float[] imageAngleUvMatrix = new float[IMAGE_ANGLE_MATRIX_SIZE];
 
@@ -70,7 +71,7 @@ public class ObjectLabelDisplay implements ObjectRelatedDisplay {
     private final float[] modelViewMatrix = new float[MATRIX_SIZE];
 
     /**
-     * 分配一个临时矩阵，以减少每帧的分配次数。
+     * Allocate a temporary matrix to reduce the number of allocations per frame.
      */
     private final float[] modelMatrix = new float[MATRIX_SIZE];
 
@@ -91,7 +92,7 @@ public class ObjectLabelDisplay implements ObjectRelatedDisplay {
     private TextView labelTextView;
 
     /**
-     * 构造函数传递activity。
+     * Pass the activity.
      *
      * @param activity Activity
      */
@@ -100,7 +101,7 @@ public class ObjectLabelDisplay implements ObjectRelatedDisplay {
     }
 
     /**
-     * 在OpenGL线程上创建并构建增强后的图像着色器。
+     * Create and build an augmented image shader on the OpenGL thread.
      */
     @Override
     public void init() {
@@ -113,7 +114,7 @@ public class ObjectLabelDisplay implements ObjectRelatedDisplay {
         ShaderUtil.checkGlError(TAG, "Update start.");
         GLES20.glGenTextures(textures.length, textures, 0);
 
-        // label平面。
+        // Label plane.
         GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textures[0]);
         GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR_MIPMAP_LINEAR);
@@ -154,12 +155,12 @@ public class ObjectLabelDisplay implements ObjectRelatedDisplay {
     }
 
     /**
-     * 绘制图片label，来标识识别到的3D物体。
-     * 此方法将在以下情况下调用 {@link ObjectRenderManager#onDrawFrame}.
+     * Draw an image label to mark the recognized 3D object.
+     * This method will call {@link ObjectRenderManager#onDrawFrame} in the following cases.
      *
-     * @param arObjects 3D物体。
-     * @param viewMatrix 视图矩阵。
-     * @param projectionMatrix ARCamera投影矩阵。
+     * @param arObjects 3D object.
+     * @param viewMatrix View matrix.
+     * @param projectionMatrix AR camera projection matrix.
      */
     @Override
     public void onDrawFrame(Collection<ARObject> arObjects, float[] viewMatrix, float[] projectionMatrix) {
@@ -180,9 +181,9 @@ public class ObjectLabelDisplay implements ObjectRelatedDisplay {
     }
 
     /**
-     * 更新3D物体的label信息。
+     * Update the label of the 3D object.
      *
-     * @param arObject arObject。
+     * @param arObject AR object.
      */
     private void updateImageLabelData(ARObject arObject) {
         float[] imageMatrix = new float[MATRIX_SIZE];
@@ -191,7 +192,7 @@ public class ObjectLabelDisplay implements ObjectRelatedDisplay {
 
         float scaleU = 1.0f / LABEL_WIDTH;
 
-        // 设置平面角度uv矩阵的值。
+        // Set the value of the plane angle UV matrix.
         imageAngleUvMatrix[0] = scaleU;
         imageAngleUvMatrix[1] = 0.0f;
         imageAngleUvMatrix[2] = 0.0f;
@@ -205,23 +206,23 @@ public class ObjectLabelDisplay implements ObjectRelatedDisplay {
     }
 
     /**
-     * 绘制label。
+     * Draw a label.
      *
-     * @param cameraViews 视图矩阵。
-     * @param cameraProjection ARCamera投影矩阵。
+     * @param cameraViews View matrix.
+     * @param cameraProjection AR camera projection matrix.
      */
     private void drawLabel(float[] cameraViews, float[] cameraProjection) {
         ShaderUtil.checkGlError(TAG, "Draw object label start.");
         Matrix.multiplyMM(modelViewMatrix, 0, cameraViews, 0, modelMatrix, 0);
         Matrix.multiplyMM(modelViewProjectionMatrix, 0, cameraProjection, 0, modelViewMatrix, 0);
 
-        // 获取宽、高的一半作坐标点数据用。
+        // Obtain half of the width and height as the coordinate data.
         float halfWidth = LABEL_WIDTH / 2.0f;
         float halfHeight = LABEL_HEIGHT / 2.0f;
         float[] vertices = {-halfWidth, -halfHeight, 1, -halfWidth, halfHeight, 1, halfWidth, halfHeight, 1, halfWidth,
             -halfHeight, 1};
 
-        // 每个浮点数大小为4 byte。
+        // The size of each float is 4 bytes.
         FloatBuffer vetBuffer =
             ByteBuffer.allocateDirect(4 * vertices.length).order(ByteOrder.nativeOrder()).asFloatBuffer();
         vetBuffer.rewind();
@@ -232,10 +233,10 @@ public class ObjectLabelDisplay implements ObjectRelatedDisplay {
         GLES20.glVertexAttribPointer(glPositionParameter, COORDS_PER_VERTEX, GLES20.GL_FLOAT, false,
             4 * COORDS_PER_VERTEX, vetBuffer);
 
-        // 设置OpenGL绘制点的顺序，生成两个三角形，形成一个平面。
+        // Set the sequence of OpenGL drawing points to generate two triangles to form a plane.
         short[] indices = {0, 1, 2, 0, 2, 3};
 
-        // 分配的缓冲区大小，每个短整型数大小为2 byte。
+        // Size of the allocated buffer. The size of each short integer is 2 bytes.
         ShortBuffer idxBuffer =
             ByteBuffer.allocateDirect(2 * indices.length).order(ByteOrder.nativeOrder()).asShortBuffer();
         idxBuffer.rewind();

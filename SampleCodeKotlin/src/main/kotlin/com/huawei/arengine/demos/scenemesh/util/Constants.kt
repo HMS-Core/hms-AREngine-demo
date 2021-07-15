@@ -26,7 +26,7 @@ import java.lang.Float.SIZE
  */
 object Constants {
     /**
-     * 用于标签渲染的顶点着色器。
+     * Vertex shader used for label rendering.
      */
     const val SCENE_MESH_VERTEX = ("uniform mat4 u_ModelViewProjection;"
         + "uniform vec4 u_Color;"
@@ -105,24 +105,24 @@ object Constants {
         + "}")
 
     /**
-     * OBJ颜色标志位，AR_TRACKABLE_POINT为蓝色。
+     * OBJ color flag. AR_TRACKABLE_POINT is blue.
      */
     const val AR_TRACK_POINT_COLOR = "track_point_color"
 
     /**
-     * OBJ颜色标志位，AR_TRACKABLE_PLANE为绿色。
+     * OBJ color flag. AR_TRACKABLE_PLANE is green.
      */
     const val AR_TRACK_PLANE_COLOR = "track_plane_color"
 
     /**
-     * OBJ颜色标志位，默认白色。
+     * OBJ color flag. The default color is white.
      */
     const val AR_DEFAULT_COLOR = "default_color"
 
     const val BYTES_PER_FLOAT = SIZE / 8
 
     /**
-     * X，Y，Z，置信度。
+     * X, Y, Z, and confidence.
      */
     const val FLOATS_PER_POINT = 3
 

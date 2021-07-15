@@ -38,7 +38,7 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
 /**
- * 通过增强图像的中心点的位姿信息来绘制label。
+ * Draw the label through the pose of the image center.
  *
  * @author HW
  * @since 2021-03-29
@@ -48,7 +48,7 @@ class ImageLabelService(private val mActivity: Activity) : AugmentedImageCompone
         private val TAG = "ImageLabelDisplay"
     }
     /**
-     * 平面角度uv矩阵，调整label的旋转角度及纵向横向的缩放比例。
+     * Plane angle UV matrix, which is used to adjust the rotation angle of the label and vertical/horizontal scaling ratio.
      */
     private val imageAngleUvMatrix = FloatArray(Constants.IMAGE_ANGLE_MATRIX_SIZE)
 
@@ -57,7 +57,7 @@ class ImageLabelService(private val mActivity: Activity) : AugmentedImageCompone
     private val modelViewMatrix = FloatArray(Constants.MATRIX_SIZE)
 
     /**
-     * 分配一个临时矩阵，以减少每帧的分配次数。
+     * Allocate a temporary matrix to reduce the number of allocations per frame.
      */
     private val modelMatrix = FloatArray(Constants.MATRIX_SIZE)
 
@@ -70,7 +70,7 @@ class ImageLabelService(private val mActivity: Activity) : AugmentedImageCompone
     private val imageShaderPojo by lazy { ImageShaderPojo() }
 
     /**
-     * 在OpenGL线程上创建并构建增强后的图像着色器。
+     * Create and build an augmented image shader on the OpenGL thread.
      */
     override fun init() {
         labelTextView = mActivity.findViewById(R.id.image_science_park)
@@ -118,12 +118,12 @@ class ImageLabelService(private val mActivity: Activity) : AugmentedImageCompone
     }
 
     /**
-     * 绘制图片label，来标识识别到的图片。
-     * 此方法将在以下情况下调用 [AugmentedImageRenderManager.onDrawFrame].
+     * Draw an image label to mark the identified image.
+     * This method will call [AugmentedImageRenderManager.onDrawFrame] in the following cases.
      *
-     * @param augmentedImage 增强图像对象。
-     * @param viewMatrix 视图矩阵。
-     * @param projectionMatrix ARCamera投影矩阵。
+     * @param augmentedImage Augmented image object.
+     * @param viewMatrix View matrix.
+     * @param projectionMatrix AR camera projection matrix.
      */
     override fun onDrawFrame(augmentedImage: ARAugmentedImage, viewMatrix: FloatArray, projectionMatrix: FloatArray) {
         prepareForGl()
@@ -143,9 +143,9 @@ class ImageLabelService(private val mActivity: Activity) : AugmentedImageCompone
     }
 
     /**
-     * 更新增强图像的label信息。
+     * Update the label of the augmented image.
      *
-     * @param augmentedImage AugmentedImage对象。
+     * @param augmentedImage AugmentedImage object.
      */
     private fun updateImageLabelData(augmentedImage: ARAugmentedImage) {
         val imageMatrix = FloatArray(Constants.MATRIX_SIZE)
@@ -153,7 +153,7 @@ class ImageLabelService(private val mActivity: Activity) : AugmentedImageCompone
         System.arraycopy(imageMatrix, 0, modelMatrix, 0, Constants.MATRIX_SIZE)
         val scaleU = 1.0f / Constants.LABEL_WIDTH
 
-        // 设置平面角度uv矩阵的值。
+        // Set the value of the plane angle uv matrix.
         imageAngleUvMatrix[0] = scaleU
         imageAngleUvMatrix[1] = 0.0f
         imageAngleUvMatrix[2] = 0.0f
@@ -166,23 +166,23 @@ class ImageLabelService(private val mActivity: Activity) : AugmentedImageCompone
     }
 
     /**
-     * 绘制label。
+     * Draw a label.
      *
-     * @param cameraViews 视图矩阵。
-     * @param cameraProjection ARCamera投影矩阵。
+     * @param cameraViews View matrix.
+     * @param cameraProjection AR camera projection matrix.
      */
     private fun drawLabel(cameraViews: FloatArray, cameraProjection: FloatArray) {
         checkGlError(TAG, "Draw image label start.")
         multiplyMM(modelViewMatrix, 0, cameraViews, 0, modelMatrix, 0)
         multiplyMM(modelViewProjectionMatrix, 0, cameraProjection, 0, modelViewMatrix, 0)
 
-        // 获取宽、高的一半作坐标点数据用。
+        // Obtain half of the width and height as the coordinate data.
         val halfWidth = Constants.LABEL_WIDTH / 2.0f
         val halfHeight = Constants.LABEL_HEIGHT / 2.0f
         val vertices = floatArrayOf(-halfWidth, -halfHeight, 1f, -halfWidth, halfHeight, 1f, halfWidth, halfHeight, 1f, halfWidth,
             -halfHeight, 1f)
 
-        // 每个浮点数大小为4 byte。
+        // The size of each float is 4 bytes.
         val vetBuffer = ByteBuffer.allocateDirect(4 * vertices.size).order(ByteOrder.nativeOrder()).asFloatBuffer()
         vetBuffer.rewind()
         vertices.indices.forEach {
@@ -192,10 +192,10 @@ class ImageLabelService(private val mActivity: Activity) : AugmentedImageCompone
         GLES20.glVertexAttribPointer(imageShaderPojo.position, Constants.COORDS_PER_VERTEX, GLES20.GL_FLOAT, false,
             4 * Constants.COORDS_PER_VERTEX, vetBuffer)
 
-        // 设置OpenGL绘制点的顺序，生成两个三角形，形成一个平面。
+        // Set the sequence of OpenGL drawing points to generate two triangles to form a plane.
         val indices = shortArrayOf(0, 1, 2, 0, 2, 3)
 
-        // 分配的缓冲区大小，每个短整型数大小为2 byte。
+        // Size of the allocated buffer. The size of each short integer is 2 bytes.
         val idxBuffer = ByteBuffer.allocateDirect(2 * indices.size).order(ByteOrder.nativeOrder()).asShortBuffer()
         idxBuffer.rewind()
         indices.indices.forEach {

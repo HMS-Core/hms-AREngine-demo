@@ -79,11 +79,15 @@ public class FaceGeometryDisplay {
         + "    }" + LS
         + "}";
 
-    // Number of bytes occupied by each 3D coordinate point.
-    // Each floating-point number occupies 4 bytes, and each point has three dimensions.
+    /**
+     * Number of bytes occupied by each 3D coordinate point.
+     * Each floating-point number occupies 4 bytes, and each point has three dimensions.
+     */
     private static final int BYTES_PER_POINT = 4 * 3;
 
-    // Number of bytes occupied by each 2D coordinate point.
+    /**
+     * Number of bytes occupied by each 2D coordinate point.
+     */
     private static final int BYTES_PER_COORD = 4 * 2;
 
     private static final int BUFFER_OBJECT_NUMBER = 2;
@@ -98,11 +102,17 @@ public class FaceGeometryDisplay {
 
     private int mVerticeId;
 
-    private int mVerticeBufferSize = 8000; // Initialize the size of the vertex VBO.
+    /**
+     * Initialize the size of the vertex VBO.
+     */
+    private int mVerticeBufferSize = 8000;
 
     private int mTriangleId;
 
-    private int mTriangleBufferSize = 5000; // Initialize the size of the triangle VBO.
+    /**
+     * Initialize the size of the triangle VBO.
+     */
+    private int mTriangleBufferSize = 5000;
 
     private int mProgram;
 
@@ -124,7 +134,9 @@ public class FaceGeometryDisplay {
 
     private int mTrianglesNum = 0;
 
-    // The size of the MVP matrix is 4 x 4.
+    /**
+     * The size of the MVP matrix is 4 x 4.
+     */
     private float[] mModelViewProjections = new float[16];
 
     /**

@@ -19,7 +19,7 @@ package com.huawei.arengine.demos.scenemesh.controller
 import com.huawei.hiar.ARAnchor
 
 /**
- * 着色的AR锚点。
+ * Colored AR anchor.
  *
  * @author hw
  * @since 2021-04-21

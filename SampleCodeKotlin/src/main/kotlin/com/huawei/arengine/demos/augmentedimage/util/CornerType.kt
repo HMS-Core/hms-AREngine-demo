@@ -20,29 +20,29 @@
 package com.huawei.arengine.demos.augmentedimage.util
 
 /**
- * 列举图像的框角。
+ * List the corners of an image.
  *
  * @author hw
  * @since 2021-03-29
  */
 enum class CornerType {
     /**
-     * 左上角
+     * Upper left corner.
      */
     UPPER_LEFT,
 
     /**
-     * 右上角
+     * Upper right corner.
      */
     UPPER_RIGHT,
 
     /**
-     * 左下角
+     * Lower left corner.
      */
     LOWER_RIGHT,
 
     /**
-     * 右下角
+     * Lower right corner.
      */
     LOWER_LEFT
 }

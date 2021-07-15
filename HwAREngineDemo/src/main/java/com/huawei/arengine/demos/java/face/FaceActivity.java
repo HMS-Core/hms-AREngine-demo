@@ -86,7 +86,9 @@ public class FaceActivity extends Activity {
 
     private boolean isRemindInstall = false;
 
-    // The initial texture ID is -1.
+    /**
+     * The initial texture ID is -1.
+     */
     private int textureId = -1;
 
     @Override
@@ -166,6 +168,8 @@ public class FaceActivity extends Activity {
     /**
      * Check whether HUAWEI AR Engine server (com.huawei.arengine.service) is installed on the current device.
      * If not, redirect the user to HUAWEI AppGallery for installation.
+     *
+     * @return true:AR Engine ready
      */
     private boolean arEngineAbilityCheck() {
         boolean isInstallArEngineApk = AREnginesApk.isAREngineApkReady(this);

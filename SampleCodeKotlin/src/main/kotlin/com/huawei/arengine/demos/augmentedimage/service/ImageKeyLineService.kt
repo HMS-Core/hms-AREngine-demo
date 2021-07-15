@@ -32,7 +32,8 @@ import com.huawei.hiar.ARAugmentedImage
 import java.nio.FloatBuffer
 
 /**
- * 通过增强图像的中心点位姿信息及宽高信息绘制增强图像的边框线。
+ * Draw the border of the augmented image based on the pose of the center, and the width and height
+ * of the augmented image.
  *
  * @author HW
  * @since 2021-03-29
@@ -47,7 +48,7 @@ class ImageKeyLineService : AugmentedImageComponentDisplay {
     private val imageShaderPojo by lazy { ImageShaderPojo() }
 
     /**
-     * 在OpenGL线程上创建并构建增强图像着色器。
+     * Create and build an augmented image shader on the OpenGL thread.
      */
     override fun init() {
         val buffers = IntArray(1)
@@ -75,11 +76,11 @@ class ImageKeyLineService : AugmentedImageComponentDisplay {
     }
 
     /**
-     * 绘制增强图像的边框。
+     * Draw the borders of the augmented image.
      *
-     * @param augmentedImage AugmentedImage对象。
-     * @param viewMatrix 视图矩阵。
-     * @param projectionMatrix ARCamera投影矩阵。
+     * @param augmentedImage AugmentedImage object.
+     * @param viewMatrix View matrix.
+     * @param projectionMatrix AR camera projection matrix.
      */
     override fun onDrawFrame(augmentedImage: ARAugmentedImage, viewMatrix: FloatArray, projectionMatrix: FloatArray) {
         val vpMatrix = FloatArray(Constants.BYTES_PER_POINT)
@@ -88,10 +89,10 @@ class ImageKeyLineService : AugmentedImageComponentDisplay {
     }
 
     /**
-     * 绘制边框线以增强图像。
+     * Draw borders to augment the image.
      *
-     * @param augmentedImage AugmentedImage对象。
-     * @param viewProjectionMatrix 视图投影矩阵。
+     * @param augmentedImage AugmentedImage object.
+     * @param viewProjectionMatrix View projection matrix.
      */
     private fun draw(augmentedImage: ARAugmentedImage, viewProjectionMatrix: FloatArray) {
         imageCornerService.cornerPointCoordinates = FloatArray(Constants.BYTES_PER_CORNER * 4)
@@ -105,7 +106,7 @@ class ImageKeyLineService : AugmentedImageComponentDisplay {
     }
 
     private fun updateImageKeyLineData(cornerPoints: FloatArray) {
-        // 坐标总数。
+        // Total number of coordinates.
         val mPointsNum = cornerPoints.size / 4
         imageShaderPojo.run {
             GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, vbo)
@@ -114,7 +115,7 @@ class ImageKeyLineService : AugmentedImageComponentDisplay {
             val numPoints = numPoints
             if (mvboSize < numPoints * Constants.BYTES_PER_POINT) {
                 while (mvboSize < numPoints * Constants.BYTES_PER_POINT) {
-                    // 如果VBO的大小不足以容纳新的顶点，则需要调整VBO的大小。
+                    // If the size of VBO is insufficient to accommodate the new vertex, resize the VBO.
                     mvboSize *= 2
                 }
                 GLES20.glBufferData(GLES20.GL_ARRAY_BUFFER, mvboSize, null, GLES20.GL_DYNAMIC_DRAW)
@@ -126,9 +127,9 @@ class ImageKeyLineService : AugmentedImageComponentDisplay {
     }
 
     /**
-     * 绘制图像边框线。
+     * Draw the image border.
      *
-     * @param viewProjectionMatrix 视图投影矩阵。
+     * @param viewProjectionMatrix View projection matrix.
      */
     private fun drawImageLine(viewProjectionMatrix: FloatArray) {
         checkGlError(TAG, "Draw image box start.")
@@ -140,11 +141,11 @@ class ImageKeyLineService : AugmentedImageComponentDisplay {
             GLES20.glVertexAttribPointer(
                 position, Constants.COORDINATE_DIMENSION, GLES20.GL_FLOAT, false, Constants.BYTES_PER_POINT, 0)
 
-            //设置线条颜色为浅绿色
+            // Set the line color to light green.
             GLES20.glUniform4f(color, 0.56f, 0.93f, 0.56f, 0.5f)
             GLES20.glUniformMatrix4fv(modelViewProjection, 1, false, viewProjectionMatrix, 0)
 
-            // 设置渲染线条的宽度。
+            // Set the width of a rendering stroke.
             GLES20.glLineWidth(5.0f)
             GLES20.glDrawArrays(GLES20.GL_LINE_LOOP, 0, numPoints)
             GLES20.glDisableVertexAttribArray(position)

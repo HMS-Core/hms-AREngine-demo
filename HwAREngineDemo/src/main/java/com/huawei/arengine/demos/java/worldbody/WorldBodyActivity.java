@@ -182,10 +182,10 @@ public class WorldBodyActivity extends Activity {
     }
 
     /**
-     * Check whether HUAWEI AR Engine server (com.huawei.arengine.service) is installed on
-     * the current device. If not, redirect the user to HUAWEI AppGallery for installation.
+     * Check whether HUAWEI AR Engine server (com.huawei.arengine.service) is installed on the current device.
+     * If not, redirect the user to HUAWEI AppGallery for installation.
      *
-     * @return Check Result.
+     * @return true:AR Engine ready
      */
     private boolean arEngineAbilityCheck() {
         boolean isInstallArEngineApk = AREnginesApk.isAREngineApkReady(this);

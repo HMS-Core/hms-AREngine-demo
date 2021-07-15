@@ -67,7 +67,10 @@ public class FaceRenderManager implements GLSurfaceView.Renderer {
 
     private boolean isOpenCameraOutside = true;
 
-    private int mTextureId = -1; // Initialize the texture ID.
+    /**
+     * Initialize the texture ID.
+     */
+    private int mTextureId = -1;
 
     private TextureDisplay mTextureDisplay = new TextureDisplay();
 

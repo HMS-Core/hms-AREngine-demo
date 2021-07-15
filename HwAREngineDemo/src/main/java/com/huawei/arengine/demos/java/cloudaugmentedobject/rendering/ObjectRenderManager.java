@@ -100,9 +100,9 @@ public class ObjectRenderManager implements GLSurfaceView.Renderer  {
     }
 
     /**
-     * 设置云锚点鉴权json
+     * Set the cloud anchor authentication JSON string.
      *
-     * @param authJson 鉴权json
+     * @param authJson Authentication JSON string.
      */
     public void setAuthJson(String authJson) {
         if (authJson == null) {

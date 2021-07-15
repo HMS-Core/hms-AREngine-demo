@@ -41,7 +41,7 @@ import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
 /**
- * 提供与外界场景相关的渲染管理，包括虚拟对象渲染管理。
+ * Provides rendering manager related to external scenes, including virtual object rendering management.
  *
  * @author hw
  * @since 2021-01-25
@@ -84,10 +84,10 @@ public class SceneMeshRenderManager implements GLSurfaceView.Renderer {
     private HitResultDisplay mHitResultDisplay = new HitResultDisplay();
 
     /**
-     * 场景网格渲染类，包括创建着色器以更新网格数据和渲染。
+     * Scene grid rendering class, which creates the shader for updating grid data and performing rendering.
      *
-     * @param activity 活动。
-     * @param context 上下文信息。
+     * @param activity Activity
+     * @param context Context information.
      */
     public SceneMeshRenderManager(Activity activity, Context context) {
         mActivity = activity;
@@ -98,7 +98,7 @@ public class SceneMeshRenderManager implements GLSurfaceView.Renderer {
 
     @Override
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
-        // 设置窗口颜色。
+        // Set the window color.
         GLES20.glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         mBackgroundDisplay.init();
         mHitResultDisplay.init(mContext);
@@ -139,23 +139,23 @@ public class SceneMeshRenderManager implements GLSurfaceView.Renderer {
             arCamera.getViewMatrix(viewmtxs, 0);
             showSearchingMessage(View.GONE);
 
-            // 网格绘制。
+            // Draw a grid.
             mSceneMesh.onDrawFrame(arFrame, viewmtxs, projmtxs);
 
-            // 处理点击事件，添加虚拟模型。
+            // Process the click event and add a virtual model.
             mHitResultDisplay.onDrawFrame(arFrame, viewmtxs, projmtxs);
         } catch (ArDemoRuntimeException e) {
             LogUtil.error(TAG, "Exception on the ArDemoRuntimeException!");
         } catch (Throwable t) {
-            // 防止应用程序因未处理的异常而崩溃。
+            // Prevent apps from crashing due to unprocessed exceptions.
             LogUtil.error(TAG, "Exception on the OpenGL thread.");
         }
     }
 
     /**
-     * 设置“AR Session”，将更新并获取“On Draw Frame”中的最新数据。
+     * Set the AR Session to update and obtain the latest data in onDrawFrame.
      *
-     * @param arSession AR会话。
+     * @param arSession AR session.
      */
     public void setArSession(ARSession arSession) {
         if (arSession == null) {
@@ -166,9 +166,9 @@ public class SceneMeshRenderManager implements GLSurfaceView.Renderer {
     }
 
     /**
-     * 设置“DisplayRotationManage”对象，该对象将在“onSurfaceChanged”和“onDrawFrame”中使用。
+     * Set the DisplayRotationManage object, which is used in onSurfaceChanged and onDrawFrame.
      *
-     * @param displayRotationManager DisplayRotationManage为自定义对象。
+     * @param displayRotationManager Customized object.
      */
     public void setDisplayRotationManage(DisplayRotationManager displayRotationManager) {
         if (displayRotationManager == null) {
@@ -179,9 +179,9 @@ public class SceneMeshRenderManager implements GLSurfaceView.Renderer {
     }
 
     /**
-     * 设置手势类型队列。
+     * Set a gesture type queue.
      *
-     * @param queuedSingleTaps 手势类型队列。
+     * @param queuedSingleTaps Gesture type queue.
      */
     public void setQueuedSingleTaps(ArrayBlockingQueue<MotionEvent> queuedSingleTaps) {
         if (queuedSingleTaps == null) {
@@ -211,9 +211,9 @@ public class SceneMeshRenderManager implements GLSurfaceView.Renderer {
     }
 
     /**
-     * 展示文本视图。
+     * Display the text view.
      *
-     * @param text 需要展示的文本。
+     * @param text Text to display.
      */
     private void showFpsTextView(final String text) {
         mActivity.runOnUiThread(new Runnable() {
@@ -221,7 +221,7 @@ public class SceneMeshRenderManager implements GLSurfaceView.Renderer {
             public void run() {
                 mTextView.setTextColor(Color.WHITE);
 
-                // 设置屏幕显示的字体大小。
+                // Set the font size.
                 mTextView.setTextSize(FPS_TEXT_SIZE);
                 if (text != null) {
                     mTextView.setText(text);
@@ -236,7 +236,7 @@ public class SceneMeshRenderManager implements GLSurfaceView.Renderer {
         ++frames;
         long timeNow = System.currentTimeMillis();
 
-        // 将毫秒转换为秒。
+        // Convert millisecond to second.
         if (((timeNow - lastInterval) / 1000.0f) > updateInterval) {
             fps = frames / ((timeNow - lastInterval) / 1000.0f);
             frames = 0;

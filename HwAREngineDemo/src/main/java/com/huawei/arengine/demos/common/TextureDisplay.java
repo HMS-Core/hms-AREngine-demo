@@ -59,10 +59,14 @@ public class TextureDisplay {
         + "    textureCoordinate = (vCoordMatrix*vec4(vCoord,0,1)).xy;" + LS
         + "}";
 
-    // Coordinates of a vertex.
+    /**
+     * Coordinates of a vertex.
+     */
     private static final float[] POS = {-1.0f, 1.0f, -1.0f, -1.0f, 1.0f, 1.0f, 1.0f, -1.0f};
 
-    // Texture coordinates.
+    /**
+     * Texture coordinates.
+     */
     private static final float[] COORD = {0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f, 1.0f};
 
     private static final int MATRIX_SIZE = 16;

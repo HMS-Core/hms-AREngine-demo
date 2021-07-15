@@ -52,7 +52,9 @@ import java.util.Optional;
 public class ObjectDisplay {
     private static final String TAG = ObjectDisplay.class.getSimpleName();
 
-    // Set the default light direction.
+    /**
+     * Set the default light direction.
+     */
     private static final float[] LIGHT_DIRECTIONS = new float[]{0.0f, 1.0f, 0.0f, 0.0f};
 
     private static final int FLOAT_BYTE_SIZE = 4;
@@ -61,7 +63,6 @@ public class ObjectDisplay {
 
     private static final int MATRIX_SIZE = 16;
 
-    // Light direction (x, y, z, w).
     private float[] mViewLightDirections = new float[4];
 
     private int mTexCoordsBaseAddress;
@@ -100,7 +101,9 @@ public class ObjectDisplay {
 
     private float[] mModelViewProjectionMatrixs = new float[MATRIX_SIZE];
 
-    // The largest bounding box of a virtual object, represented by two diagonals of a cube.
+    /**
+     * The largest bounding box of a virtual object, represented by two diagonals of a cube.
+     */
     private float[] mBoundingBoxs = new float[6];
 
     private float mWidth;

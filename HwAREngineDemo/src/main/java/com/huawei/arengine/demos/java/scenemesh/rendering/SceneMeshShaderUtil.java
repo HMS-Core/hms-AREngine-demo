@@ -21,7 +21,7 @@ import android.opengl.GLES20;
 import com.huawei.arengine.demos.common.LogUtil;
 
 /**
- * 该类提供与外界场景相关的渲染着色器的代码和程序。
+ * This class provides code and program of the shader related to the ambient environment.
  *
  * @author hw
  * @since 2021-01-25
@@ -32,9 +32,8 @@ class SceneMeshShaderUtil {
     private static final String LS = System.lineSeparator();
 
     /**
-     * 用于标签渲染的顶点着色器。
+     * Vertex shader used for label rendering.
      */
-
     private static final String SCENE_MESH_VERTEX =
         "uniform mat4 u_ModelViewProjection;" + LS
             + "uniform vec4 u_Color;" + LS
@@ -127,11 +126,11 @@ class SceneMeshShaderUtil {
     }
 
     /**
-     * 创建Gl程序。
+     * Create the GL program.
      *
-     * @param vertexCode 顶点编码。
-     * @param fragmentCode 碎片代码。
-     * @return int 创建结果。
+     * @param vertexCode vertexCode Vertex code.
+     * @param fragmentCode Fragment code.
+     * @return int Creation result.
      */
     private static int createGlProgram(String vertexCode, String fragmentCode) {
         int vertex = loadShader(GLES20.GL_VERTEX_SHADER, vertexCode);
@@ -159,11 +158,11 @@ class SceneMeshShaderUtil {
     }
 
     /**
-     * 用于负载着色器。
+     * Load the shader.
      *
-     * @param shaderType 设置的着色器类型。
-     * @param source 着色器源。
-     * @return int 着色器。
+     * @param shaderType Type of the shader.
+     * @param source Source of the shader.
+     * @return int Shader.
      */
     private static int loadShader(int shaderType, String source) {
         int shader = GLES20.glCreateShader(shaderType);

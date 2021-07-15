@@ -54,7 +54,7 @@ import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
 
 /**
- * 这个类用来管理和绘制WorldBody的图形数据，包括人体骨骼、点云、虚拟物体
+ * Manages and draws WorldBody image data, including human skeletons, point clouds, and virtual objects.
  *
  * @author HW
  * @since 2021-04-08

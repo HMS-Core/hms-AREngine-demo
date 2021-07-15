@@ -35,8 +35,10 @@ import java.util.Collection;
 public class BodySkeletonDisplay implements BodyRelatedDisplay {
     private static final String TAG = BodySkeletonDisplay.class.getSimpleName();
 
-    // Number of bytes occupied by each 3D coordinate. Float data occupies 4 bytes.
-    // Each skeleton point represents a 3D coordinate.
+    /**
+     * Number of bytes occupied by each 3D coordinate. Float data occupies 4 bytes.
+     * Each skeleton point represents a 3D coordinate.
+     */
     private static final int BYTES_PER_POINT = 4 * 3;
 
     private static final int INITIAL_POINTS_SIZE = 150;

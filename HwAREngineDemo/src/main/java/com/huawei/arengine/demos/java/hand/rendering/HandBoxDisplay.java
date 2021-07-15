@@ -38,8 +38,10 @@ import java.util.Collection;
 class HandBoxDisplay implements HandRelatedDisplay {
     private static final String TAG = HandBoxDisplay.class.getSimpleName();
 
-    // Number of bytes occupied by each 3D coordinate. Float data occupies 4 bytes.
-    // Each skeleton point represents a 3D coordinate.
+    /**
+     * Number of bytes occupied by each 3D coordinate. Float data occupies 4 bytes.
+     * Each skeleton point represents a 3D coordinate.
+     */
     private static final int BYTES_PER_POINT = 4 * 3;
     private static final int INITIAL_BUFFER_POINTS = 150;
     private static final int COORDINATE_DIMENSION = 3;

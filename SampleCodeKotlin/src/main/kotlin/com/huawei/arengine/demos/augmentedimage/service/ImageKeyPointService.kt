@@ -32,7 +32,7 @@ import com.huawei.hiar.ARAugmentedImage
 import java.nio.FloatBuffer
 
 /**
- * 绘制增强图像的四角顶点及中心点。
+ * Draw the vertexes and center of the augmented image.
  *
  * @author HW
  * @since 2021-03-29
@@ -51,7 +51,7 @@ class ImageKeyPointService : AugmentedImageComponentDisplay {
     private val imageShaderPojo by lazy { ImageShaderPojo() }
 
     /**
-     * 在OpenGL线程上创建并构建图像关键点的着色器。
+     * Create and build shaders for image keypoints on the OpenGL thread.
      */
     override fun init() {
         checkGlError(TAG, "Init start.")
@@ -80,11 +80,11 @@ class ImageKeyPointService : AugmentedImageComponentDisplay {
     }
 
     /**
-     * 绘制图像关键点以增强图像。
+     * Draw image key points to augment the image.
      *
-     * @param augmentedImage 待增强的图片。
-     * @param viewMatrix 视图矩阵视图矩阵。
-     * @param projectionMatrix 投影矩阵。
+     * @param augmentedImage Image to be augmented.
+     * @param viewMatrix View matrix.
+     * @param projectionMatrix Projection matrix.
      */
     override fun onDrawFrame(augmentedImage: ARAugmentedImage, viewMatrix: FloatArray, projectionMatrix: FloatArray) {
         val vpMatrix = FloatArray(Constants.BYTES_PER_POINT)
@@ -107,9 +107,10 @@ class ImageKeyPointService : AugmentedImageComponentDisplay {
     }
 
     /**
-     * 获取识别到的图片的中心点坐标，写入centerPointCoordinates数组。
+     * Obtain the coordinates of the center of the recognized image and write the coordinates to the
+     * centerPointCoordinates array.
      *
-     * @param augmentedImage 增强图像对象。
+     * @param augmentedImage Augmented image object.
      */
     private fun createImageCenterPoint(augmentedImage: ARAugmentedImage) {
         centerPointCoordinates = FloatArray(4)
@@ -121,10 +122,10 @@ class ImageKeyPointService : AugmentedImageComponentDisplay {
     }
 
     /**
-     * 将获取到的中心坐标数组与四角坐标数组合并为allPointCoordinates数组。
+     * Combine the obtained central coordinate array and vertex coordinate array into an allPointCoordinates array.
      *
-     * @param centerCoordinates 中心点坐标数组。
-     * @param cornerCoordinates 四角坐标数组。
+     * @param centerCoordinates Center coordinate array.
+     * @param cornerCoordinates Four-corner coordinate array.
      */
     private fun mergeArray(centerCoordinates: FloatArray, cornerCoordinates: FloatArray) {
         allPointCoordinates = FloatArray(centerCoordinates.size + cornerCoordinates.size)
@@ -133,9 +134,9 @@ class ImageKeyPointService : AugmentedImageComponentDisplay {
     }
 
     /**
-     * 更新增强图像的关键点信息。
+     * Update the key point information of the augmented image.
      *
-     * @param cornerPoints 增强图像的关键点数组，包括四角顶点及中心点。
+     * @param cornerPoints Array of key points of the augmented image, including the four vertexes and center.
      */
     private fun updateImageAllPoints(cornerPoints: FloatArray) {
         checkGlError(TAG, "Update image key point data start.")
@@ -147,7 +148,7 @@ class ImageKeyPointService : AugmentedImageComponentDisplay {
             val numPoints = numPoints
             if (mvboSize < numPoints * Constants.BYTES_PER_POINT) {
                 while (mvboSize < numPoints * Constants.BYTES_PER_POINT) {
-                    // 如果VBO的大小不足以容纳新的顶点，则需要调整VBO的大小。
+                    //  If the size of VBO is insufficient to accommodate the new vertex, resize the VBO.
                     mvboSize *= 2
                 }
                 GLES20.glBufferData(GLES20.GL_ARRAY_BUFFER, mvboSize, null, GLES20.GL_DYNAMIC_DRAW)
@@ -167,15 +168,15 @@ class ImageKeyPointService : AugmentedImageComponentDisplay {
             GLES20.glEnableVertexAttribArray(position)
             GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, vbo)
 
-            // GLES20.GL_FLOAT大小占4个字节
+            // GLES20.GL_FLOAT occupies 4 bytes.
             GLES20.glVertexAttribPointer(
                 position, 4, GLES20.GL_FLOAT, false, Constants.BYTES_PER_POINT, 0)
 
-            // 将图片关键点的颜色设置为黄色。
+            // Set the color of key points in the image to yellow.
             GLES20.glUniform4f(color, 255.0f / 255.0f, 241.0f / 255.0f, 67.0f / 255.0f, 1.0f)
             GLES20.glUniformMatrix4fv(modelViewProjection, 1, false, viewProjectionMatrix, 0)
 
-            // 设置图片关键点的尺寸大小。
+            // Set the size of the key points of the image.
             GLES20.glUniform1f(pointSize, 10.0f)
             GLES20.glDrawArrays(GLES20.GL_POINTS, 0, numPoints)
             GLES20.glDisableVertexAttribArray(position)

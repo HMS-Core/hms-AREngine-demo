@@ -46,9 +46,9 @@ import kotlinx.android.synthetic.main.augment_image_activity_main.ImageSurfacevi
 import java.util.*
 
 /**
- * 本代码展示了HUAWEI AR Engine的增强图像能力，包括图形识别
- * 、获取增强图像的中心点、获取以图像中心为坐标原点、在x轴，z
- * 轴上评估出物理图片的宽高信息。
+ * This code demonstrates the image augmentation capability of AR Engine, including obtaining the center
+ * of an augmented image, and evaluating the width and height of the physical image on the x axis and z
+ * axis with the image center as the origin.
  *
  * @author HW
  * @since 2021-03-29
@@ -79,7 +79,7 @@ class AugmentedImageActivity : Activity() {
         ImageSurfaceview.run {
             preserveEGLContextOnPause = true
             setEGLContextClientVersion(OPENGLES_VERSION)
-            // 配置EGL，包括颜色buffer的比特位和深度位数。
+            // Configure the EGL, including the bit and depth of the color buffer.
             setEGLConfigChooser(8, 8, 8, 8, 16, 0)
             setRenderer(augmentedImageRenderController)
             renderMode = GLSurfaceView.RENDERMODE_CONTINUOUSLY
@@ -152,10 +152,11 @@ class AugmentedImageActivity : Activity() {
     }
 
     /**
-     * 初始化增强图像功能的数据库。
+     *  Initialize the augmented image database.
      *
-     * @param config 用于Image图像识别和跟踪时配置session，此处用于设置增强图像数据库。
-     * @return 创建数据库是否成功。
+     * @param config Configures sessions for image recognition and tracking. In this example, sets the
+     * augmented image database.
+     * @return Returns whether the database is successfully created.
      */
     private fun setupInitAugmentedImageDatabase(config: ARImageTrackingConfig): Boolean {
         val augmentedImageBitmap = loadAugmentedImageBitmap()

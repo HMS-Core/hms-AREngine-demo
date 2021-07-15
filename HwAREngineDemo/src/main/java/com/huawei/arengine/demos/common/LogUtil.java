@@ -19,7 +19,7 @@ package com.huawei.arengine.demos.common;
 import android.util.Log;
 
 /**
- * log的工具类，提供更便捷的打印日志信息的方式。
+ * Log utility class, which provides a more convenient method of printing logs.
  *
  * @author HW
  * @since 2021-03-08
@@ -28,21 +28,21 @@ public class LogUtil {
     private static final String PROJECT_NAME = "ArEngine_demo";
 
     /**
-     * 所在的方法名。
+     * Method name.
      */
     private static String methodName;
 
     /**
-     * 所在行号。
+     * Line number.
      */
     private static int lineNumber;
 
     /**
-     * 创建日志信息。
+     * Create log information.
      *
-     * @param tag TAG标记。
-     * @param logMsg 日志信息。
-     * @return 包装后的日志信息。
+     * @param tag Tag.
+     * @param logMsg Log messages.
+     * @return Packaged log messages.
      */
     private static String createLog(String tag, String logMsg) {
         StringBuffer buffer = new StringBuffer();
@@ -54,9 +54,9 @@ public class LogUtil {
     }
 
     /**
-     * 获取打印日志部分的方法名、行号。
+     * Obtain the method name and line number in the printed log.
      *
-     * @param stackElements 堆栈信息。
+     * @param stackElements Stack elements.
      */
     private static void getMethodNames(StackTraceElement[] stackElements) {
         methodName = stackElements[1].getMethodName();
@@ -64,10 +64,10 @@ public class LogUtil {
     }
 
     /**
-     * 打印verbose级别的日志。
+     * Print verbose logs.
      *
-     * @param tag TAG标记。
-     * @param message 日志信息。
+     * @param tag Tag.
+     * @param message Log messages.
      */
     public static void verbose(String tag, String message) {
         getMethodNames(new Throwable().getStackTrace());
@@ -75,10 +75,10 @@ public class LogUtil {
     }
 
     /**
-     * 打印debug级别的日志。
+     * Print debug logs.
      *
-     * @param tag TAG标记。
-     * @param message 日志信息。
+     * @param tag Tag.
+     * @param message Log messages.
      */
     public static void debug(String tag, String message) {
         getMethodNames(new Throwable().getStackTrace());
@@ -86,10 +86,10 @@ public class LogUtil {
     }
 
     /**
-     * 打印info级别的日志。
+     * Print info logs.
      *
-     * @param tag TAG标记。
-     * @param message 日志信息。
+     * @param tag Tag.
+     * @param message Log messages.
      */
     public static void info(String tag, String message) {
         getMethodNames(new Throwable().getStackTrace());
@@ -97,10 +97,10 @@ public class LogUtil {
     }
 
     /**
-     * 打印warn级别的日志。
+     * Print warn logs.
      *
-     * @param tag TAG标记。
-     * @param message 日志信息。
+     * @param tag Tag.
+     * @param message Log messages.
      */
     public static void warn(String tag, String message) {
         getMethodNames(new Throwable().getStackTrace());
@@ -108,10 +108,10 @@ public class LogUtil {
     }
 
     /**
-     * 打印error级别的日志。
+     * Print error logs.
      *
-     * @param tag TAG标记。
-     * @param message 日志信息。
+     * @param tag Tag.
+     * @param message Log messages.
      */
     public static void error(String tag, String message) {
         getMethodNames(new Throwable().getStackTrace());

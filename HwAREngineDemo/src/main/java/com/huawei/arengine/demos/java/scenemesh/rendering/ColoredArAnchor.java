@@ -19,24 +19,24 @@ package com.huawei.arengine.demos.java.scenemesh.rendering;
 import com.huawei.hiar.ARAnchor;
 
 /**
- * 着色的AR锚点。
+ * Colored AR anchor.
  *
  * @author hw
  * @since 2021-01-27
  */
 public class ColoredArAnchor {
     /**
-     * OBJ颜色标志位，AR_TRACKABLE_POINT为蓝色。
+     * OBJ color flag. AR_TRACKABLE_POINT is blue.
      */
     public static final String AR_TRACK_POINT_COLOR = "track_point_color";
 
     /**
-     * OBJ颜色标志位，AR_TRACKABLE_PLANE为绿色。
+     * OBJ color flag. AR_TRACKABLE_PLANE is green.
      */
     public static final String AR_TRACK_PLANE_COLOR = "track_plane_color";
 
     /**
-     * OBJ颜色标志位，默认白色。
+     * OBJ color flag. The default color is white.
      */
     public static final String AR_DEFAULT_COLOR = "default_color";
 
@@ -50,18 +50,18 @@ public class ColoredArAnchor {
     }
 
     /**
-     * 获取锚点颜色标志，Data根据颜色标志选取自定义的颜色。
+     * Obtains the anchor color flag. The data selects the customized color based on the color flag.
      *
-     * @return OBJ模型颜色类型，AR_TRACKABLE_POINT为蓝色，AR_TRACKABLE_PLANE为绿色。
+     * @return OBJ Model color type. AR_TRACKABLE_POINT is blue, and AR_TRACKABLE_PLANE is green.
      */
     public String getColor() {
         return colorFlag;
     }
 
     /**
-     * 锚的颜色。
+     * Anchor color.
      *
-     * @return AR锚点。
+     * @return AR anchor.
      */
     public ARAnchor getAnchor() {
         return anchor;

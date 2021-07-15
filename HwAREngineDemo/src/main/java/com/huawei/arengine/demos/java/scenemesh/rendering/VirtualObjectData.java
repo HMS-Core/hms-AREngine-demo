@@ -41,7 +41,7 @@ import java.nio.ShortBuffer;
 import java.util.Optional;
 
 /**
- * 呈现从OpenGL中的OBJ类型文件加载的对象。
+ * Displays objects that are loaded from the OBJ file in Open GL.
  *
  * @author HW
  * @since 2021-01-25
@@ -115,7 +115,9 @@ public class VirtualObjectData {
 
     private int mMaterialParametersUniform;
 
-    // 着色器位置：对象颜色属性（更改对象的主要颜色）。
+    /**
+     * Shader position: object color attribute (primary color of the object).
+     */
     private int mColorUniform;
 
     private float[] mModelMatrixs = new float[16];
@@ -133,13 +135,13 @@ public class VirtualObjectData {
     private float mSpecularPower = OBJECT_SPECULARPOWER;
 
     /**
-     * 虚拟对象数据类构造器。
+     * Constructor of the virtual object data class.
      */
     public VirtualObjectData() {
     }
 
     /**
-     * 虚拟对象数据类。
+     * Virtual object data class.
      *
      * @author HW
      * @since 2021-02-8
@@ -165,9 +167,9 @@ public class VirtualObjectData {
     }
 
     /**
-     * 初始化缓存，编译链接着色程序On GlThread。
+     * Initialize the cache and compile the link coloring program On GlThread.
      *
-     * @param context 用于加载着色器和以下命名的模型和纹理资产的上下文。
+     * @param context Load the shader and the context of the following model and texture assets.
      */
     public void init(Context context) {
         GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
@@ -202,7 +204,7 @@ public class VirtualObjectData {
         GLES20.glBindBuffer(GLES20.GL_ELEMENT_ARRAY_BUFFER, mIndexBufferId);
         mIndexCount = objectData.indices.limit();
 
-        // 防止内存不足，并使其倍增。
+        // Prevent the memory from being insufficient and multiply the memory.
         GLES20.glBufferData(GLES20.GL_ELEMENT_ARRAY_BUFFER, 2 * mIndexCount, objectData.indices, GLES20.GL_STATIC_DRAW);
         GLES20.glBindBuffer(GLES20.GL_ELEMENT_ARRAY_BUFFER, 0);
 
@@ -219,10 +221,10 @@ public class VirtualObjectData {
             return Optional.empty();
         }
 
-        // 物体的每个表面有三个顶点。
+        // Each surface of the object has three vertices.
         IntBuffer objectIndices = ObjData.getFaceVertexIndices(obj, 3);
 
-        // 防止内存不足，并使其倍增。
+        // Prevent the memory from being insufficient and multiply the memory.
         ShortBuffer indices = ByteBuffer.allocateDirect(2 * objectIndices.limit())
             .order(ByteOrder.nativeOrder())
             .asShortBuffer();
@@ -236,7 +238,7 @@ public class VirtualObjectData {
         mIndexBufferId = buffers[1];
         mVerticesBaseAddress = 0;
         FloatBuffer objectVertices = ObjData.getVertices(obj);
-        FloatBuffer texCoords = ObjData.getTexCoords(obj, 2); // 设置坐标维度为2。
+        FloatBuffer texCoords = ObjData.getTexCoords(obj, 2); // Set the coordinate dimension to 2.
         FloatBuffer normals = ObjData.getNormals(obj);
         return Optional.of(
             new ObjectData(objectIndices, objectVertices, indices, texCoords, normals));
@@ -259,7 +261,7 @@ public class VirtualObjectData {
     }
 
     /**
-     * 加载着色器和获取OpenGL的ES（工程样片）变量。
+     * Load the shader and obtain the ES variables of the OpenGL.
      */
     private void loadShaderAndGetOpenGLESVariable() {
         mProgram = SceneMeshShaderUtil.getVirtualObjectProgram();
@@ -282,17 +284,17 @@ public class VirtualObjectData {
     }
 
     /**
-     * 更新模型矩阵数据。
+     * Update the model matrix data.
      *
-     * @param modelMatrix 模型矩阵数据。
-     * @param scaleFactor 缩放因子。
+     * @param modelMatrix Model matrix data.
+     * @param scaleFactor Scaling factor.
      */
     public void updateModelMatrix(float[] modelMatrix, float scaleFactor) {
         float[] scaleMatrixs = new float[16];
         Matrix.setIdentityM(scaleMatrixs, 0);
 
-        // 将右侧Matrix矩阵的第一列设置为缩放系数。
-        // 矩阵对角线的缩放系数。
+        // Set the first column of the matrix on the right to the scaling factor.
+        // Scaling factor of the diagonal line of the matrix.
         scaleMatrixs[0] = scaleFactor;
         scaleMatrixs[5] = scaleFactor;
         scaleMatrixs[10] = scaleFactor;
@@ -301,12 +303,12 @@ public class VirtualObjectData {
     }
 
     /**
-     * 设置素材属性。
+     * Set the material attributes.
      *
-     * @param ambient 素材性质：环境参数。
-     * @param diffuse 素材性质：扩散参数。
-     * @param specular 素材性质：镜面参数。
-     * @param specularPower 素材性质：镜面电源参数。
+     * @param ambient Material property: environment parameter.
+     * @param diffuse Material property: diffusion parameter.
+     * @param specular Material property: specular parameter.
+     * @param specularPower Material property: specular power parameter.
      */
     public void setMaterialProperties(float ambient, float diffuse, float specular, float specularPower) {
         mAmbient = ambient;
@@ -316,12 +318,12 @@ public class VirtualObjectData {
     }
 
     /**
-     * 在指定表面的指定位置绘制虚拟对象。
+     * Draw a virtual object at a specific location on a specified plane.
      *
-     * @param cameraView 摄像机视图数据。
-     * @param cameraPerspective 摄像机透视数据。
-     * @param lightIntensity 光强数据。
-     * @param objColor 对象的颜色。
+     * @param cameraView Camera view data.
+     * @param cameraPerspective Perspective data of the camera.
+     * @param lightIntensity Light intensity data.
+     * @param objColor Object color.
      */
     public void draw(float[] cameraView, float[] cameraPerspective, float lightIntensity, String objColor) {
         LogUtil.debug(TAG, "Before draw Virtual Object : ");
@@ -334,11 +336,11 @@ public class VirtualObjectData {
         Matrix.multiplyMV(mViewLightDirections, 0, mModelViewMatrixs, 0, LIGHT_DIRECTIONS, 0);
         normalizeVec3(mViewLightDirections);
 
-        // 照明方向数据有3个维度（0,1,2）。
+        // The lighting direction data has three dimensions (0, 1, and 2).
         GLES20.glUniform4f(mLightingParametersUniform, mViewLightDirections[0], mViewLightDirections[1],
             mViewLightDirections[2], lightIntensity);
 
-        // 设置对象颜色属性。
+        // Set the object color.
         switch (objColor) {
             case ColoredArAnchor.AR_TRACK_POINT_COLOR:
                 GLES20.glUniform4fv(mColorUniform, 1, TRACK_POINT_COLOR, 0);
@@ -390,12 +392,13 @@ public class VirtualObjectData {
     }
 
     /**
-     * 三维数据标准化方法，每个数除以所有平方和的根。
+     * Three-dimensional data standardization method, which divides each number by the root of the
+     * sum of squares of all numbers.
      *
-     * @param vector 三维矢量。
+     * @param vector: 3D vector.
      */
     public static void normalizeVec3(float[] vector) {
-        // 此数据有三个维度(0,1,2)。
+        // The data has three dimensions (0, 1, and 2).
         float length = 1 / (float) Math.sqrt(vector[0] * vector[0] + vector[1] * vector[1] + vector[2] * vector[2]);
         vector[0] *= length;
         vector[1] *= length;

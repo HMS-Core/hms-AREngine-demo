@@ -172,10 +172,10 @@ public class AugmentedImageActivity extends Activity {
     }
 
     /**
-     * Check whether the AR Engine service (com.huawei.arengine.service) is installed on the
-     * current device. If not, redirect to the HUAWEI AppGallery to install it.
+     * Check whether HUAWEI AR Engine server (com.huawei.arengine.service) is installed on the current device.
+     * If not, redirect the user to HUAWEI AppGallery for installation.
      *
-     * @return Indicates whether the AR Engine server is installed.
+     * @return true:AR Engine ready
      */
     private boolean arEngineAbilityCheck() {
         boolean isInstallArEngineApk = AREnginesApk.isAREngineApkReady(this);

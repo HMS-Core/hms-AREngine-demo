@@ -44,7 +44,7 @@ import com.huawei.hiar.exceptions.ARUnavailableServiceNotInstalledException;
 import java.util.concurrent.ArrayBlockingQueue;
 
 /**
- * 本示例演示了AR Engine中网格场景的使用方法。
+ * The following example demonstrates how to use the grid in AR Engine.
  *
  * @author HW
  * @since 2021-01-25
@@ -127,9 +127,9 @@ public class SceneMeshActivity extends Activity {
     }
 
     /**
-     * 点击事件记录方法，将点击事件存入列表。
+     * Click event recording method, which saves the click event to the list.
      *
-     * @param event 点击事件。
+     * @param event event Click event.
      */
     private void onSingleTap(MotionEvent event) {
         LogUtil.debug(TAG, "onSingleTap, add MotionEvent to mQueuedSingleTaps" + event.toString());
@@ -159,7 +159,7 @@ public class SceneMeshActivity extends Activity {
                 mArSession.configure(config);
                 mSceneMeshRenderManager.setArSession(mArSession);
 
-                // 检测当前手机相机是否为深度相机。
+                // Detect whether the current mobile phone camera is a depth camera.
                 if ((config.getEnableItem() & ARConfigBase.ENABLE_MESH) == 0) {
                     findViewById(R.id.scene_mesh_searchingTextView).setVisibility(View.GONE);
                     throw new ARUnSupportedConfigurationException();
@@ -185,9 +185,9 @@ public class SceneMeshActivity extends Activity {
     }
 
     /**
-     * 输入捕获的异常项，并输出相应的异常信息。
+     * Input the captured exception items and output the corresponding exception information.
      *
-     * @param catchException 捕获到的异常。
+     * @param catchException Captured exception.
      */
     private void setMessageWhenError(Exception catchException) {
         if (catchException instanceof ARUnavailableServiceNotInstalledException) {
@@ -204,10 +204,10 @@ public class SceneMeshActivity extends Activity {
     }
 
     /**
-     * 检查当前设备是否安装AR Engine引擎(com.huawei.arengine.service)。
-     * 如果没有，请重定向到华为应用市场进行安装。
+     * Check whether HUAWEI AR Engine server (com.huawei.arengine.service) is installed on the current device.
+     * If not, redirect the user to HUAWEI AppGallery for installation.
      *
-     * @return Boolean 如果当前设备安装了AR Engine引擎，返回true，否则返回false。
+     * @return true:AR Engine ready
      */
     private boolean arEngineAbilityCheck() {
         boolean isInstallArEngineApk = AREnginesApk.isAREngineApkReady(this);
@@ -224,7 +224,7 @@ public class SceneMeshActivity extends Activity {
     }
 
     /**
-     * 停止AR Session。
+     * Stop the AR session.
      */
     private void stopArSession() {
         LogUtil.info(TAG, "stopArSession start.");

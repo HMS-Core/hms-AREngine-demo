@@ -128,7 +128,7 @@ class WorldRenderController(private val activity: Activity,
             }
         }
 
-        // projectionMatrix、viewMatrix 均为 4*4 矩阵
+        // projectionMatrix、viewMatrix 4 * 4 matrix.
         val projectionMatrix = FloatArray(16)
         val viewMatrix = FloatArray(16)
         frame.camera.apply {
@@ -156,11 +156,11 @@ class WorldRenderController(private val activity: Activity,
     }
 
     /**
-     * 绘制虚拟物体
+     * Draw a virtual object.
      *
-     * @param projectionMatrix 投影矩阵
-     * @param viewMatrix 视图矩阵
-     * @param lightPixelIntensity 光照参数
+     * @param projectionMatrix Projection matrix.
+     * @param viewMatrix View matrix.
+     * @param lightPixelIntensity Light intensity parameter.
      */
     private fun drawAllObjects(projectionMatrix: FloatArray, viewMatrix: FloatArray, lightPixelIntensity: Float) {
         val ite = gestureController.virtualObjects.iterator()

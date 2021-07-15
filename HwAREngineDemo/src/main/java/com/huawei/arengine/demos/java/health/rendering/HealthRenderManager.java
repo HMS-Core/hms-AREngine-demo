@@ -41,7 +41,7 @@ import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
 /**
- * 背景渲染与健康数据刷新相关逻辑
+ * Contains logics related to background rendering and health data updating.
  *
  * @author HW
  * @since 2020-03-18
@@ -127,9 +127,9 @@ public class HealthRenderManager implements GLSurfaceView.Renderer {
     }
 
     /**
-     * 设置健康检测进度
+     * Setting the health check progress.
      *
-     * @param progress 进度信息
+     * @param progress Progress Information.
      */
     public void setHealthCheckProgress(int progress) {
         mProgress = progress;
@@ -164,7 +164,7 @@ public class HealthRenderManager implements GLSurfaceView.Renderer {
     }
 
     /**
-     * 设置健康显示使用的TableLayout
+     * Setting the TableLayout Used for Health Display.
      *
      * @param tableLayout TableLayout.
      */

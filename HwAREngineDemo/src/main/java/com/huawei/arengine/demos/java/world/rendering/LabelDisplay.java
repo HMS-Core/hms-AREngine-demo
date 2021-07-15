@@ -64,14 +64,18 @@ public class LabelDisplay {
 
     private final int[] textures = new int[TEXTURES_SIZE];
 
-    // Allocate a temporary list/matrix here to reduce the number of allocations per frame.
+    /**
+     * Allocate a temporary list/matrix here to reduce the number of allocations per frame.
+     */
     private final float[] modelMatrix = new float[MATRIX_SIZE];
 
     private final float[] modelViewMatrix = new float[MATRIX_SIZE];
 
     private final float[] modelViewProjectionMatrix = new float[MATRIX_SIZE];
 
-    // A 2 * 2 rotation matrix applied to the uv coordinates.
+    /**
+     * A 2 * 2 rotation matrix applied to the uv coordinates.
+     */
     private final float[] planeAngleUvMatrix = new float[PLANE_ANGLE_MATRIX_SIZE];
 
     private int mProgram;

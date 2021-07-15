@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Copyright 2021. Huawei Technologies Co., Ltd. All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,7 +33,7 @@ import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
 /**
- * 场景网格渲染，用于创建着色器以更新网格数据和渲染。
+ * Renders the scene grid, and creates the shader for updating grid data and performing rendering.
  *
  * @author hw
  * @since 2021-01-26
@@ -43,7 +43,7 @@ public class SceneMeshDisplay implements SceneMeshComponenDisplay {
 
     private static final int BYTES_PER_FLOAT = Float.SIZE / 8;
 
-    private static final int FLOATS_PER_POINT = 3; // X，Y，Z，置信度。
+    private static final int FLOATS_PER_POINT = 3;
 
     private static final int BYTES_PER_POINT = BYTES_PER_FLOAT * FLOATS_PER_POINT;
 
@@ -57,12 +57,16 @@ public class SceneMeshDisplay implements SceneMeshComponenDisplay {
 
     private int mVerticeVBO;
 
-    // 初始化顶点VBO（顶点缓存对象）大小，实际为7365。
+    /**
+     * Initialize the VBO size. The actual size is 7365.
+     */
     private int mVerticeVBOSize = 8000;
 
     private int mTriangleVBO;
 
-    // 初始化三角形VBO（顶点缓存对象）大小，实为4434。
+    /**
+     * Initialize the size of the triangle VBO. The actual size is 4434.
+     */
     private int mTriangleVBOSize = 5000;
 
     private int mProgram;
@@ -82,7 +86,7 @@ public class SceneMeshDisplay implements SceneMeshComponenDisplay {
     private float[] mModelViewProjection = new float[MODLE_VIEW_PROJ_SIZE];
 
     /**
-     * 场景网格显示构造器。
+     * Scene mesh display constructor.
      */
     public SceneMeshDisplay() {
     }
@@ -125,9 +129,9 @@ public class SceneMeshDisplay implements SceneMeshComponenDisplay {
     }
 
     /**
-     * 更新缓冲区中的Mesh数据。
+     * Update the mesh data in the buffer.
      *
-     * @param sceneMesh 数据结构AR Mesh场景。
+     * @param sceneMesh Data structure in the AR mesh scene.
      */
     public void updateSceneMeshData(ARSceneMesh sceneMesh) {
         ShaderUtil.checkGlError(TAG, "before update");
@@ -140,7 +144,7 @@ public class SceneMeshDisplay implements SceneMeshComponenDisplay {
         GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, mVerticeVBO);
         if (mVerticeVBOSize < mPointsNum * BYTES_PER_POINT) {
             while (mVerticeVBOSize < mPointsNum * BYTES_PER_POINT) {
-                mVerticeVBOSize *= 2; // 如果顶点VBO（顶点缓存对象）大小不够大，则将其加倍。
+                mVerticeVBOSize *= 2; // If the VBO is not large enough in size, double it.
             }
             GLES20.glBufferData(GLES20.GL_ARRAY_BUFFER, mVerticeVBOSize, null, GLES20.GL_DYNAMIC_DRAW);
         }
@@ -157,7 +161,7 @@ public class SceneMeshDisplay implements SceneMeshComponenDisplay {
         GLES20.glBindBuffer(GLES20.GL_ELEMENT_ARRAY_BUFFER, mTriangleVBO);
         if (mTriangleVBOSize < mTrianglesNum * BYTES_PER_POINT) {
             while (mTriangleVBOSize < mTrianglesNum * BYTES_PER_POINT) {
-                mTriangleVBOSize *= 2; // 如果三角形VBO（顶点缓存对象）大小不够大，则加倍。
+                mTriangleVBOSize *= 2; // If the triangle VBO is not large enough in size, double it.
             }
             GLES20.glBufferData(GLES20.GL_ELEMENT_ARRAY_BUFFER, mTriangleVBOSize, null, GLES20.GL_DYNAMIC_DRAW);
         }
@@ -167,10 +171,10 @@ public class SceneMeshDisplay implements SceneMeshComponenDisplay {
     }
 
     /**
-     * 在着色器程序和绘图中设置输入数据。
+     * Set up the input data in the shader program and in the drawing program.
      *
-     * @param cameraView 摄像机视图数据。
-     * @param cameraPerspective 摄像机透视数据。
+     * @param cameraView Camera view data.
+     * @param cameraPerspective Perspective data of the camera.
      */
     public void draw(float[] cameraView, float[] cameraPerspective) {
         ShaderUtil.checkGlError(TAG, "Before draw");
@@ -180,7 +184,7 @@ public class SceneMeshDisplay implements SceneMeshComponenDisplay {
         GLES20.glEnable(GLES20.GL_CULL_FACE);
         Matrix.multiplyMM(mModelViewProjection, 0, cameraPerspective, 0, cameraView, 0);
 
-        // 绘画点。
+        // Drawing point.
         GLES20.glUseProgram(mProgram);
         GLES20.glEnableVertexAttribArray(mPositionAttribute);
         GLES20.glEnableVertexAttribArray(mColorUniform);
@@ -189,20 +193,20 @@ public class SceneMeshDisplay implements SceneMeshComponenDisplay {
             BYTES_PER_POINT, 0);
         GLES20.glUniform4f(mColorUniform, 1.0f, 0.0f, 0.0f, 1.0f);
         GLES20.glUniformMatrix4fv(mModelViewProjectionUniform, 1, false, mModelViewProjection, 0);
-        GLES20.glUniform1f(mPointSizeUniform, 5.0f); // 设置点的大小为5。
+        GLES20.glUniform1f(mPointSizeUniform, 5.0f); // Set the point size to 5.
         GLES20.glDrawArrays(GLES20.GL_POINTS, 0, mPointsNum);
         GLES20.glDisableVertexAttribArray(mColorUniform);
         GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, 0);
         ShaderUtil.checkGlError(TAG, "Draw point");
 
-        // 绘画三角形。
+        // Draw a triangle.
         GLES20.glEnable(GL_BLEND);
         GLES20.glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         GLES20.glEnableVertexAttribArray(mColorUniform);
         GLES20.glUniform4f(mColorUniform, 0.0f, 1.0f, 0.0f, 0.5f);
         GLES20.glBindBuffer(GLES20.GL_ELEMENT_ARRAY_BUFFER, mTriangleVBO);
 
-        // 每个三角形有三个顶点。
+        // Each triangle has three vertices.
         GLES20.glDrawElements(GLES20.GL_TRIANGLES, mTrianglesNum * 3, GLES20.GL_UNSIGNED_INT, 0);
         GLES20.glBindBuffer(GLES20.GL_ELEMENT_ARRAY_BUFFER, 0);
         GLES20.glDisableVertexAttribArray(mColorUniform);

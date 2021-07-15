@@ -30,7 +30,7 @@ import com.huawei.hiar.ARPlane
 import java.util.concurrent.ArrayBlockingQueue
 
 /**
- * 根据指定参数绘制虚拟对象。
+ * Draws a virtual object based on specified parameters.
  *
  * @author hw
  * @since 2021-04-21
@@ -81,9 +81,9 @@ class HitResultService {
     }
 
     /**
-     * 显示AR姿势。
+     * Displays the AR posture.
      *
-     * @param coloredAnchor 着色的AR锚点。
+     * @param coloredAnchor AR anchor for coloring.
      */
     private fun showArPose(coloredAnchor: ColoredArAnchor) {
         val anchorPose = coloredAnchor.anchor.pose
@@ -104,7 +104,7 @@ class HitResultService {
 
         val hitTestResults: List<ARHitResult> = arFrame.hitTest(tap)
         for (i in hitTestResults.indices) {
-            // 检查是否有平面被击中，以及是否在平面多边形内被击中
+            // Check whether a plane is hit and whether it is hit in a plane polygon.
             val hitResultTemp = hitTestResults[i]
             trackable = hitResultTemp.trackable
             if (trackable is ARPoint
@@ -118,15 +118,16 @@ class HitResultService {
             return
         }
 
-        // 按深度排序。只考虑在平面或定向点上最近的撞击。限制创建的对象数量。
-        // 这样可以避免渲染系统和AREngine都过载。
+        // Sort by depth. Only the nearest hit on the plane or on the directional point is considered.
+        // Limit the number of objects that can be created.
+        // This prevents the rendering system and AR Engine from being overloaded.
         if (mAnchors.size >= 16) {
             mAnchors[0].anchor.detach()
             mAnchors.removeAt(0)
         }
 
-        // 根据此锚点附加的可跟踪类型，为对象分配颜色以进行呈现。
-        // AR_TRACKABLE_POINT为蓝色，AR_TRACKABLE_PLANE为绿色。
+        // Assign a color to the object for display based on the trackable type attached to the anchor point.
+        // AR_TRACKABLE_POINT is blue and AR_TRACKABLE_PLANE is green.
         val objColor: String
         trackable = hitResult.trackable
         objColor = when (trackable) {
@@ -141,17 +142,18 @@ class HitResultService {
             }
         }
 
-        // 添加一个锚点通知AREngine ，它应该在空间中跟踪这个位置。
-        // 在平面上创建这个锚点，以便将3D模型置于相对于外界和平面的正确位置。
+        // Add an anchor to notify AR Engine that it should track the location in space.
+        // Create the anchor on the plane so that the 3D model can be placed in the correct position relative
+        // to the external environment and plane.
         mAnchors.add(ColoredArAnchor(hitResult.createAnchor(), objColor))
 
         LogUtil.debug(TAG, "Add anchor Success!!: ")
     }
 
     /**
-     * 设置手势类型队列。
+     * Set a gesture type queue.
      *
-     * @param queuedSingleTaps 手势类型队列。
+     * @param queuedSingleTaps Gesture type queue.
      */
     fun setQueuedSingleTaps(queuedSingleTaps: ArrayBlockingQueue<MotionEvent>?) {
         if (queuedSingleTaps == null) {

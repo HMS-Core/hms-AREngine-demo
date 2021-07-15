@@ -28,7 +28,7 @@ import com.huawei.hiar.ARSceneMesh
 import javax.microedition.khronos.opengles.GL10
 
 /**
- * 场景网格渲染，用于创建着色器以更新网格数据和渲染。
+ * Renders the scene grid, and creates the shader for updating grid data and performing rendering.
  *
  * @author hw
  * @since 2021-04-21
@@ -69,9 +69,9 @@ class SceneMeshService {
     }
 
     /**
-     * 更新缓冲区中的Mesh数据。
+     * Update the mesh data in the buffer.
      *
-     * @param sceneMesh 数据结构AR Mesh场景。
+     * @param sceneMesh Data structure in the AR mesh scene.
      */
     private fun updateSceneMeshData(sceneMesh: ARSceneMesh) {
         mSceneMeshPojo.run {
@@ -85,7 +85,7 @@ class SceneMeshService {
             GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, mVerticeVBO)
             if (mVerticeVBOSize < mPointsNum * Constants.BYTES_PER_POINT) {
                 while (mVerticeVBOSize < mPointsNum * Constants.BYTES_PER_POINT) {
-                    mVerticeVBOSize *= 2 // 如果顶点VBO（顶点缓存对象）大小不够大，则将其加倍。
+                    mVerticeVBOSize *= 2 // If the VBO is not large enough in size, double it.
                 }
                 GLES20.glBufferData(GLES20.GL_ARRAY_BUFFER, mVerticeVBOSize, null, GLES20.GL_DYNAMIC_DRAW)
             }
@@ -100,7 +100,7 @@ class SceneMeshService {
             GLES20.glBindBuffer(GLES20.GL_ELEMENT_ARRAY_BUFFER, mTriangleVBO)
             if (mTriangleVBOSize < mTrianglesNum * Constants.BYTES_PER_POINT) {
                 while (mTriangleVBOSize < mTrianglesNum * Constants.BYTES_PER_POINT) {
-                    mTriangleVBOSize *= 2 // 如果三角形VBO（顶点缓存对象）大小不够大，则加倍。
+                    mTriangleVBOSize *= 2 // If the triangle VBO is not large enough in size, double it.
                 }
                 GLES20.glBufferData(GLES20.GL_ELEMENT_ARRAY_BUFFER, mTriangleVBOSize, null, GLES20.GL_DYNAMIC_DRAW)
             }
@@ -111,10 +111,10 @@ class SceneMeshService {
     }
 
     /**
-     * 在着色器程序和绘图中设置输入数据。
+     * Set up the input data in the shader program and in the drawing program.
      *
-     * @param cameraView 摄像机视图数据。
-     * @param cameraPerspective 摄像机透视数据。
+     * @param cameraView Camera view data.
+     * @param cameraPerspective Perspective data of the camera.
      */
     fun draw(cameraView: FloatArray, cameraPerspective: FloatArray) {
         mSceneMeshPojo.run {
@@ -125,7 +125,7 @@ class SceneMeshService {
             GLES20.glEnable(GLES20.GL_CULL_FACE)
             Matrix.multiplyMM(mModelViewProjection, 0, cameraPerspective, 0, cameraView, 0)
 
-            // 绘画点。
+            // Drawing point.
             GLES20.glUseProgram(mProgram)
             GLES20.glEnableVertexAttribArray(mPositionAttribute)
             GLES20.glEnableVertexAttribArray(mColorUniform)
@@ -133,21 +133,21 @@ class SceneMeshService {
             GLES20.glVertexAttribPointer(mPositionAttribute, Constants.POSITION_COMPONENTS_NUMBER, GLES20.GL_FLOAT, false, Constants.BYTES_PER_POINT, 0)
             GLES20.glUniform4f(mColorUniform, 1.0f, 0.0f, 0.0f, 1.0f)
             GLES20.glUniformMatrix4fv(mModelViewProjectionUniform, 1, false, mModelViewProjection, 0)
-            GLES20.glUniform1f(mPointSizeUniform, 5.0f) // 设置点的大小为5。
+            GLES20.glUniform1f(mPointSizeUniform, 5.0f) // Set the point size to 5.
 
             GLES20.glDrawArrays(GLES20.GL_POINTS, 0, mPointsNum)
             GLES20.glDisableVertexAttribArray(mColorUniform)
             GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, 0)
             checkGlError(TAG, "Draw point")
 
-            // 绘画三角形。
+            // Draw a triangle.
             GLES20.glEnable(GL10.GL_BLEND)
             GLES20.glBlendFunc(GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA)
             GLES20.glEnableVertexAttribArray(mColorUniform)
             GLES20.glUniform4f(mColorUniform, 0.0f, 1.0f, 0.0f, 0.5f)
             GLES20.glBindBuffer(GLES20.GL_ELEMENT_ARRAY_BUFFER, mTriangleVBO)
 
-            // 每个三角形有三个顶点。
+            // Each triangle has three vertices.
             GLES20.glDrawElements(GLES20.GL_TRIANGLES, mTrianglesNum * 3, GLES20.GL_UNSIGNED_INT, 0)
             GLES20.glBindBuffer(GLES20.GL_ELEMENT_ARRAY_BUFFER, 0)
             GLES20.glDisableVertexAttribArray(mColorUniform)
@@ -161,11 +161,11 @@ class SceneMeshService {
     }
 
     /**
-     * 呈现对象，每帧调用。
+     * Displayed object, which is called for each frame.
      *
-     * @param arFrame 处理AR帧。
-     * @param cameraView 视图矩阵。
-     * @param cameraPerspective 摄像机投影矩阵。
+     * @param arFrame Process the AR frame.
+     * @param cameraView View matrix.
+     * @param cameraPerspective Camera projection matrix.
      */
     fun onDrawFrame(arFrame: ARFrame, cameraView: FloatArray, cameraPerspective: FloatArray) {
         val arSceneMesh = arFrame.acquireSceneMesh()

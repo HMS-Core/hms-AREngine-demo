@@ -21,7 +21,7 @@ import android.opengl.GLES20;
 import com.huawei.arengine.demos.common.LogUtil;
 
 /**
- * 获取云3D物体识别shader.
+ * Obtains the cloud 3D object recognition shader.
  *
  * @author HW
  * @since 2021-04-02
@@ -30,12 +30,12 @@ public class ObjectShaderUtil {
     private static final String TAG = ObjectShaderUtil.class.getSimpleName();
 
     /**
-     * 换行符。
+     * Newline character.
      */
     private static final String LS = System.lineSeparator();
 
     /**
-     * 用于标签渲染的顶点着色器。
+     * Vertex shader used for label rendering.
      */
     private static final String LABEL_VERTEX =
         "uniform mat2 inPlanUVMatrix;" + LS
@@ -50,7 +50,7 @@ public class ObjectShaderUtil {
         + "}";
 
     /**
-     * 用于标签渲染的片段着色器。
+     * Segment shader used for label rendering.
      */
     private static final String LABEL_FRAGMENT =
         "precision highp float;" + LS
@@ -66,11 +66,11 @@ public class ObjectShaderUtil {
     }
 
     /**
-     * Shader程序生成器。
+     * Shader program generator.
      *
-     * @param vertexCode 顶点着色器的代码。
-     * @param fragmentCode 图像片段着色器的代码。
-     * @return 程序句柄。
+     * @param vertexCode Code of the vertex shader.
+     * @param fragmentCode Code of the image fragment shader.
+     * @return int Program handle.
      */
     private static int createGlProgram(String vertexCode, String fragmentCode) {
         int vertex = loadShader(GLES20.GL_VERTEX_SHADER, vertexCode);

@@ -50,7 +50,8 @@ import com.huawei.hiar.listener.CloudServiceListener;
 import java.util.EventObject;
 
 /**
- * 本代码展示了HUAWEI AR Engine的云3D物体识别，包括3D物体识别、获取3D物体的位姿、名称、ID等
+ * Demonstrates how to use AR Engine to recognize cloud 3D objects, including recognizing the 3D objects
+ * and obtaining their pose, name, and ID.
  *
  * @author HW
  * @since 2021-02-04
@@ -63,7 +64,7 @@ public class CloudAugmentedObjectActivity extends Activity {
     private static final int AR_ENGINE_SERVICE_CALL = 10001;
 
     /**
-     * hms login
+     * Hms login.
      */
     private static final int REQUEST_SIGN_IN_LOGIN = 1002;
 
@@ -115,7 +116,7 @@ public class CloudAugmentedObjectActivity extends Activity {
         glSurfaceView.setPreserveEGLContextOnPause(true);
         glSurfaceView.setEGLContextClientVersion(OPENGLES_VERSION);
 
-        // 配置EGL，包括颜色buffer的比特位和深度位数。
+        // Configure the EGL, including the bit and depth of the color buffer.
         glSurfaceView.setEGLConfigChooser(8, 8, 8, 8, 16, 0);
         mDisplayRotationManager = new DisplayRotationManager(this);
 
@@ -184,10 +185,10 @@ public class CloudAugmentedObjectActivity extends Activity {
     }
 
     /**
-     * 检查HUAWEI AR Engine服务端（com.huawei.arengine.service）是否安装在
-     * 当前设备。如果没有，请重定向到华为应用市场进行安装。
+     * Check whether HUAWEI AR Engine server (com.huawei.arengine.service) is installed on the current device.
+     * If not, redirect the user to HUAWEI AppGallery for installation.
      *
-     * @return 是否安装HUAWEI AR Engine服务器。
+     * @return true:AR Engine ready
      */
     private boolean arEngineAbilityCheck() {
         boolean isInstallArEngineApk = AREnginesApk.isAREngineApkReady(this);

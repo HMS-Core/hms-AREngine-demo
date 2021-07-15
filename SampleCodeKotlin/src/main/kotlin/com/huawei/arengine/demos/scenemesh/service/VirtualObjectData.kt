@@ -41,7 +41,7 @@ import java.nio.ByteBuffer
 import java.util.Optional
 
 /**
- * 呈现从OpenGL中的OBJ类型文件加载的对象。
+ * Displays objects that are loaded from the OBJ file in Open GL.
  *
  * @author HW
  * @since 2021-04-21
@@ -64,7 +64,7 @@ class VirtualObjectData {
     private val mViewLightDirections = FloatArray(Constants.LIGHT_DIRECTION_SIZE)
 
     /**
-     * 虚拟对象数据类。
+     * Virtual object data class.
      *
      * @author HW
      * @since 2021-02-8
@@ -74,9 +74,9 @@ class VirtualObjectData {
         var texCoords: FloatBuffer, var normals: FloatBuffer)
 
     /**
-     * 初始化缓存，编译链接着色程序On GlThread。
+     *  Initialize the cache and compile the link coloring program On GlThread.
      *
-     * @param context 用于加载着色器和以下命名的模型和纹理资产的上下文。
+     * @param context Load the shader and the context of the following model and texture assets.
      */
     fun init(context: Context) {
         mVirtualObjectPojo.run {
@@ -112,7 +112,7 @@ class VirtualObjectData {
             GLES20.glBindBuffer(GLES20.GL_ELEMENT_ARRAY_BUFFER, mIndexBufferId)
             mIndexCount = objectData.indices.limit()
 
-            // 防止内存不足，并使其倍增。
+            // Prevent the memory from being insufficient and multiply the memory.
             GLES20.glBufferData(GLES20.GL_ELEMENT_ARRAY_BUFFER, 2 * mIndexCount, objectData.indices, GLES20.GL_STATIC_DRAW)
             GLES20.glBindBuffer(GLES20.GL_ELEMENT_ARRAY_BUFFER, 0)
 
@@ -136,10 +136,10 @@ class VirtualObjectData {
                 return Optional.empty()
             }
 
-            // 物体的每个表面有三个顶点。
+            // Each surface of the object has three vertices.
             val objectIndices = ObjData.getFaceVertexIndices(obj!!, 3)
 
-            // 防止内存不足，并使其倍增。
+            // Prevent the memory from being insufficient and multiply the memory.
             val indices = ByteBuffer.allocateDirect(2 * objectIndices.limit())
                 .order(ByteOrder.nativeOrder())
                 .asShortBuffer()
@@ -153,7 +153,7 @@ class VirtualObjectData {
             mIndexBufferId = buffers[1]
             mVerticesBaseAddress = 0
             val objectVertices = ObjData.getVertices(obj)
-            val texCoords = ObjData.getTexCoords(obj, 2) // 设置坐标维度为2。
+            val texCoords = ObjData.getTexCoords(obj, 2) // Set the coordinate dimension to 2.
 
             val normals = ObjData.getNormals(obj)
             return Optional.of(ObjectData(objectIndices, objectVertices, indices, texCoords, normals))
@@ -202,17 +202,17 @@ class VirtualObjectData {
     }
 
     /**
-     * 更新模型矩阵数据。
+     * Update the model matrix data.
      *
-     * @param modelMatrixData 模型矩阵数据。
-     * @param scaleFactor 缩放因子。
+     * @param modelMatrixData Model matrix data.
+     * @param scaleFactor Scaling factor.
      */
     fun updateModelMatrix(modelMatrixData: FloatArray?, scaleFactor: Float) {
         val scaleMatrixs = FloatArray(16)
         Matrix.setIdentityM(scaleMatrixs, 0)
 
-        // 将右侧Matrix矩阵的第一列设置为缩放系数。
-        // 矩阵对角线的缩放系数。
+        // Set the first column of the matrix on the right to the scaling factor.
+        // Scaling factor of the diagonal line of the matrix.
         scaleMatrixs[0] = scaleFactor
         scaleMatrixs[5] = scaleFactor
         scaleMatrixs[10] = scaleFactor
@@ -221,12 +221,12 @@ class VirtualObjectData {
     }
 
     /**
-     * 设置素材属性。
+     * Set the material attributes.
      *
-     * @param ambient 素材性质：环境参数。
-     * @param diffuse 素材性质：扩散参数。
-     * @param specular 素材性质：镜面参数。
-     * @param specularPower 素材性质：镜面电源参数。
+     * @param ambient Material property: environment parameter.
+     * @param diffuse Material property: diffusion parameter.
+     * @param specular Material property: specular parameter.
+     * @param specularPower Material property: specular power parameter.
      */
     fun setMaterialProperties(ambient: Float, diffuse: Float, specular: Float, specularPower: Float) {
         mVirtualObjectPojo.run {
@@ -238,12 +238,12 @@ class VirtualObjectData {
     }
 
     /**
-     * 在指定表面的指定位置绘制虚拟对象。
+     * Draw a virtual object at a specific location on a specified plane.
      *
-     * @param cameraView 摄像机视图数据。
-     * @param cameraPerspective 摄像机透视数据。
-     * @param lightIntensity 光强数据。
-     * @param objColor 对象的颜色。
+     * @param cameraView Camera view data.
+     * @param cameraPerspective Perspective data of the camera.
+     * @param lightIntensity Light intensity data.
+     * @param objColor Object color.
      */
     fun draw(cameraView: FloatArray?, cameraPerspective: FloatArray?, lightIntensity: Float, objColor: String?) {
         mVirtualObjectPojo.run {
@@ -254,7 +254,7 @@ class VirtualObjectData {
             Matrix.multiplyMV(mViewLightDirections, 0, mModelViewMatrix, 0, Constants.LIGHT_DIRECTIONS, 0)
             normalizeVec3(mViewLightDirections)
 
-            // 照明方向数据有3个维度（0,1,2）。
+            // The lighting direction data has three dimensions (0, 1, and 2).
             GLES20.glUniform4f(mLightingParametersUniform, mViewLightDirections[0], mViewLightDirections[1],
                 mViewLightDirections[2], lightIntensity)
             when (objColor) {

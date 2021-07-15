@@ -38,7 +38,7 @@ import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
 
 /**
- * 增强图像渲染管理器，用于渲染图像。
+ * Augmented image rendering manager, configured to render the image.
  *
  * @author HW
  * @since 2021-03-29
@@ -64,12 +64,13 @@ class AugmentedImageRenderController(private val mActivity: Activity,
     private val backgroundDisplay by lazy { BackgroundTextureService() }
 
     /**
-     * 增强图像及其相关中心位置锚点，由增强图像在数据库中的索引键控。
+     * Anchors of the augmented image and its related center, which is controlled by the index key of
+     * the augmented image in the database.
      */
     private var augmentedImageMap: MutableMap<Int, Pair<ARAugmentedImage, ARAnchor?>?> = HashMap()
 
     /**
-     * 设置ARSession,ARSession会更新并获取OnDrawFrame中的最新数据。
+     * Set the ARSession, which updates and obtains the latest data from OnDrawFrame.
      *
      * @param arSession ARSession.
      */
@@ -78,7 +79,7 @@ class AugmentedImageRenderController(private val mActivity: Activity,
     }
 
     override fun onSurfaceCreated(gl: GL10, config: EGLConfig) {
-        // 设置窗口颜色。
+        // Set the window color.
         GLES20.glClearColor(0.1f, 0.1f, 0.1f, 1.0f)
         backgroundDisplay.init()
         imageRelatedDisplays.forEach {
@@ -105,18 +106,18 @@ class AugmentedImageRenderController(private val mActivity: Activity,
         val arCamera = arFrame.camera
         backgroundDisplay.renderBackgroundTexture(arFrame)
 
-        // 如果未跟踪，则不绘制增强图像。
+        // If tracking is not set, the augmented image is not drawn.
         if (arCamera.trackingState == ARTrackable.TrackingState.PAUSED) {
             info(TAG, "Draw background paused!")
             return
         }
 
-        // 获取投影矩阵。
+        // Obtain the projection matrix.
         val projectionMatrix = FloatArray(Constants.PROJ_MATRIX_SIZE)
         arCamera.getProjectionMatrix(projectionMatrix, Constants.PROJ_MATRIX_OFFSET,
             Constants.PROJ_MATRIX_NEAR, Constants.PROJ_MATRIX_FAR)
 
-        // 获取视图矩阵。
+        // Obtain the view matrix.
         val viewMatrix = FloatArray(Constants.PROJ_MATRIX_SIZE)
         if (isImageTrackOnly) {
             Matrix.setIdentityM(viewMatrix, 0)
@@ -124,7 +125,7 @@ class AugmentedImageRenderController(private val mActivity: Activity,
             arCamera.getViewMatrix(viewMatrix, 0)
         }
 
-        // 绘制增强图像。
+        // Draw the augmented image.
         drawAugmentedImages(arFrame, projectionMatrix, viewMatrix)
     }
 
@@ -132,7 +133,7 @@ class AugmentedImageRenderController(private val mActivity: Activity,
         val updatedAugmentedImages = frame.getUpdatedTrackables(ARAugmentedImage::class.java)
         debug(TAG, "drawAugmentedImages: Updated augment image is " + updatedAugmentedImages.size)
 
-        // 迭代更新增强图像映射，移除无法绘制的元素。
+        // Iteratively update the augmented image mapping and remove the elements that cannot be drawn.
         updatedAugmentedImages.forEach {
             when (it.trackingState) {
                 ARTrackable.TrackingState.PAUSED -> {
@@ -144,7 +145,7 @@ class AugmentedImageRenderController(private val mActivity: Activity,
             }
         }
 
-        // 根据锚点映射到AugmentedImage对象，绘制所有增强效果。
+        // Map the anchor to the AugmentedImage object and draw all augmentation effects.
         augmentedImageMap.values.forEach {
             val augmentedImage = it!!.first
             if (augmentedImage.trackingState == ARTrackable.TrackingState.TRACKING) {
@@ -156,7 +157,7 @@ class AugmentedImageRenderController(private val mActivity: Activity,
     }
 
     private fun initTrackingImages(augmentedImage: ARAugmentedImage) {
-        // 为新找到的图像创建锚点并与图像对象绑定。
+        // Create an anchor for the newly found image and bind it to the image object.
         if (!augmentedImageMap.containsKey(augmentedImage.index)) {
             var centerPoseAnchor: ARAnchor ?= null
             if (!isImageTrackOnly) {
