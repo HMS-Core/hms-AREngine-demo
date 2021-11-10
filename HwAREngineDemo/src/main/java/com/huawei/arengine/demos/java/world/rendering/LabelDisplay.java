@@ -22,11 +22,15 @@ import android.opengl.GLUtils;
 import android.opengl.Matrix;
 import android.util.Pair;
 
+import com.huawei.arengine.demos.common.LabelDisplayUtil;
 import com.huawei.arengine.demos.common.LogUtil;
 import com.huawei.arengine.demos.common.ShaderUtil;
+import com.huawei.hiar.ARCamera;
 import com.huawei.hiar.ARPlane;
 import com.huawei.hiar.ARPose;
+import com.huawei.hiar.ARTarget;
 import com.huawei.hiar.ARTrackable;
+import com.huawei.hiar.ARTrackableBase;
 
 import java.io.Serializable;
 import java.nio.ByteBuffer;
@@ -52,15 +56,21 @@ public class LabelDisplay {
 
     private static final int COORDS_PER_VERTEX = 3;
 
-    private static final float LABEL_WIDTH = 0.3f;
+    private static final float LABEL_WIDTH = 0.1f;
 
-    private static final float LABEL_HEIGHT = 0.3f;
+    private static final float LABEL_HEIGHT = 0.1f;
+
+    private static final float STRAIGHT_ANGLE = 180.0f;
+
+    private static final int DOUBLE_NUM = 2;
 
     private static final int TEXTURES_SIZE = 12;
 
     private static final int MATRIX_SIZE = 16;
 
     private static final int PLANE_ANGLE_MATRIX_SIZE = 4;
+
+    private static final int INDEX_Y = 1;
 
     private final int[] textures = new int[TEXTURES_SIZE];
 
@@ -104,18 +114,22 @@ public class LabelDisplay {
         GLES20.glGenTextures(textures.length, textures, 0);
         for (Bitmap labelBitmap : labelBitmaps) {
             // for semantic label plane
-            GLES20.glActiveTexture(GLES20.GL_TEXTURE0 + idx);
-            GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textures[idx]);
-
-            GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR_MIPMAP_LINEAR);
-            GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR);
-            GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, labelBitmap, 0);
-            GLES20.glGenerateMipmap(GLES20.GL_TEXTURE_2D);
-            GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0);
+            setTextBitmap(labelBitmap, idx);
             idx++;
-            ShaderUtil.checkGlError(TAG, "Texture loading");
         }
         ShaderUtil.checkGlError(TAG, "Init end.");
+    }
+
+    private void setTextBitmap(Bitmap labelBitmap, int idx) {
+        GLES20.glActiveTexture(GLES20.GL_TEXTURE0 + idx);
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textures[idx]);
+
+        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR_MIPMAP_LINEAR);
+        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR);
+        GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, labelBitmap, 0);
+        GLES20.glGenerateMipmap(GLES20.GL_TEXTURE_2D);
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0);
+        ShaderUtil.checkGlError(TAG, "Texture loading");
     }
 
     private void createProgram() {
@@ -140,7 +154,25 @@ public class LabelDisplay {
         ArrayList<ARPlane> sortedPlanes = getSortedPlanes(allPlanes, cameraPose);
         float[] cameraViewMatrix = new float[MATRIX_SIZE];
         cameraPose.inverse().toMatrix(cameraViewMatrix, 0);
-        drawSortedPlans(sortedPlanes, cameraViewMatrix, cameraProjection);
+        ArrayList<ARTrackableBase> trackableBases = new ArrayList<ARTrackableBase>(sortedPlanes);
+        drawTrackables(trackableBases, cameraViewMatrix, cameraProjection, cameraPose);
+    }
+
+    /**
+     * Draw the recognized target label.
+     *
+     * @param target Recognized target.
+     * @param bitmap Rendered image.
+     * @param camera ARCamera object.
+     * @param cameraProjection Projection matrix.
+     */
+    public void onDrawFrame(ARTarget target, Bitmap bitmap, ARCamera camera, float[] cameraProjection) {
+        setTextBitmap(bitmap, 0);
+        float[] cameraViewMatrix = new float[MATRIX_SIZE];
+        camera.getViewMatrix(cameraViewMatrix, 0);
+        ArrayList<ARTrackableBase> trackableBases = new ArrayList<>(1);
+        trackableBases.add(target);
+        drawTrackables(trackableBases, cameraViewMatrix, cameraProjection, camera.getDisplayOrientedPose());
     }
 
     private ArrayList<ARPlane> getSortedPlanes(Collection<ARPlane> allPlanes, ARPose cameraPose) {
@@ -191,7 +223,8 @@ public class LabelDisplay {
         }
     }
 
-    private void drawSortedPlans(ArrayList<ARPlane> sortedPlanes, float[] cameraViews, float[] cameraProjection) {
+    private void drawTrackables(ArrayList<ARTrackableBase> arTrackableBases, float[] cameraViews,
+        float[] cameraProjection, ARPose cameraDisplayPose) {
         ShaderUtil.checkGlError(TAG, "Draw sorted plans start.");
 
         GLES20.glDepthMask(false);
@@ -200,11 +233,20 @@ public class LabelDisplay {
         GLES20.glUseProgram(mProgram);
         GLES20.glEnableVertexAttribArray(glPositionParameter);
 
-        for (ARPlane plane : sortedPlanes) {
-            float[] planeMatrix = new float[MATRIX_SIZE];
-            plane.getCenterPose().toMatrix(planeMatrix, 0);
+        for (ARTrackableBase arTrackable : arTrackableBases) {
+            float[] objModelMatrix = new float[MATRIX_SIZE];
+            int idx = 0;
+            if (arTrackable instanceof ARPlane) {
+                ARPlane arPlane = (ARPlane) arTrackable;
+                arPlane.getCenterPose().toMatrix(objModelMatrix, 0);
+                idx = arPlane.getLabel().ordinal();
+            }
+            if (arTrackable instanceof ARTarget) {
+                ARTarget target = (ARTarget) arTrackable;
+                objModelMatrix = getLabelModeMatrix(cameraDisplayPose, target);
+            }
 
-            System.arraycopy(planeMatrix, 0, modelMatrix, 0, MATRIX_SIZE);
+            System.arraycopy(objModelMatrix, 0, modelMatrix, 0, MATRIX_SIZE);
 
             float scaleU = 1.0f / LABEL_WIDTH;
 
@@ -215,7 +257,6 @@ public class LabelDisplay {
             float scaleV = 1.0f / LABEL_HEIGHT;
             planeAngleUvMatrix[3] = scaleV;
 
-            int idx = plane.getLabel().ordinal();
             LogUtil.debug(TAG, "Plane getLabel:" + idx);
             idx = Math.abs(idx);
             GLES20.glActiveTexture(GLES20.GL_TEXTURE0 + idx);
@@ -231,6 +272,27 @@ public class LabelDisplay {
         GLES20.glDisable(GLES20.GL_BLEND);
         GLES20.glDepthMask(true);
         ShaderUtil.checkGlError(TAG, "Draw sorted plans end.");
+    }
+
+    /**
+     * Calculate the rotation angle of the label plane so that the label is displayed upwards.
+     *
+     * @param cameraDisplayPose Pose of the camera in the world coordinate system.
+     * @param target Information about the object that is recognized and tracked.
+     * @return label Plane matrix.
+     */
+    private float[] getLabelModeMatrix(ARPose cameraDisplayPose, ARTarget target) {
+        float[] measureQuaternion = LabelDisplayUtil.getMeasureQuaternion(cameraDisplayPose, STRAIGHT_ANGLE);
+        ARPose targetCenterPose = target.getCenterPose();
+        float[] topPosition =
+            new float[] {targetCenterPose.tx(), targetCenterPose.ty(), targetCenterPose.tz()};
+        if (target.getShapeType() == ARTarget.TargetShapeType.TARGET_SHAPE_BOX) {
+            topPosition[INDEX_Y] += target.getAxisAlignBoundingBox()[INDEX_Y] / DOUBLE_NUM;
+        }
+        ARPose measurePose = new ARPose(topPosition, measureQuaternion);
+        float[] planeMatrix = new float[MATRIX_SIZE];
+        measurePose.toMatrix(planeMatrix, 0);
+        return planeMatrix;
     }
 
     private void drawLabel(float[] cameraViews, float[] cameraProjection) {

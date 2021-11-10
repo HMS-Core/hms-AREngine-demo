@@ -110,7 +110,7 @@ public class CameraHelper {
     };
 
     /**
-     * The constructor..
+     * The constructor.
      *
      * @param activity Activity.
      */

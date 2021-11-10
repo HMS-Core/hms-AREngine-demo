@@ -1,5 +1,5 @@
 buildscript {
-    ext.kotlin_version = "1.4.10"
+    ext.kotlin_version = "1.4.30"
     repositories {
         maven {
             url "http://developer.huawei.com/repo/"
@@ -30,5 +30,5 @@ ext{
     targetSdkVersion = 27
 
     //version
-    versionName = '3.0'
+    versionName = '3.5.0.1'
 }

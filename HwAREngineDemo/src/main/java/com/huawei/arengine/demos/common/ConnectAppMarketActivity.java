@@ -1,5 +1,5 @@
 /**
- * Copyright 2020. Huawei Technologies Co., Ltd. All rights reserved.
+ * Copyright 2021. Huawei Technologies Co., Ltd. All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -45,6 +45,16 @@ public class ConnectAppMarketActivity extends Activity {
 
     private static final String PACKAGENAME_ARSERVICE = "com.huawei.arengine.service";
 
+    private static final int UPDATE_SERVER_REQUEST_CODE = 101;
+
+    private static final int UPDATE_SERVER_RESULT_CODE = 102;
+
+    private static final int RESULT_CODE_CANCEL = 111;
+
+    private static final int RESULT_CODE_INSTALL = 112;
+
+    private static final String RESULT_MESSAGE = "result";
+
     private AlertDialog.Builder dialog;
 
     @Override
@@ -65,7 +75,7 @@ public class ConnectAppMarketActivity extends Activity {
 
     private void showSuggestiveDialog() {
         Log.d(TAG, "Show education dialog.");
-        dialog = new AlertDialog.Builder(this);
+        dialog = new AlertDialog.Builder(this).setCancelable(false);
         showAppMarket();
     }
 
@@ -74,7 +84,7 @@ public class ConnectAppMarketActivity extends Activity {
         dialog.setNegativeButton(R.string.arengine_cancel, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
-                Log.d(TAG, "Show education showAppMarket123.");
+                setResult(UPDATE_SERVER_RESULT_CODE, getIntent().putExtra(RESULT_MESSAGE, RESULT_CODE_CANCEL));
                 finish();
             }
         });

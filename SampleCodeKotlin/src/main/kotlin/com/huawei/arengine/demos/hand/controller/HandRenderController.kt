@@ -36,6 +36,7 @@ import com.huawei.arengine.demos.hand.util.Constants
 import com.huawei.hiar.ARFrame
 import com.huawei.hiar.ARHand
 import com.huawei.hiar.ARSession
+import com.huawei.hiar.exceptions.ARSessionPausedException
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
 
@@ -111,8 +112,10 @@ class HandRenderController(private val activity: Activity,
             backgroundTextureService.renderBackgroundTexture(frame)
 
             renderHand(frame)
-        } catch (e: SampleAppException) {
-            LogUtil.error(TAG, "Exception on the OpenGL thread!")
+        } catch (exception: SampleAppException) {
+            LogUtil.error(TAG, "Exception on the SampleAppException!");
+        } catch (exception: ARSessionPausedException) {
+            LogUtil.error(TAG, "Invoke session.resume before invoking Session.update.");
         }
     }
 

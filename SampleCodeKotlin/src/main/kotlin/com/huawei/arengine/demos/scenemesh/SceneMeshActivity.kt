@@ -16,7 +16,6 @@
 
 package com.huawei.arengine.demos.scenemesh
 
-import android.app.Activity
 import android.opengl.GLSurfaceView
 import android.os.Bundle
 import android.view.GestureDetector
@@ -26,21 +25,22 @@ import android.view.View
 import android.view.WindowManager
 import android.widget.TextView
 import android.widget.Toast
+
 import com.huawei.arengine.demos.R
 import com.huawei.arengine.demos.common.LogUtil
 import com.huawei.arengine.demos.common.controller.DisplayRotationController
 import com.huawei.arengine.demos.common.service.PermissionManageService
 import com.huawei.arengine.demos.common.util.findViewById
 import com.huawei.arengine.demos.common.util.isAvailableArEngine
-import com.huawei.arengine.demos.common.util.startActivityByType
-import com.huawei.arengine.demos.common.view.ConnectAppMarketActivity
+import com.huawei.arengine.demos.common.view.BaseActivity
+import com.huawei.arengine.demos.databinding.ScenemeshActivityMainBinding
 import com.huawei.arengine.demos.scenemesh.controller.SceneMeshRenderController
 import com.huawei.arengine.demos.scenemesh.util.Constants
 import com.huawei.hiar.ARConfigBase
 import com.huawei.hiar.ARSession
 import com.huawei.hiar.ARWorldTrackingConfig
 import com.huawei.hiar.exceptions.*
-import kotlinx.android.synthetic.main.scenemesh_activity_main.surfaceview
+
 import java.util.concurrent.ArrayBlockingQueue
 
 /**
@@ -49,7 +49,7 @@ import java.util.concurrent.ArrayBlockingQueue
  * @author HW
  * @since 2021-04-21
  */
-class SceneMeshActivity : Activity() {
+class SceneMeshActivity : BaseActivity() {
     companion object {
         private const val TAG = "SceneMeshActivity"
     }
@@ -66,11 +66,12 @@ class SceneMeshActivity : Activity() {
 
     private var mArSession: ARSession? = null
 
-    private var errorMessage: String? = null
+    private lateinit var sceneMeshActivityBinding: ScenemeshActivityMainBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.scenemesh_activity_main)
+        sceneMeshActivityBinding = ScenemeshActivityMainBinding.inflate(layoutInflater)
+        setContentView(sceneMeshActivityBinding.root)
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         init()
     }
@@ -87,7 +88,7 @@ class SceneMeshActivity : Activity() {
                 return
             }
             try {
-                mArSession = ARSession(this)
+                mArSession = ARSession(this.applicationContext)
                 val config: ARConfigBase = ARWorldTrackingConfig(mArSession)
                 config.focusMode = ARConfigBase.FocusMode.AUTO_FOCUS
                 config.enableItem = (ARConfigBase.ENABLE_MESH or ARConfigBase.ENABLE_DEPTH.toLong().toInt()).toLong()
@@ -102,7 +103,8 @@ class SceneMeshActivity : Activity() {
             } catch (capturedException: Exception) {
                 setMessageWhenError(capturedException)
             }
-            if (errorMessage != null) {
+            errorMessage?.let {
+                Toast.makeText(this, it, Toast.LENGTH_LONG).show()
                 stopArSession()
                 return
             }
@@ -115,7 +117,7 @@ class SceneMeshActivity : Activity() {
             mArSession = null
             return
         }
-        surfaceview.onResume()
+        sceneMeshActivityBinding.surfaceview.onResume()
         mDisplayRotationController.registerDisplayListener()
     }
 
@@ -123,12 +125,12 @@ class SceneMeshActivity : Activity() {
         super.onPause()
         LogUtil.info(TAG, "onPause start.")
         if (mArSession != null) {
-            surfaceview.onPause()
+            sceneMeshActivityBinding.surfaceview.onPause()
             mArSession!!.pause()
         }
         if (mArSession != null) {
             mDisplayRotationController.unregisterDisplayListener()
-            surfaceview.onPause()
+            sceneMeshActivityBinding.surfaceview.onPause()
             mArSession!!.pause()
             LogUtil.info(TAG, "Session paused!")
         }
@@ -172,31 +174,6 @@ class SceneMeshActivity : Activity() {
         LogUtil.info(TAG, "stopArSession end.")
     }
 
-    /**
-     * Input the captured exception items and output the corresponding exception information.
-     *
-     * @param catchException Captured exception.
-     */
-    private fun setMessageWhenError(catchException: java.lang.Exception) {
-        when (catchException) {
-            is ARUnavailableServiceNotInstalledException -> {
-                startActivityByType<ConnectAppMarketActivity>()
-            }
-            is ARUnavailableServiceApkTooOldException -> {
-                errorMessage = "Please update HuaweiARService.apk"
-            }
-            is ARUnavailableClientSdkTooOldException -> {
-                errorMessage = "Please update this app"
-            }
-            is ARUnSupportedConfigurationException -> {
-                errorMessage = "The configuration is not supported by the device!"
-            }
-            else -> {
-                errorMessage = "unknown exception throws!"
-            }
-        }
-    }
-
     private fun init() {
         mSceneMeshRenderController.setDisplayRotationController(mDisplayRotationController)
         mSceneMeshRenderController.setQueuedSingleTaps(mQueuedSingleTaps)
@@ -210,7 +187,7 @@ class SceneMeshActivity : Activity() {
                 return true
             }
         })
-        surfaceview.apply {
+        sceneMeshActivityBinding.surfaceview.apply {
             setOnTouchListener { v, event ->
                 v.performClick()
                 mGestureDetector!!.onTouchEvent(event)

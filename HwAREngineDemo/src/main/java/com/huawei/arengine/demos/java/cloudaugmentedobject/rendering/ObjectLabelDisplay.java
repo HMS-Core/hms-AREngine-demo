@@ -25,9 +25,11 @@ import android.view.View;
 import android.widget.TextView;
 
 import com.huawei.arengine.demos.R;
+import com.huawei.arengine.demos.common.LabelDisplayUtil;
 import com.huawei.arengine.demos.common.LogUtil;
 import com.huawei.arengine.demos.common.ShaderUtil;
 import com.huawei.hiar.ARObject;
+import com.huawei.hiar.ARPose;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -52,9 +54,9 @@ public class ObjectLabelDisplay implements ObjectRelatedDisplay {
 
     private static final int COORDS_PER_VERTEX = 3;
 
-    private static final float LABEL_WIDTH = 1.0f;
+    private static final float LABEL_WIDTH = 0.1f;
 
-    private static final float LABEL_HEIGHT = 0.5f;
+    private static final float LABEL_HEIGHT = 0.1f;
 
     private static final int TEXTURES_SIZE = 1;
 
@@ -161,12 +163,14 @@ public class ObjectLabelDisplay implements ObjectRelatedDisplay {
      * @param arObjects 3D object.
      * @param viewMatrix View matrix.
      * @param projectionMatrix AR camera projection matrix.
+     * @param cameraPose Location and pose of the current camera.
      */
     @Override
-    public void onDrawFrame(Collection<ARObject> arObjects, float[] viewMatrix, float[] projectionMatrix) {
+    public void onDrawFrame(Collection<ARObject> arObjects, float[] viewMatrix, float[] projectionMatrix,
+        ARPose cameraPose) {
         prepareForGl();
-        for (ARObject arObject: arObjects) {
-            updateImageLabelData(arObject);
+        for (ARObject arObject : arObjects) {
+            updateImageLabelData(arObject, cameraPose);
             drawLabel(viewMatrix, projectionMatrix);
         }
         recycleGl();
@@ -184,10 +188,10 @@ public class ObjectLabelDisplay implements ObjectRelatedDisplay {
      * Update the label of the 3D object.
      *
      * @param arObject AR object.
+     * @param cameraPose Location and pose of the current camera.
      */
-    private void updateImageLabelData(ARObject arObject) {
-        float[] imageMatrix = new float[MATRIX_SIZE];
-        arObject.getCenterPose().toMatrix(imageMatrix, 0);
+    private void updateImageLabelData(ARObject arObject, ARPose cameraPose) {
+        float[] imageMatrix = getLabelModeMatrix(cameraPose, arObject);
         System.arraycopy(imageMatrix, 0, modelMatrix, 0, MATRIX_SIZE);
 
         float scaleU = 1.0f / LABEL_WIDTH;
@@ -203,6 +207,23 @@ public class ObjectLabelDisplay implements ObjectRelatedDisplay {
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textures[0]);
         GLES20.glUniform1i(glTexture, 0);
         GLES20.glUniformMatrix2fv(glPlaneUvMatrix, 1, false, imageAngleUvMatrix, 0);
+    }
+
+    /**
+     * Calculate the rotation angle of the label plane so that the label is displayed upwards.
+     *
+     * @param cameraDisplayPose Pose of the camera in the world coordinate system.
+     * @param target Pose of the target center.
+     * @return label Plane matrix.
+     */
+    private float[] getLabelModeMatrix(ARPose cameraDisplayPose, ARObject target) {
+        float[] verticalQuaternion = LabelDisplayUtil.getMeasureQuaternion(cameraDisplayPose, 0);
+        ARPose targetCenterPose = target.getCenterPose();
+        float[] topPosition = new float[] {targetCenterPose.tx(), targetCenterPose.ty(), targetCenterPose.tz()};
+        ARPose measurePose = new ARPose(topPosition, verticalQuaternion);
+        float[] planeMatrix = new float[MATRIX_SIZE];
+        measurePose.toMatrix(planeMatrix, 0);
+        return planeMatrix;
     }
 
     /**

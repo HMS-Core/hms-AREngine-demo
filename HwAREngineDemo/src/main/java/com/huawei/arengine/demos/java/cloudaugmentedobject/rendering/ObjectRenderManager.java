@@ -67,10 +67,6 @@ public class ObjectRenderManager implements GLSurfaceView.Renderer  {
 
     private TextView mTextView;
 
-    private String mAuthJson = null;
-
-    private boolean isAuthed = false;
-
     private TextureDisplay mTextureDisplay = new TextureDisplay();
 
     private TextDisplay mTextDisplay = new TextDisplay();
@@ -97,19 +93,6 @@ public class ObjectRenderManager implements GLSurfaceView.Renderer  {
             return;
         }
         mSession = arSession;
-    }
-
-    /**
-     * Set the cloud anchor authentication JSON string.
-     *
-     * @param authJson Authentication JSON string.
-     */
-    public void setAuthJson(String authJson) {
-        if (authJson == null) {
-            LogUtil.error(TAG, "setAuthJson error, authJson is null!");
-            return;
-        }
-        mAuthJson = authJson;
     }
 
     /**
@@ -154,12 +137,6 @@ public class ObjectRenderManager implements GLSurfaceView.Renderer  {
         if (mSession == null) {
             return;
         }
-        if (!isAuthed && mAuthJson != null) {
-            LogUtil.debug(TAG, "Cloud Anchor onDrawFrame set Auth info: " + mAuthJson);
-            LogUtil.debug(TAG, "Cloud Anchor onDrawFrame is authed: " + isAuthed);
-            mSession.setCloudServiceAuthInfo(mAuthJson);
-            isAuthed = true;
-        }
         if (mDisplayRotationManager.getDeviceRotation()) {
             mDisplayRotationManager.updateArSessionDisplayGeometry(mSession);
         }
@@ -178,8 +155,9 @@ public class ObjectRenderManager implements GLSurfaceView.Renderer  {
             arCamera.getViewMatrix(viewMatrix, 0);
             mTextureDisplay.onDrawFrame(arFrame);
             Collection<ARObject> updatedObjects = mSession.getAllTrackables(ARObject.class);
-            for (ObjectRelatedDisplay objectRelatedDisplay: mObjectRelatedDisplays) {
-                objectRelatedDisplay.onDrawFrame(updatedObjects, viewMatrix, projectionMatrix);
+            for (ObjectRelatedDisplay objectRelatedDisplay : mObjectRelatedDisplays) {
+                objectRelatedDisplay.onDrawFrame(updatedObjects, viewMatrix, projectionMatrix,
+                    arCamera.getDisplayOrientedPose());
             }
             LogUtil.debug(TAG, "onDrawFrame: Updated ARObject is " + updatedObjects.size());
             StringBuilder sb = new StringBuilder();

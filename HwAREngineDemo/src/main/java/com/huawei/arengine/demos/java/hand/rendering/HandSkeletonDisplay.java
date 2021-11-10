@@ -113,6 +113,8 @@ class HandSkeletonDisplay implements HandRelatedDisplay {
 
     /**
      * Update the coordinates of hand skeleton points.
+     *
+     * @param handSkeletons hand skeletons data.
      */
     private void updateHandSkeletonsData(float[] handSkeletons) {
         ShaderUtil.checkGlError(TAG, "Update hand skeletons data start.");

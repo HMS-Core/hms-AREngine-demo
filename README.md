@@ -1,5 +1,7 @@
 # HUAWEI AR Engine Demo
 
+English | [中文](README_ZH.md)
+
 ## Table of Contents
 
 * [Introduction](#introduction)
@@ -20,7 +22,7 @@ more development details, please refer to the following link:
    Android Studio. Run HwAREngineDemo on your divice which have
    installed latest HUAWEI AR Engine Service.
 3. To build this demo, please first import the demo in the Android Studio
-  (3.x+).
+    (3.x+).
 4. Run the sample on your Android device.
 
 ## Supported Environments
@@ -34,7 +36,7 @@ ARWorld, ARFace, ARBody and ARHand capabilities of arengine.
 If you want to evaluate more about HMS Core, [r/HMSCore on Reddit](https://www.reddit.com/r/HuaweiDevelopers/) is for you to keep up with latest news about HMS Core, and to exchange insights with other developers.
 
 If you have questions about how to use HMS samples, try the following options:
-- [Stack Overflow](https://stackoverflow.com/questions/tagged/huawei-mobile-services) is the best place for any programming questions. Be sure to tag your question with 
+- [Stack Overflow](https://stackoverflow.com/questions/tagged/huawei-mobile-services?tab=Votes) is the best place for any programming questions. Be sure to tag your question with 
 `huawei-mobile-services`.
 - [Huawei Developer Forum](https://forums.developer.huawei.com/forumPortal/en/home?fid=0101187876626530001?ha_source=hms1) HMS Core Module is great for general questions, or seeking recommendations and opinions.
 

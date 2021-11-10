@@ -45,6 +45,16 @@ class ConnectAppMarketActivity : Activity() {
         private const val PACKAGE_NAME_KEY = "APP_PACKAGENAME"
 
         private const val PACKAGENAME_ARSERVICE = "com.huawei.arengine.service"
+
+        private const val UPDATE_SERVER_REQUEST_CODE = 101
+
+        private const val UPDATE_SERVER_RESULT_CODE = 102
+
+        private const val RESULT_CODE_CANCEL = 111
+
+        private const val RESULT_CODE_INSTALL = 112
+
+        private const val RESULT_MESSAGE = "result"
     }
 
     private lateinit var dialog: AlertDialog.Builder
@@ -61,7 +71,7 @@ class ConnectAppMarketActivity : Activity() {
     }
 
     private fun showSuggestiveDialog() {
-        dialog = AlertDialog.Builder(this)
+        dialog = AlertDialog.Builder(this).setCancelable(false)
         showAppMarket()
     }
 
@@ -69,6 +79,7 @@ class ConnectAppMarketActivity : Activity() {
         dialog.run {
             setMessage(arengine_install_app)
             setNegativeButton(arengine_cancel) { _, _ ->
+                setResult(UPDATE_SERVER_RESULT_CODE, intent.putExtra(RESULT_MESSAGE, RESULT_CODE_CANCEL))
                 finish()
             }
             setPositiveButton(arengine_install) { _, _ ->

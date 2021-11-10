@@ -1,7 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.huawei.arengine.demos"
-    android:versionCode="130"
-    android:versionName="3.0.0.11">
+    android:versionCode="142"
+    android:versionName="3.5.0.1">
     <uses-permission android:name="android.permission.CAMERA" />
 
     <application
@@ -85,5 +85,11 @@
             android:screenOrientation="portrait"
             android:exported="false"
             android:theme="@style/Theme.AppCompat.NoActionBar" />
+        <activity
+                android:name="com.huawei.arengine.demos.java.cloudimage.CloudAugmentedImageActivity"
+                android:configChanges="orientation|screenSize"
+                android:screenOrientation="portrait"
+                android:exported="false"
+                android:theme="@style/Theme.AppCompat.NoActionBar" />
     </application>
 </manifest>

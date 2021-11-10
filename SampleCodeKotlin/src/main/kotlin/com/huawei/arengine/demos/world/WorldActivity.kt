@@ -15,30 +15,24 @@
  */
 package com.huawei.arengine.demos.world
 
-import android.app.Activity
 import android.opengl.GLSurfaceView
 import android.os.Bundle
 import android.view.View
 import android.view.WindowManager
 import android.widget.Toast
-import com.huawei.arengine.demos.R
+
 import com.huawei.arengine.demos.common.LogUtil
 import com.huawei.arengine.demos.common.controller.DisplayRotationController
 import com.huawei.arengine.demos.common.service.PermissionManageService
 import com.huawei.arengine.demos.common.util.isAvailableArEngine
-import com.huawei.arengine.demos.common.util.startActivityByType
-import com.huawei.arengine.demos.common.view.ConnectAppMarketActivity
+import com.huawei.arengine.demos.common.view.BaseActivity
+import com.huawei.arengine.demos.databinding.WorldJavaActivityMainBinding
 import com.huawei.arengine.demos.world.controller.GestureController
 import com.huawei.arengine.demos.world.controller.WorldRenderController
 import com.huawei.hiar.ARConfigBase
 import com.huawei.hiar.ARSession
 import com.huawei.hiar.ARWorldTrackingConfig
 import com.huawei.hiar.exceptions.ARCameraNotAvailableException
-import com.huawei.hiar.exceptions.ARUnSupportedConfigurationException
-import com.huawei.hiar.exceptions.ARUnavailableClientSdkTooOldException
-import com.huawei.hiar.exceptions.ARUnavailableServiceApkTooOldException
-import com.huawei.hiar.exceptions.ARUnavailableServiceNotInstalledException
-import kotlinx.android.synthetic.main.world_java_activity_main.surfaceView
 
 /**
  * This AR example shows how to use the world AR scene of HUAWEI AR Engine,
@@ -48,7 +42,7 @@ import kotlinx.android.synthetic.main.world_java_activity_main.surfaceView
  * @author HW
  * @since 2020-10-10
  */
-class WorldActivity : Activity() {
+class WorldActivity : BaseActivity() {
     companion object {
         private const val TAG = "WorldActivity"
     }
@@ -63,15 +57,18 @@ class WorldActivity : Activity() {
         WorldRenderController(this, displayRotationController, gestureController)
     }
 
+    private lateinit var worldActivityBinding: WorldJavaActivityMainBinding
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.world_java_activity_main)
+        worldActivityBinding = WorldJavaActivityMainBinding.inflate(layoutInflater)
+        setContentView(worldActivityBinding.root)
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         initUi()
     }
 
     private fun initUi() {
-        surfaceView.apply {
+        worldActivityBinding.surfaceView.apply {
             setOnTouchListener { v, event ->
                 v.performClick()
                 gestureController.gestureDetector.onTouchEvent(event)
@@ -90,17 +87,17 @@ class WorldActivity : Activity() {
         if (!PermissionManageService.hasPermission()) {
             finish()
         }
+        errorMessage = null
         arSession?.let {
             resumeView()
             return
         }
-        var message: String? = null
         try {
             if (!isAvailableArEngine(this)) {
                 finish()
                 return
             }
-            arSession = ARSession(this)
+            arSession = ARSession(this.applicationContext)
             ARWorldTrackingConfig(arSession).apply {
                 focusMode = ARConfigBase.FocusMode.AUTO_FOCUS
                 semanticMode = ARWorldTrackingConfig.SEMANTIC_PLANE
@@ -108,18 +105,10 @@ class WorldActivity : Activity() {
                 arSession?.configure(it)
             }
             worldRenderController.setArSession(arSession)
-        } catch (e: ARUnavailableServiceNotInstalledException) {
-            startActivityByType<ConnectAppMarketActivity>()
-        } catch (e: ARUnavailableServiceApkTooOldException) {
-            message = "Please update HuaweiARService.apk"
-        } catch (e: ARUnavailableClientSdkTooOldException) {
-            message = "Please update this app"
-        } catch (e: ARUnSupportedConfigurationException) {
-            message = "The configuration is not supported by the device!"
-        } catch (e: Exception) {
-            message = "exception throw"
+        } catch (capturedException: Exception) {
+            setMessageWhenError(capturedException)
         }
-        message?.let {
+        errorMessage?.let {
             Toast.makeText(this, it, Toast.LENGTH_LONG).show()
             stopArSession()
             return
@@ -130,7 +119,7 @@ class WorldActivity : Activity() {
     private fun resumeView() {
         if (!isSuccessResumeSession()) return
         displayRotationController.registerDisplayListener()
-        surfaceView.onResume()
+        worldActivityBinding.surfaceView.onResume()
     }
 
     private fun isSuccessResumeSession(): Boolean {
@@ -155,7 +144,7 @@ class WorldActivity : Activity() {
         LogUtil.info(TAG, "onPause start.")
         super.onPause()
         displayRotationController.unregisterDisplayListener()
-        surfaceView.onPause()
+        worldActivityBinding.surfaceView.onPause()
         arSession?.pause()
         LogUtil.info(TAG, "onPause end.")
     }

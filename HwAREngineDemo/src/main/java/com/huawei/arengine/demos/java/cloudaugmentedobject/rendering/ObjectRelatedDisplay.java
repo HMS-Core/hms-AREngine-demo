@@ -17,6 +17,7 @@
 package com.huawei.arengine.demos.java.cloudaugmentedobject.rendering;
 
 import com.huawei.hiar.ARObject;
+import com.huawei.hiar.ARPose;
 
 import java.util.Collection;
 
@@ -38,6 +39,7 @@ public interface ObjectRelatedDisplay {
      * @param arObjects arObjects
      * @param viewMatrix Camera view matrix.
      * @param projectionMatrix Camera projection matrix.
+     * @param cameraPose Camera display oriented pose.
      */
-    void onDrawFrame(Collection<ARObject> arObjects, float[] viewMatrix, float[] projectionMatrix);
+    void onDrawFrame(Collection<ARObject> arObjects, float[] viewMatrix, float[] projectionMatrix, ARPose cameraPose);
 }

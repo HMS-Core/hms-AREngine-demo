@@ -151,6 +151,8 @@ public class BodySkeletonLineDisplay implements BodyRelatedDisplay {
 
     /**
      * Update body connection data.
+     *
+     * @param body tracking results for body skeleton tracking.
      */
     private void updateBodySkeletonLineData(ARBody body) {
         findValidConnectionSkeletonLines(body);

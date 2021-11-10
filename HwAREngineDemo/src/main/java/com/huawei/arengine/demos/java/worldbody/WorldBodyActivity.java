@@ -16,7 +16,6 @@
 
 package com.huawei.arengine.demos.java.worldbody;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
@@ -27,6 +26,7 @@ import android.view.WindowManager;
 import android.widget.Toast;
 
 import com.huawei.arengine.demos.R;
+import com.huawei.arengine.demos.common.BaseActivity;
 import com.huawei.arengine.demos.common.DisplayRotationManager;
 import com.huawei.arengine.demos.common.LogUtil;
 import com.huawei.arengine.demos.common.PermissionManager;
@@ -37,10 +37,6 @@ import com.huawei.hiar.AREnginesApk;
 import com.huawei.hiar.ARSession;
 import com.huawei.hiar.ARWorldBodyTrackingConfig;
 import com.huawei.hiar.exceptions.ARCameraNotAvailableException;
-import com.huawei.hiar.exceptions.ARUnSupportedConfigurationException;
-import com.huawei.hiar.exceptions.ARUnavailableClientSdkTooOldException;
-import com.huawei.hiar.exceptions.ARUnavailableServiceApkTooOldException;
-import com.huawei.hiar.exceptions.ARUnavailableServiceNotInstalledException;
 
 import java.util.concurrent.ArrayBlockingQueue;
 
@@ -50,7 +46,7 @@ import java.util.concurrent.ArrayBlockingQueue;
  * @author HW
  * @since 2021-03-22
  */
-public class WorldBodyActivity extends Activity {
+public class WorldBodyActivity extends BaseActivity {
     private static final String TAG = WorldBodyActivity.class.getSimpleName();
 
     private static final int MOTIONEVENT_QUEUE_CAPACITY = 2;
@@ -68,8 +64,6 @@ public class WorldBodyActivity extends Activity {
     private DisplayRotationManager mDisplayRotationManager;
 
     private ArrayBlockingQueue<GestureEvent> mQueuedSingleTaps = new ArrayBlockingQueue<>(MOTIONEVENT_QUEUE_CAPACITY);
-
-    private String message = null;
 
     private boolean isRemindInstall = false;
 
@@ -148,25 +142,23 @@ public class WorldBodyActivity extends Activity {
         if (!PermissionManager.hasPermission(this)) {
             this.finish();
         }
-        Exception exception = null;
-        message = null;
+        errorMessage = null;
         if (mArSession == null) {
             try {
                 if (!arEngineAbilityCheck()) {
                     finish();
                     return;
                 }
-                mArSession = new ARSession(this);
+                mArSession = new ARSession(this.getApplicationContext());
                 ARWorldBodyTrackingConfig config = new ARWorldBodyTrackingConfig(mArSession);
                 config.setEnableItem(ARConfigBase.ENABLE_DEPTH | ARConfigBase.ENABLE_MASK);
                 mArSession.configure(config);
                 mWorldBodyRenderManager.setArSession(mArSession);
             } catch (Exception capturedException) {
-                exception = capturedException;
                 setMessageWhenError(capturedException);
             }
-            if (message != null) {
-                stopArSession(exception);
+            if (errorMessage != null) {
+                stopArSession();
                 return;
             }
         }
@@ -185,7 +177,7 @@ public class WorldBodyActivity extends Activity {
      * Check whether HUAWEI AR Engine server (com.huawei.arengine.service) is installed on the current device.
      * If not, redirect the user to HUAWEI AppGallery for installation.
      *
-     * @return true:AR Engine ready
+     * @return true:AR Engine ready.
      */
     private boolean arEngineAbilityCheck() {
         boolean isInstallArEngineApk = AREnginesApk.isAREngineApkReady(this);
@@ -201,24 +193,9 @@ public class WorldBodyActivity extends Activity {
         return AREnginesApk.isAREngineApkReady(this);
     }
 
-    private void setMessageWhenError(Exception catchException) {
-        if (catchException instanceof ARUnavailableServiceNotInstalledException) {
-            startActivity(new Intent(this, com.huawei.arengine.demos.common.ConnectAppMarketActivity.class));
-        } else if (catchException instanceof ARUnavailableServiceApkTooOldException) {
-            message = "Please update HuaweiARService.apk";
-        } else if (catchException instanceof ARUnavailableClientSdkTooOldException) {
-            message = "Please update this app";
-        } else if (catchException instanceof ARUnSupportedConfigurationException) {
-            message = "The configuration is not supported by the device!";
-        } else {
-            message = "exception throw";
-        }
-    }
-
-    private void stopArSession(Exception exception) {
+    private void stopArSession() {
         LogUtil.info(TAG, "stopArSession start.");
-        Toast.makeText(this, message, Toast.LENGTH_LONG).show();
-        LogUtil.error(TAG, "Creating session error.");
+        Toast.makeText(this, errorMessage, Toast.LENGTH_LONG).show();
         if (mArSession != null) {
             mArSession.stop();
             mArSession = null;

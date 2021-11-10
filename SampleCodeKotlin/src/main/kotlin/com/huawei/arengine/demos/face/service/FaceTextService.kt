@@ -18,6 +18,7 @@ package com.huawei.arengine.demos.face.service
 import com.huawei.arengine.demos.common.util.FramePerSecond
 import com.huawei.arengine.demos.common.util.calFps
 import com.huawei.hiar.ARFace
+import com.huawei.hiar.ARTrackable
 
 /**
  * update screen text
@@ -25,18 +26,21 @@ import com.huawei.hiar.ARFace
  * @author HW
  * @since 2020-11-04
  */
-fun updateScreenText(screenText: StringBuilder, face: ARFace, framePerSecond: FramePerSecond) {
-    val pose = face.pose
+fun updateScreenText(screenText: StringBuilder, faces: Collection<ARFace>, framePerSecond: FramePerSecond) {
+    var index = 1;
     screenText.run {
         appendln("FPS= ${calFps(framePerSecond)}")
-        appendln("face pose information:")
-        appendln("face pose tx:[${pose.tx()}]")
-        appendln("face pose tx:[${pose.ty()}]")
-        appendln("face pose tx:[${pose.tz()}]")
-        appendln("face pose tx:[${pose.qx()}]")
-        appendln("face pose tx:[${pose.qy()}]")
-        appendln("face pose tx:[${pose.qz()}]")
-        appendln("face pose tx:[${pose.qw()}]")
-        appendln("textureCoordinates length:[${face.faceGeometry.textureCoordinates.array().size}]")
+        faces.forEach continuing@{ face ->
+            if (face.trackingState != ARTrackable.TrackingState.TRACKING) {
+                return@continuing
+            }
+            val pose = face.pose ?: return@continuing
+            appendln("face $index pose information:")
+            appendln("face pose tx:[${pose.tx()}]")
+            appendln("face pose ty:[${pose.ty()}]")
+            appendln("face pose tz:[${pose.tz()}]")
+            appendln("textureCoordinates length:[${face.faceGeometry.textureCoordinates.array().size}]")
+            index++
+        }
     }
 }

@@ -15,29 +15,23 @@
  */
 package com.huawei.arengine.demos.hand
 
-import android.app.Activity
 import android.opengl.GLSurfaceView
 import android.os.Bundle
 import android.view.View
 import android.view.WindowManager
 import android.widget.Toast
-import com.huawei.arengine.demos.R
+
 import com.huawei.arengine.demos.common.LogUtil
 import com.huawei.arengine.demos.common.controller.DisplayRotationController
 import com.huawei.arengine.demos.common.service.PermissionManageService
 import com.huawei.arengine.demos.common.util.isAvailableArEngine
-import com.huawei.arengine.demos.common.util.startActivityByType
-import com.huawei.arengine.demos.common.view.ConnectAppMarketActivity
+import com.huawei.arengine.demos.common.view.BaseActivity
+import com.huawei.arengine.demos.databinding.HandActivityMainBinding
 import com.huawei.arengine.demos.hand.controller.HandRenderController
 import com.huawei.hiar.ARConfigBase
 import com.huawei.hiar.ARHandTrackingConfig
 import com.huawei.hiar.ARSession
 import com.huawei.hiar.exceptions.ARCameraNotAvailableException
-import com.huawei.hiar.exceptions.ARUnSupportedConfigurationException
-import com.huawei.hiar.exceptions.ARUnavailableClientSdkTooOldException
-import com.huawei.hiar.exceptions.ARUnavailableServiceApkTooOldException
-import com.huawei.hiar.exceptions.ARUnavailableServiceNotInstalledException
-import kotlinx.android.synthetic.main.hand_activity_main.handSurfaceView
 
 /**
  * Identify hand information and output the identified gesture type, and coordinates of
@@ -49,7 +43,7 @@ import kotlinx.android.synthetic.main.hand_activity_main.handSurfaceView
  * @author HW
  * @since 2020-10-10
  */
-class HandActivity : Activity() {
+class HandActivity : BaseActivity() {
     companion object {
         private const val TAG = "HandActivity"
     }
@@ -62,15 +56,18 @@ class HandActivity : Activity() {
         HandRenderController(this, displayRotationController)
     }
 
+    private lateinit var handActivityBinding: HandActivityMainBinding
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.hand_activity_main)
+        handActivityBinding = HandActivityMainBinding.inflate(layoutInflater)
+        setContentView(handActivityBinding.root)
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         initUi()
     }
 
     private fun initUi() {
-        handSurfaceView.run {
+        handActivityBinding.handSurfaceView.run {
             // Keep the OpenGL ES running context.
             preserveEGLContextOnPause = true
             // Set the OpenGLES version.
@@ -87,17 +84,17 @@ class HandActivity : Activity() {
         if (!PermissionManageService.hasPermission()) {
             finish()
         }
+        errorMessage = null
         arSession?.let {
             resumeView()
             return
         }
-        var message: String? = null
         try {
             if (!isAvailableArEngine(this)) {
                 finish()
                 return
             }
-            arSession = ARSession(this)
+            arSession = ARSession(this.applicationContext)
             ARHandTrackingConfig(arSession).apply {
                 cameraLensFacing = ARConfigBase.CameraLensFacing.FRONT
                 powerMode = ARConfigBase.PowerMode.ULTRA_POWER_SAVING
@@ -106,18 +103,10 @@ class HandActivity : Activity() {
                 arSession?.configure(it)
             }
             handRenderController.setArSession(arSession)
-        } catch (e: ARUnavailableServiceNotInstalledException) {
-            startActivityByType<ConnectAppMarketActivity>()
-        } catch (e: ARUnavailableServiceApkTooOldException) {
-            message = "Please update HuaweiARService.apk"
-        } catch (e: ARUnavailableClientSdkTooOldException) {
-            message = "Please update this app"
-        } catch (e: ARUnSupportedConfigurationException) {
-            message = "The configuration is not supported by the device!"
-        } catch (e: Exception) {
-            message = "exception throw"
+        } catch (capturedException: Exception) {
+            setMessageWhenError(capturedException)
         }
-        message?.let {
+        errorMessage?.let {
             Toast.makeText(this, it, Toast.LENGTH_LONG).show()
             stopArSession()
             return
@@ -128,7 +117,7 @@ class HandActivity : Activity() {
     private fun resumeView() {
         if (!isSuccessResumeSession()) return
         displayRotationController.registerDisplayListener()
-        handSurfaceView.onResume()
+        handActivityBinding.handSurfaceView.onResume()
     }
 
     private fun isSuccessResumeSession(): Boolean {
@@ -153,7 +142,7 @@ class HandActivity : Activity() {
         LogUtil.info(TAG, "onPause start.")
         super.onPause()
         displayRotationController.unregisterDisplayListener()
-        handSurfaceView.onPause()
+        handActivityBinding.handSurfaceView.onPause()
         arSession?.pause()
         LogUtil.info(TAG, "onPause end.")
     }

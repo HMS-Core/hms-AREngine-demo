@@ -16,7 +16,6 @@
 
 package com.huawei.arengine.demos.java.augmentedimage;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -27,6 +26,7 @@ import android.view.WindowManager;
 import android.widget.Toast;
 
 import com.huawei.arengine.demos.R;
+import com.huawei.arengine.demos.common.BaseActivity;
 import com.huawei.arengine.demos.common.DisplayRotationManager;
 import com.huawei.arengine.demos.common.LogUtil;
 import com.huawei.arengine.demos.common.PermissionManager;
@@ -37,12 +37,7 @@ import com.huawei.hiar.AREnginesApk;
 import com.huawei.hiar.ARImageTrackingConfig;
 import com.huawei.hiar.ARSession;
 import com.huawei.hiar.exceptions.ARCameraNotAvailableException;
-import com.huawei.hiar.exceptions.ARUnSupportedConfigurationException;
-import com.huawei.hiar.exceptions.ARUnavailableClientSdkTooOldException;
-import com.huawei.hiar.exceptions.ARUnavailableServiceApkTooOldException;
-import com.huawei.hiar.exceptions.ARUnavailableServiceNotInstalledException;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Optional;
@@ -55,7 +50,7 @@ import java.util.Optional;
  * @author HW
  * @since 2021-02-04
  */
-public class AugmentedImageActivity extends Activity {
+public class AugmentedImageActivity extends BaseActivity {
     private static final String TAG = AugmentedImageActivity.class.getSimpleName();
 
     private static final int OPENGLES_VERSION = 2;
@@ -67,8 +62,6 @@ public class AugmentedImageActivity extends Activity {
     private DisplayRotationManager mDisplayRotationManager;
 
     private GLSurfaceView glSurfaceView;
-
-    private String errorMessage = null;
 
     private ARSession mArSession;
 
@@ -108,7 +101,7 @@ public class AugmentedImageActivity extends Activity {
                 return;
             }
             try {
-                mArSession = new ARSession(this);
+                mArSession = new ARSession(this.getApplicationContext());
                 ARImageTrackingConfig config = new ARImageTrackingConfig(mArSession);
                 config.setFocusMode(ARConfigBase.FocusMode.AUTO_FOCUS);
                 if (!setupInitAugmentedImageDatabase(config)) {
@@ -117,16 +110,8 @@ public class AugmentedImageActivity extends Activity {
                 mArSession.configure(config);
                 augmentedImageRenderController.setImageTrackOnly(true);
                 augmentedImageRenderController.setArSession(mArSession);
-            } catch (ARUnavailableServiceNotInstalledException capturedException) {
-                startActivity(new Intent(this, com.huawei.arengine.demos.common.ConnectAppMarketActivity.class));
-            } catch (ARUnavailableServiceApkTooOldException capturedException) {
-                errorMessage = "Please update HuaweiARService.apk";
-            } catch (ARUnavailableClientSdkTooOldException capturedException) {
-                errorMessage = "Please update this app";
-            } catch (ARUnSupportedConfigurationException capturedException) {
-                errorMessage = "The configuration is not supported by the device!";
             } catch (Exception capturedException) {
-                errorMessage = "unknown exception throws!";
+                setMessageWhenError(capturedException);
             }
             if (errorMessage != null) {
                 stopArSession();
@@ -175,7 +160,7 @@ public class AugmentedImageActivity extends Activity {
      * Check whether HUAWEI AR Engine server (com.huawei.arengine.service) is installed on the current device.
      * If not, redirect the user to HUAWEI AppGallery for installation.
      *
-     * @return true:AR Engine ready
+     * @return true:AR Engine ready.
      */
     private boolean arEngineAbilityCheck() {
         boolean isInstallArEngineApk = AREnginesApk.isAREngineApkReady(this);

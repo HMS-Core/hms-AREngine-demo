@@ -16,23 +16,30 @@
 
 package com.huawei.arengine.demos.java.cloudaugmentedobject;
 
-import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.huawei.arengine.demos.R;
+import com.huawei.arengine.demos.common.BaseActivity;
 import com.huawei.arengine.demos.common.DisplayRotationManager;
 import com.huawei.arengine.demos.common.JsonUtil;
 import com.huawei.arengine.demos.common.LogUtil;
 import com.huawei.arengine.demos.common.PermissionManager;
+import com.huawei.arengine.demos.common.SecurityUtil;
 import com.huawei.arengine.demos.java.cloudaugmentedobject.rendering.ObjectRenderManager;
 import com.huawei.hiar.ARConfigBase;
 import com.huawei.hiar.AREnginesApk;
@@ -40,14 +47,13 @@ import com.huawei.hiar.ARSession;
 import com.huawei.hiar.ARWorldTrackingConfig;
 import com.huawei.hiar.common.CloudServiceState;
 import com.huawei.hiar.exceptions.ARCameraNotAvailableException;
-import com.huawei.hiar.exceptions.ARUnSupportedConfigurationException;
-import com.huawei.hiar.exceptions.ARUnavailableClientSdkTooOldException;
-import com.huawei.hiar.exceptions.ARUnavailableServiceApkTooOldException;
-import com.huawei.hiar.exceptions.ARUnavailableServiceNotInstalledException;
+import com.huawei.hiar.exceptions.ARFatalException;
 import com.huawei.hiar.listener.CloudServiceEvent;
 import com.huawei.hiar.listener.CloudServiceListener;
 
+import java.util.ArrayList;
 import java.util.EventObject;
+import java.util.List;
 
 /**
  * Demonstrates how to use AR Engine to recognize cloud 3D objects, including recognizing the 3D objects
@@ -56,33 +62,38 @@ import java.util.EventObject;
  * @author HW
  * @since 2021-02-04
  */
-public class CloudAugmentedObjectActivity extends Activity {
+public class CloudAugmentedObjectActivity extends BaseActivity {
     private static final String TAG = CloudAugmentedObjectActivity.class.getSimpleName();
 
     private static final int OPENGLES_VERSION = 2;
 
     private static final int AR_ENGINE_SERVICE_CALL = 10001;
 
-    /**
-     * Hms login.
-     */
-    private static final int REQUEST_SIGN_IN_LOGIN = 1002;
+    private static final int LIST_MAX_SIZE = 1024;
 
     private boolean isRemindInstall = false;
 
     private ObjectRenderManager objectRenderManager;
 
-    private DisplayRotationManager mDisplayRotationManager;
+    private DisplayRotationManager displayRotationManager;
 
     private GLSurfaceView glSurfaceView;
 
-    private String errorMessage = null;
-
     private Context context;
 
-    private ARSession mArSession;
+    private ARSession arSession;
 
-    private Handler mHandler = new Handler() {
+    private AlertDialog.Builder builder;
+
+    private Dialog dialog;
+
+    private ListView dialogList;
+
+    private List<ModeInformation> modeIdList;
+
+    private TextView changeMode;
+
+    private Handler handler = new Handler() {
         String tipMsg = "";
 
         @Override
@@ -115,13 +126,20 @@ public class CloudAugmentedObjectActivity extends Activity {
         glSurfaceView = findViewById(R.id.ObjectSurfaceview);
         glSurfaceView.setPreserveEGLContextOnPause(true);
         glSurfaceView.setEGLContextClientVersion(OPENGLES_VERSION);
+        changeMode = findViewById(R.id.change_mode_id);
+        changeMode.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showDialogList();
+            }
+        });
 
         // Configure the EGL, including the bit and depth of the color buffer.
         glSurfaceView.setEGLConfigChooser(8, 8, 8, 8, 16, 0);
-        mDisplayRotationManager = new DisplayRotationManager(this);
+        displayRotationManager = new DisplayRotationManager(this);
 
         objectRenderManager = new ObjectRenderManager(this);
-        objectRenderManager.setDisplayRotationManager(mDisplayRotationManager);
+        objectRenderManager.setDisplayRotationManager(displayRotationManager);
         glSurfaceView.setRenderer(objectRenderManager);
         glSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
     }
@@ -129,10 +147,54 @@ public class CloudAugmentedObjectActivity extends Activity {
     /**
      * Send application message to service.
      */
-    private void signWithAppId() {
-        String mAuthJson = JsonUtil.getJson("appid.json", context);
-        Log.d(TAG, "mAuthJson : " + mAuthJson);
-        mArSession.setCloudServiceAuthInfo(mAuthJson);
+    private void signWithAppIdNew() {
+        String authJson = JsonUtil.readApplicationMessage(context);
+        if (authJson.isEmpty()) {
+            LogUtil.debug(TAG, "mAuthJson is isEmpty, select first item in list ");
+            String jsonString = JsonUtil.getJson("mode_id.json", context);
+            List<ModeInformation> modeList = JsonUtil.json2List(jsonString);
+            if (modeList.size() <= 0) {
+                LogUtil.error(TAG, "sign error, get application message error");
+                Toast.makeText(context, "sign error, get application message error", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            authJson = modeList.get(0).getModeInformation();
+            JsonUtil.writeApplicationMessage(context, authJson);
+        }
+        arSession.setCloudServiceAuthInfo(authJson);
+    }
+
+    /**
+     * Display the list of countries/regions. Switch the modelName based on the current network environment.
+     */
+    private void showDialogList() {
+        List<String> keyList = new ArrayList<>(LIST_MAX_SIZE);
+        if (modeIdList == null) {
+            String jsonString = JsonUtil.getJson("mode_id.json", context);
+            modeIdList = JsonUtil.json2List(jsonString);
+        }
+        for (ModeInformation mode : modeIdList) {
+            if (mode == null) {
+                continue;
+            }
+            keyList.add(mode.getContinents());
+        }
+        builder = new AlertDialog.Builder(this);
+        View view = LayoutInflater.from(this).inflate(R.layout.dialog_list, null);
+        dialogList = view.findViewById(R.id.select_dialog_listview);
+        builder.setView(view).setCancelable(false);
+
+        dialogList.setAdapter(new ArrayAdapter<String>(CloudAugmentedObjectActivity.this, R.layout.dialog_list_item,
+            R.id.list_item, keyList));
+        dialogList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                JsonUtil.writeApplicationMessage(context, modeIdList.get(position).getModeInformation());
+                dialog.dismiss();
+                finish();
+            }
+        });
+        dialog = builder.show();
     }
 
     @Override
@@ -143,29 +205,21 @@ public class CloudAugmentedObjectActivity extends Activity {
             this.finish();
         }
         errorMessage = null;
-        if (mArSession == null) {
+        if (arSession == null) {
             if (!arEngineAbilityCheck()) {
                 finish();
                 return;
             }
             try {
-                mArSession = new ARSession(this);
-                ARWorldTrackingConfig config = new ARWorldTrackingConfig(mArSession);
+                arSession = new ARSession(this.getApplicationContext());
+                ARWorldTrackingConfig config = new ARWorldTrackingConfig(arSession);
                 config.setFocusMode(ARConfigBase.FocusMode.AUTO_FOCUS);
                 config.setEnableItem(ARConfigBase.ENABLE_CLOUD_OBJECT_RECOGNITION);
 
-                mArSession.configure(config);
-                objectRenderManager.setArSession(mArSession);
-            } catch (ARUnavailableServiceNotInstalledException capturedException) {
-                startActivity(new Intent(this, com.huawei.arengine.demos.common.ConnectAppMarketActivity.class));
-            } catch (ARUnavailableServiceApkTooOldException capturedException) {
-                errorMessage = "Please update HuaweiARService.apk";
-            } catch (ARUnavailableClientSdkTooOldException capturedException) {
-                errorMessage = "Please update this app";
-            } catch (ARUnSupportedConfigurationException capturedException) {
-                errorMessage = "The configuration is not supported by the device!";
+                arSession.configure(config);
+                objectRenderManager.setArSession(arSession);
             } catch (Exception capturedException) {
-                errorMessage = "unknown exception throws!";
+                setMessageWhenError(capturedException);
             }
             if (errorMessage != null) {
                 stopArSession();
@@ -173,22 +227,29 @@ public class CloudAugmentedObjectActivity extends Activity {
             }
         }
         try {
-            mArSession.resume();
-            mDisplayRotationManager.registerDisplayListener();
+            arSession.resume();
+            displayRotationManager.registerDisplayListener();
             glSurfaceView.onResume();
+            setCloudServiceStateListener();
+            signWithAppIdNew();
         } catch (ARCameraNotAvailableException e) {
             Toast.makeText(this, "Camera open failed, please restart the app", Toast.LENGTH_LONG).show();
-            mArSession = null;
+            arSession = null;
+        } catch (ARFatalException e) {
+            LogUtil.error(TAG, "ARFatalException in AREngine.");
+            Toast
+                .makeText(this, "This feature cannot run properly. Check the logs to determine the cause",
+                    Toast.LENGTH_LONG)
+                .show();
+            SecurityUtil.safeFinishActivity(this);
         }
-        setCloudServiceStateListener();
-        signWithAppId();
     }
 
     /**
      * Check whether HUAWEI AR Engine server (com.huawei.arengine.service) is installed on the current device.
      * If not, redirect the user to HUAWEI AppGallery for installation.
      *
-     * @return true:AR Engine ready
+     * @return true:AR Engine ready.
      */
     private boolean arEngineAbilityCheck() {
         boolean isInstallArEngineApk = AREnginesApk.isAREngineApkReady(this);
@@ -207,9 +268,9 @@ public class CloudAugmentedObjectActivity extends Activity {
     private void stopArSession() {
         LogUtil.debug(TAG, "stopArSession start.");
         Toast.makeText(this, errorMessage, Toast.LENGTH_LONG).show();
-        if (mArSession != null) {
-            mArSession.stop();
-            mArSession = null;
+        if (arSession != null) {
+            arSession.stop();
+            arSession = null;
         }
         LogUtil.debug(TAG, "stopArSession end.");
     }
@@ -218,10 +279,10 @@ public class CloudAugmentedObjectActivity extends Activity {
     protected void onPause() {
         LogUtil.debug(TAG, "onPause start.");
         super.onPause();
-        if (mArSession != null) {
-            mDisplayRotationManager.unregisterDisplayListener();
+        if (arSession != null) {
+            displayRotationManager.unregisterDisplayListener();
             glSurfaceView.onPause();
-            mArSession.pause();
+            arSession.pause();
         }
         LogUtil.debug(TAG, "onPause end.");
     }
@@ -229,9 +290,9 @@ public class CloudAugmentedObjectActivity extends Activity {
     @Override
     protected void onDestroy() {
         LogUtil.debug(TAG, "onDestroy start.");
-        if (mArSession != null) {
-            mArSession.stop();
-            mArSession = null;
+        if (arSession != null) {
+            arSession.stop();
+            arSession = null;
         }
         super.onDestroy();
         LogUtil.debug(TAG, "onDestroy end.");
@@ -249,7 +310,7 @@ public class CloudAugmentedObjectActivity extends Activity {
     }
 
     private void setCloudServiceStateListener() {
-        mArSession.addServiceListener(new CloudImageServiceListener());
+        arSession.addServiceListener(new CloudImageServiceListener());
     }
 
     /**
@@ -269,7 +330,7 @@ public class CloudAugmentedObjectActivity extends Activity {
             if (state == null) {
                 return;
             }
-            Log.d(TAG, "handleEvent: CloudImage :" + state);
+            LogUtil.debug(TAG, "handleEvent: CloudImage :" + state);
             String tipMsg = "";
             switch (state) {
                 case CLOUD_SERVICE_ERROR_NETWORK_UNAVAILABLE:
@@ -298,7 +359,7 @@ public class CloudAugmentedObjectActivity extends Activity {
                     break;
                 default:
             }
-            mHandler.sendMessage(mHandler.obtainMessage(AR_ENGINE_SERVICE_CALL, tipMsg));
+            handler.sendMessage(handler.obtainMessage(AR_ENGINE_SERVICE_CALL, tipMsg));
         }
     }
 }

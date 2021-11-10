@@ -227,7 +227,7 @@ public class FaceGeometryDisplay {
 
     private static int loadShader(int shaderType, String source) {
         int shader = GLES20.glCreateShader(shaderType);
-        if (0 != shader) {
+        if (shader != 0) {
             GLES20.glShaderSource(shader, source);
             GLES20.glCompileShader(shader);
             int[] compiled = new int[1];

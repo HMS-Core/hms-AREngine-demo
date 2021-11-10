@@ -16,7 +16,6 @@
 
 package com.huawei.arengine.demos.java.health;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
@@ -30,6 +29,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatDelegate;
 
 import com.huawei.arengine.demos.R;
+import com.huawei.arengine.demos.common.BaseActivity;
 import com.huawei.arengine.demos.common.DisplayRotationManager;
 import com.huawei.arengine.demos.common.LogUtil;
 import com.huawei.arengine.demos.common.PermissionManager;
@@ -40,10 +40,6 @@ import com.huawei.hiar.ARFaceTrackingConfig;
 import com.huawei.hiar.ARSession;
 import com.huawei.hiar.common.FaceHealthCheckState;
 import com.huawei.hiar.exceptions.ARCameraNotAvailableException;
-import com.huawei.hiar.exceptions.ARUnSupportedConfigurationException;
-import com.huawei.hiar.exceptions.ARUnavailableClientSdkTooOldException;
-import com.huawei.hiar.exceptions.ARUnavailableServiceApkTooOldException;
-import com.huawei.hiar.exceptions.ARUnavailableServiceNotInstalledException;
 import com.huawei.hiar.listener.FaceHealthCheckStateEvent;
 import com.huawei.hiar.listener.FaceHealthServiceListener;
 
@@ -55,7 +51,7 @@ import java.util.EventObject;
  * @author HW
  * @since 2020-08-03
  */
-public class HealthActivity extends Activity {
+public class HealthActivity extends BaseActivity {
     private static final String TAG = HealthActivity.class.getSimpleName();
 
     private static final int MAX_PROGRESS = 100;
@@ -65,8 +61,6 @@ public class HealthActivity extends Activity {
     private ARSession mArSession;
 
     private ARFaceTrackingConfig mArFaceTrackingConfig;
-
-    private String mMessage;
 
     private boolean isRemindInstall = false;
 
@@ -116,32 +110,24 @@ public class HealthActivity extends Activity {
         if (!PermissionManager.hasPermission(this)) {
             this.finish();
         }
-        mMessage = null;
+        errorMessage = null;
         if (mArSession == null) {
             try {
                 if (!arEngineAbilityCheck()) {
                     finish();
                     return;
                 }
-                mArSession = new ARSession(this);
+                mArSession = new ARSession(this.getApplicationContext());
                 mArFaceTrackingConfig = new ARFaceTrackingConfig(mArSession);
                 mArFaceTrackingConfig.setEnableItem(ARConfigBase.ENABLE_HEALTH_DEVICE);
                 mArFaceTrackingConfig
                     .setFaceDetectMode(ARConfigBase.FaceDetectMode.HEALTH_ENABLE_DEFAULT.getEnumValue());
                 mArSession.configure(mArFaceTrackingConfig);
                 setHealthServiceListener();
-            } catch (ARUnavailableServiceNotInstalledException capturedException) {
-                startActivity(new Intent(this, com.huawei.arengine.demos.common.ConnectAppMarketActivity.class));
-            } catch (ARUnavailableServiceApkTooOldException capturedException) {
-                mMessage = "Please update HuaweiARService.apk";
-            } catch (ARUnavailableClientSdkTooOldException capturedException) {
-                mMessage = "Please update this app";
-            } catch (ARUnSupportedConfigurationException capturedException) {
-                mMessage = "The configuration is not supported by the device!";
             } catch (Exception capturedException) {
-                mMessage = "unknown exception throws!";
+                setMessageWhenError(capturedException);
             }
-            if (mMessage != null) {
+            if (errorMessage != null) {
                 stopArSession();
                 return;
             }
@@ -160,7 +146,7 @@ public class HealthActivity extends Activity {
 
     private void stopArSession() {
         LogUtil.info(TAG, "Stop session start.");
-        Toast.makeText(this, mMessage, Toast.LENGTH_LONG).show();
+        Toast.makeText(this, errorMessage, Toast.LENGTH_LONG).show();
         if (mArSession != null) {
             mArSession.stop();
             mArSession = null;

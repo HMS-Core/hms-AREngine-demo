@@ -1,5 +1,5 @@
 /**
- * Copyright 2020. Huawei Technologies Co., Ltd. All rights reserved.
+ * Copyright 2021. Huawei Technologies Co., Ltd. All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -41,6 +41,7 @@ import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.nio.ShortBuffer;
+import java.util.Arrays;
 import java.util.Optional;
 
 /**
@@ -63,6 +64,9 @@ public class ObjectDisplay {
 
     private static final int MATRIX_SIZE = 16;
 
+    /**
+     * Light direction (x, y, z, w).
+     */
     private float[] mViewLightDirections = new float[4];
 
     private int mTexCoordsBaseAddress;
@@ -346,53 +350,75 @@ public class ObjectDisplay {
 
         // Determine whether a screen position corresponding to (maxX, maxY, maxZ) is clicked.
         boundarys = findMaximum(boundarys, new int[]{3, 4, 5});
-        if (((event.getX() > boundarys[0]) && (event.getX() < boundarys[1]))
-            && ((event.getY() > boundarys[2]) && (event.getY() < boundarys[3]))) {
+        if (determineWhetherToClick(event, boundarys)) {
             return true;
         }
 
         // Determine whether a screen position corresponding to (minX, minY, maxZ) is clicked.
         boundarys = findMaximum(boundarys, new int[]{0, 1, 5});
-        if (((event.getX() > boundarys[0]) && (event.getX() < boundarys[1]))
-            && ((event.getY() > boundarys[2]) && (event.getY() < boundarys[3]))) {
+        if (determineWhetherToClick(event, boundarys)) {
             return true;
         }
 
         // Determine whether a screen position corresponding to (minX, maxY, minZ) is clicked.
         boundarys = findMaximum(boundarys, new int[]{0, 4, 2});
-        if (((event.getX() > boundarys[0]) && (event.getX() < boundarys[1]))
-            && ((event.getY() > boundarys[2]) && (event.getY() < boundarys[3]))) {
+        if (determineWhetherToClick(event, boundarys)) {
             return true;
         }
 
         // Determine whether a screen position corresponding to (minX, maxY, maxZ) is clicked.
         boundarys = findMaximum(boundarys, new int[]{0, 4, 5});
-        if (((event.getX() > boundarys[0]) && (event.getX() < boundarys[1]))
-            && ((event.getY() > boundarys[2]) && (event.getY() < boundarys[3]))) {
+        if (determineWhetherToClick(event, boundarys)) {
             return true;
         }
 
         // Determine whether a screen position corresponding to (maxX, minY, minZ) is clicked.
         boundarys = findMaximum(boundarys, new int[]{3, 1, 2});
-        if (((event.getX() > boundarys[0]) && (event.getX() < boundarys[1]))
-            && ((event.getY() > boundarys[2]) && (event.getY() < boundarys[3]))) {
+        if (determineWhetherToClick(event, boundarys)) {
             return true;
         }
 
         // Determine whether a screen position corresponding to (maxX, minY, maxZ) is clicked.
         boundarys = findMaximum(boundarys, new int[]{3, 1, 5});
-        if (((event.getX() > boundarys[0]) && (event.getX() < boundarys[1]))
-            && ((event.getY() > boundarys[2]) && (event.getY() < boundarys[3]))) {
+        if (determineWhetherToClick(event, boundarys)) {
             return true;
         }
 
         // Determine whether a screen position corresponding to (maxX, maxY, maxZ) is clicked.
-        boundarys = findMaximum(boundarys, new int[]{3, 4, 2});
+        if (determineWhetherToClick(event, boundarys)) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Determine whether the click happens within the valid boundary.
+     *
+     * @param event The gesture event.
+     * @param boundarys Record the largest bounding rectangle of an object (minX/minY/maxX/maxY).
+     * @return Determine whether the corresponding screen position is tapped.
+     */
+    private boolean determineWhetherToClick(MotionEvent event , float[] boundarys) {
+        // The size of the click boundary rectangle array is 4.
+        if (event == null || boundarys.length < 4) {
+            return false;
+        }
+        // Determine whether the click point is within the valid boundary.
         if (((event.getX() > boundarys[0]) && (event.getX() < boundarys[1]))
             && ((event.getY() > boundarys[2]) && (event.getY() < boundarys[3]))) {
             return true;
         }
         return false;
+    }
+
+    /**
+     * Obtain the AABB bounding box of a virtual object.
+     *
+     * @return AABB bounding box data (minX, minY, minZ, maxX, maxY, maxZ).
+     */
+    public float[] getBoundingBox() {
+        float[] boundBox = Arrays.copyOf(mBoundingBoxs, mBoundingBoxs.length);
+        return boundBox;
     }
 
     // The size of minXmaxXminYmaxY is 4, and the size of index is 3.

@@ -27,6 +27,7 @@ import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 
+import com.huawei.arengine.demos.common.LogUtil;
 import com.huawei.arengine.demos.common.PermissionManager;
 
 /**
@@ -116,12 +117,29 @@ public class ChooseActivity extends Activity {
                 startActivity(new Intent(this,
                     com.huawei.arengine.demos.java.worldbody.WorldBodyActivity.class));
                 break;
+            default:
+                cloudClickEvent(view);
+                break;
+        }
+    }
+
+    private void cloudClickEvent(View view) {
+        if (view == null) {
+            LogUtil.error(TAG, "click view is null");
+            return;
+        }
+        switch (view.getId()) {
             case R.id.btn_cloud_3DObject:
                 startActivity(new Intent(this,
-                        com.huawei.arengine.demos.java.cloudaugmentedobject.CloudAugmentedObjectActivity.class));
+                    com.huawei.arengine.demos.java.cloudaugmentedobject.CloudAugmentedObjectActivity.class));
+                break;
+            case R.id.btn_cloud_2DImage:
+                startActivity(
+                    new Intent(this, com.huawei.arengine.demos.java.cloudimage.CloudAugmentedImageActivity.class));
                 break;
             default:
                 Log.e(TAG, "onClick error!");
+                break;
         }
     }
 }

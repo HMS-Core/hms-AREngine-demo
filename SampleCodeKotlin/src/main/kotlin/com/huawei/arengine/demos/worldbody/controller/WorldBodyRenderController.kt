@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package com.huawei.arengine.demos.worldbody
+package com.huawei.arengine.demos.worldbody.controller
 
 import android.app.Activity
 import android.opengl.GLES20
 import android.opengl.GLSurfaceView
 import android.view.View
 import android.widget.TextView
+
 import com.huawei.arengine.demos.R
 import com.huawei.arengine.demos.body3d.service.BodyRenderService
 import com.huawei.arengine.demos.body3d.service.BodySkeletonLineService
@@ -30,26 +30,19 @@ import com.huawei.arengine.demos.common.controller.DisplayRotationController
 import com.huawei.arengine.demos.common.exception.SampleAppException
 import com.huawei.arengine.demos.common.service.BackgroundTextureService
 import com.huawei.arengine.demos.common.service.TextService
-import com.huawei.arengine.demos.common.util.*
-import com.huawei.arengine.demos.common.view.ConnectAppMarketActivity
+import com.huawei.arengine.demos.common.util.findViewById
+import com.huawei.arengine.demos.common.util.showScreenTextView
 import com.huawei.arengine.demos.world.controller.GestureController
 import com.huawei.arengine.demos.world.model.VirtualObject
 import com.huawei.arengine.demos.world.service.LabelService
 import com.huawei.arengine.demos.world.service.ObjectService
 import com.huawei.arengine.demos.world.service.PointService
 import com.huawei.arengine.demos.world.util.Constants
+import com.huawei.hiar.ARBody
 import com.huawei.hiar.ARFrame
 import com.huawei.hiar.ARSession
 import com.huawei.hiar.ARTrackable
-import com.huawei.hiar.ARWorldBodyTrackingConfig
-import com.huawei.hiar.ARConfigBase
-import com.huawei.hiar.ARBody
-import com.huawei.hiar.exceptions.ARUnavailableClientSdkTooOldException
-import com.huawei.hiar.exceptions.ARUnavailableServiceApkTooOldException
-import com.huawei.hiar.exceptions.ARUnavailableServiceNotInstalledException
-import com.huawei.hiar.exceptions.ARUnSupportedConfigurationException
-import com.huawei.hiar.exceptions.ARCameraNotAvailableException
-import kotlinx.android.synthetic.main.world_java_activity_main.surfaceView
+
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
 
@@ -67,7 +60,7 @@ class WorldBodyRenderController(private val activity: Activity,
         private const val TAG = "WorldBodyRenderController"
     }
 
-    var arSession: ARSession? = null
+    private var arSession: ARSession? = null
 
     private val backgroundTextureService by lazy { BackgroundTextureService() }
 
@@ -92,71 +85,15 @@ class WorldBodyRenderController(private val activity: Activity,
 
     private var fps = 0f
 
-    fun startArSession() {
-        arSession?.let {
-            resumeSurfaceView()
-            return
-        }
-        var message: String? = null
-        try {
-            if (!isAvailableArEngine(activity)) {
-                activity.finish()
-                return
-            }
-            arSession = ARSession(activity)
-            ARWorldBodyTrackingConfig(arSession).apply {
-                focusMode = ARConfigBase.FocusMode.AUTO_FOCUS
-                semanticMode = ARWorldBodyTrackingConfig.SEMANTIC_PLANE
-            }.also {
-                arSession?.configure(it)
-            }
-        } catch (e: ARUnavailableServiceNotInstalledException) {
-            startActivityByType<ConnectAppMarketActivity>()
-        } catch (e: ARUnavailableServiceApkTooOldException) {
-            message = "Please update HuaweiARService.apk"
-        } catch (e: ARUnavailableClientSdkTooOldException) {
-            message = "Please update this app"
-        } catch (e: ARUnSupportedConfigurationException) {
-            message = "The configuration is not supported by the device!"
-        } catch (e: Exception) {
-            message = "exception throw"
-        }
-        message?.let {
-            arSession?.stop()
-            arSession = null
-            return
-        }
-        resumeSurfaceView()
-    }
-
-    private fun resumeSurfaceView() {
-        if (!isSuccessResumeSession()) return
-        displayRotationController.registerDisplayListener()
-        activity.surfaceView.onResume()
-    }
-
-    private fun isSuccessResumeSession(): Boolean {
-        return try {
-            arSession?.resume()
-            true
-        } catch (e: ARCameraNotAvailableException) {
-            arSession = null
-            false
-        }
-    }
-
     override fun onDrawFrame(gl: GL10?) {
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT or GLES20.GL_DEPTH_BUFFER_BIT)
-        if (arSession == null) {
-            return
-        }
+        arSession ?: return
         if (displayRotationController.isDeviceRotation) {
             displayRotationController.updateArSessionDisplayGeometry(arSession)
         }
         try {
             arSession!!.setCameraTextureName(backgroundTextureService.externalTextureId)
             val arFrame: ARFrame = arSession!!.update()
-            LogUtil.debug(TAG, "mTextureDisplay.onDrawFrame(arFrame);")
             backgroundTextureService.renderBackgroundTexture(arFrame)
             val arCamera = arFrame.camera
 
@@ -175,7 +112,6 @@ class WorldBodyRenderController(private val activity: Activity,
             arCamera.getViewMatrix(viewMatrix, 0)
             showSearchingMessage(View.GONE)
             gestureController.handleGestureEvent(arFrame, arCamera, projectionMatrix, viewMatrix)
-            // handleGestureEvent(arFrame, arCamera)
             drawAllObjects(projectionMatrix, viewMatrix)
             val arPointCloud = arFrame.acquirePointCloud()
             pointService.renderPoints(arPointCloud, viewMatrix, projectionMatrix)
@@ -186,7 +122,6 @@ class WorldBodyRenderController(private val activity: Activity,
             for (bodyRelatedService in bodyRenderServices) {
                 bodyRelatedService.renderBody(bodies, projectionMatrix)
             }
-            LogUtil.debug(TAG, "after worldBody display.")
         } catch (e: SampleAppException) {
             LogUtil.error(TAG, "Exception on the ArDemoRuntimeException!")
         } catch (t: Throwable) {
@@ -270,5 +205,14 @@ class WorldBodyRenderController(private val activity: Activity,
         textService.setListener { text ->
             showScreenTextView(activity, findViewById(activity, R.id.wordTextView), text)
         }
+    }
+
+    /**
+     * Set ARSession, which will update and obtain the latest data in OnDrawFrame.
+     *
+     * @param arSession ARSession.
+     */
+    fun setArSession(arSession: ARSession?) {
+        this.arSession = arSession
     }
 }

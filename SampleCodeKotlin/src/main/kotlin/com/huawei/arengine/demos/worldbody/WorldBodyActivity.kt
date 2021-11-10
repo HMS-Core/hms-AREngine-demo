@@ -16,16 +16,24 @@
 
 package com.huawei.arengine.demos.worldbody
 
-import android.app.Activity
 import android.opengl.GLSurfaceView
 import android.os.Bundle
 import android.view.View
 import android.view.WindowManager
-import com.huawei.arengine.demos.R
+import android.widget.Toast
+
+import com.huawei.arengine.demos.common.LogUtil
 import com.huawei.arengine.demos.common.controller.DisplayRotationController
 import com.huawei.arengine.demos.common.service.PermissionManageService
+import com.huawei.arengine.demos.common.util.isAvailableArEngine
+import com.huawei.arengine.demos.common.view.BaseActivity
+import com.huawei.arengine.demos.databinding.WorldJavaActivityMainBinding
 import com.huawei.arengine.demos.world.controller.GestureController
-import kotlinx.android.synthetic.main.world_java_activity_main.surfaceView
+import com.huawei.arengine.demos.worldbody.controller.WorldBodyRenderController
+import com.huawei.hiar.ARConfigBase
+import com.huawei.hiar.ARSession
+import com.huawei.hiar.ARWorldBodyTrackingConfig
+import com.huawei.hiar.exceptions.ARCameraNotAvailableException
 
 /**
  * This AR example shows how to use the WorldBody AR scene of HUAWEI AR Engine,
@@ -35,11 +43,12 @@ import kotlinx.android.synthetic.main.world_java_activity_main.surfaceView
  * @author HW
  * @since 2021-04-08
  */
-class WorldBodyActivity : Activity() {
-
+class WorldBodyActivity : BaseActivity() {
     companion object {
         private const val TAG = "WorldBodyActivity"
     }
+
+    private var arSession: ARSession? = null
 
     private val displayRotationController by lazy { DisplayRotationController() }
 
@@ -49,9 +58,12 @@ class WorldBodyActivity : Activity() {
         WorldBodyRenderController(this, displayRotationController, gestureController)
     }
 
+    private lateinit var worldActivityBinding: WorldJavaActivityMainBinding
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.world_java_activity_main)
+        worldActivityBinding = WorldJavaActivityMainBinding.inflate(layoutInflater)
+        setContentView(worldActivityBinding.root)
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         initUi()
     }
@@ -60,7 +72,7 @@ class WorldBodyActivity : Activity() {
      * Initializes the UI and sets gestureController, worldbodyRenderController, and GL parameters.
      */
     private fun initUi() {
-        surfaceView.apply {
+        worldActivityBinding.surfaceView.apply {
             setOnTouchListener { v, event ->
                 v.performClick()
                 gestureController.gestureDetector.onTouchEvent(event)
@@ -74,24 +86,79 @@ class WorldBodyActivity : Activity() {
     }
 
     override fun onResume() {
+        LogUtil.debug(TAG, "onResume")
         super.onResume()
         if (!PermissionManageService.hasPermission()) {
             finish()
         }
-        worldbodyRenderController.startArSession()
+        errorMessage = null
+        arSession?.let {
+            resumeView()
+            return
+        }
+        try {
+            if (!isAvailableArEngine(this)) {
+                finish()
+                return
+            }
+            arSession = ARSession(this.applicationContext)
+            ARWorldBodyTrackingConfig(arSession).apply {
+                focusMode = ARConfigBase.FocusMode.AUTO_FOCUS
+                semanticMode = ARWorldBodyTrackingConfig.SEMANTIC_PLANE
+            }.also {
+                arSession?.configure(it)
+            }
+            worldbodyRenderController.setArSession(arSession)
+        } catch (capturedException: Exception) {
+            setMessageWhenError(capturedException)
+        }
+        errorMessage?.let {
+            Toast.makeText(this, it, Toast.LENGTH_LONG).show()
+            stopArSession()
+            return
+        }
+        resumeView()
+    }
+
+    private fun resumeView() {
+        if (!isSuccessResumeSession()) return
+        displayRotationController.registerDisplayListener()
+        worldActivityBinding.surfaceView.onResume()
+    }
+
+    private fun isSuccessResumeSession(): Boolean {
+        return try {
+            arSession?.resume()
+            true
+        } catch (e: ARCameraNotAvailableException) {
+            Toast.makeText(this, "Camera open failed, please restart the app", Toast.LENGTH_LONG).show()
+            arSession = null
+            false
+        }
+    }
+
+    private fun stopArSession() {
+        LogUtil.info(TAG, "stopArSession start.")
+        arSession?.stop()
+        arSession = null
+        LogUtil.info(TAG, "stopArSession end.")
     }
 
     override fun onPause() {
+        LogUtil.info(TAG, "onPause start.")
         super.onPause()
         displayRotationController.unregisterDisplayListener()
-        surfaceView.onPause()
-        worldbodyRenderController.arSession?.pause()
+        worldActivityBinding.surfaceView.onPause()
+        arSession?.pause()
+        LogUtil.info(TAG, "onPause end.")
     }
 
     override fun onDestroy() {
+        LogUtil.info(TAG, "onDestroy start.")
         super.onDestroy()
-        worldbodyRenderController.arSession?.stop()
-        worldbodyRenderController.arSession = null
+        arSession?.stop()
+        arSession = null
+        LogUtil.info(TAG, "onDestroy end.")
     }
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {

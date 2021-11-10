@@ -1,7 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-        package="com.huawei.arengine.demos"
-        android:versionCode="130"
-        android:versionName="3.0.0.11">
+    package="com.huawei.arengine.demos"
+    android:versionCode="142"
+    android:versionName="3.5.0.1">
 
     <uses-permission android:name="android.permission.CAMERA" />
 

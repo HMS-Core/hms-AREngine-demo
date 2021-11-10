@@ -16,17 +16,21 @@
 
 package com.huawei.arengine.demos.java.world;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
+import android.widget.ToggleButton;
 
 import com.huawei.arengine.demos.R;
+import com.huawei.arengine.demos.common.BaseActivity;
 import com.huawei.arengine.demos.common.DisplayRotationManager;
 import com.huawei.arengine.demos.common.LogUtil;
 import com.huawei.arengine.demos.common.PermissionManager;
@@ -36,10 +40,7 @@ import com.huawei.hiar.AREnginesApk;
 import com.huawei.hiar.ARSession;
 import com.huawei.hiar.ARWorldTrackingConfig;
 import com.huawei.hiar.exceptions.ARCameraNotAvailableException;
-import com.huawei.hiar.exceptions.ARUnSupportedConfigurationException;
-import com.huawei.hiar.exceptions.ARUnavailableClientSdkTooOldException;
 import com.huawei.hiar.exceptions.ARUnavailableServiceApkTooOldException;
-import com.huawei.hiar.exceptions.ARUnavailableServiceNotInstalledException;
 
 import java.util.concurrent.ArrayBlockingQueue;
 
@@ -51,16 +52,30 @@ import java.util.concurrent.ArrayBlockingQueue;
  * @author HW
  * @since 2020-04-05
  */
-public class WorldActivity extends Activity {
+public class WorldActivity extends BaseActivity {
     private static final String TAG = WorldActivity.class.getSimpleName();
+
+    private static final String UPDATE_TOAST_MSG = "Please update HUAWEI AR Engine app in the AppGallery.";
 
     private static final int MOTIONEVENT_QUEUE_CAPACITY = 2;
 
     private static final int OPENGLES_VERSION = 2;
 
+    private static final long BUTTON_REPEAT_CLICK_INTERVAL_TIME = 2000L;
+
+    private static final int MSG_ENV_LIGHT_BUTTON_CLICK_ENABLE = 1;
+
+    private static final int MSG_ENV_TEXTURE_BUTTON_CLICK_ENABLE = 2;
+
     private ARSession mArSession;
 
     private GLSurfaceView mSurfaceView;
+
+    private ToggleButton mEnvLightingBtn;
+
+    private ToggleButton mEnvTextureBtn;
+
+    private RelativeLayout mEnvTextureLayout;
 
     private WorldRenderManager mWorldRenderManager;
 
@@ -68,19 +83,41 @@ public class WorldActivity extends Activity {
 
     private DisplayRotationManager mDisplayRotationManager;
 
-    private ArrayBlockingQueue<GestureEvent> mQueuedSingleTaps = new ArrayBlockingQueue<>(MOTIONEVENT_QUEUE_CAPACITY);
+    private ARWorldTrackingConfig mConfig;
 
-    private String message = null;
+    private ArrayBlockingQueue<GestureEvent> mQueuedSingleTaps = new ArrayBlockingQueue<>(MOTIONEVENT_QUEUE_CAPACITY);
 
     private boolean isRemindInstall = false;
 
+    private boolean mEnvLightModeOpen = false;
+
+    private boolean mEnvTextureModeOpen = false;
+
+    private Handler handler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
+                case MSG_ENV_LIGHT_BUTTON_CLICK_ENABLE:
+                    mEnvLightingBtn.setEnabled(true);
+                    break;
+                case MSG_ENV_TEXTURE_BUTTON_CLICK_ENABLE:
+                    mEnvTextureBtn.setEnabled(true);
+                    break;
+                default:
+                    LogUtil.info(TAG, "handleMessage default in WorldActivity.");
+                    break;
+            }
+        }
+    };
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        LogUtil.info(TAG, "onCreate");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.world_java_activity_main);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-
-        mSurfaceView = findViewById(R.id.surfaceview);
+        initViews();
+        initClickListener();
         mDisplayRotationManager = new DisplayRotationManager(this);
         initGestureDetector();
 
@@ -97,6 +134,49 @@ public class WorldActivity extends Activity {
 
         mSurfaceView.setRenderer(mWorldRenderManager);
         mSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
+    }
+
+    private void initViews() {
+        mSurfaceView = findViewById(R.id.surfaceview);
+        mEnvLightingBtn = findViewById(R.id.btn_env_light_mode);
+        mEnvTextureBtn = findViewById(R.id.btn_env_texture_mode);
+        mEnvTextureLayout = findViewById(R.id.img_env_texture);
+    }
+
+    private void initClickListener() {
+        mEnvLightingBtn.setOnCheckedChangeListener((compoundButton, b) -> {
+            mEnvLightingBtn.setEnabled(false);
+            handler.sendEmptyMessageDelayed(MSG_ENV_LIGHT_BUTTON_CLICK_ENABLE,
+                    BUTTON_REPEAT_CLICK_INTERVAL_TIME);
+            mEnvLightModeOpen = !mEnvLightModeOpen;
+            int lightingMode = refreshLightMode(mEnvLightModeOpen, ARConfigBase.LIGHT_MODE_ENVIRONMENT_LIGHTING);
+            refreshConfig(lightingMode);
+        });
+
+        mEnvTextureBtn.setOnCheckedChangeListener((compoundButton, b) -> {
+            mEnvTextureBtn.setEnabled(false);
+            handler.sendEmptyMessageDelayed(MSG_ENV_TEXTURE_BUTTON_CLICK_ENABLE,
+                    BUTTON_REPEAT_CLICK_INTERVAL_TIME);
+            mEnvTextureModeOpen = !mEnvTextureModeOpen;
+            refreshEnvTextureLayout();
+            int lightingMode = refreshLightMode(mEnvTextureModeOpen, ARConfigBase.LIGHT_MODE_ENVIRONMENT_TEXTURE);
+            refreshConfig(lightingMode);
+        });
+    }
+
+    private void refreshEnvTextureLayout() {
+        if (mEnvTextureModeOpen) {
+            mEnvTextureLayout.setVisibility(View.VISIBLE);
+        } else {
+            mEnvTextureLayout.setVisibility(View.GONE);
+        }
+    }
+
+    private int refreshLightMode(boolean isOpen, int changeMode) {
+        LogUtil.info(TAG, "isOPen = " + isOpen + "changeMode = " + changeMode);
+        int curLightMode = mConfig.getLightingMode();
+        curLightMode = isOpen ? (curLightMode | changeMode) : (curLightMode & ~changeMode);
+        return curLightMode;
     }
 
     private void initGestureDetector() {
@@ -149,27 +229,26 @@ public class WorldActivity extends Activity {
         if (!PermissionManager.hasPermission(this)) {
             this.finish();
         }
-        message = null;
+        errorMessage = null;
         if (mArSession == null) {
             try {
                 if (!arEngineAbilityCheck()) {
                     finish();
                     return;
                 }
-                mArSession = new ARSession(this);
-                ARWorldTrackingConfig config = new ARWorldTrackingConfig(mArSession);
-                config.setFocusMode(ARConfigBase.FocusMode.AUTO_FOCUS);
-                config.setSemanticMode(ARWorldTrackingConfig.SEMANTIC_PLANE);
-                mArSession.configure(config);
-                mWorldRenderManager.setArSession(mArSession);
+                mArSession = new ARSession(this.getApplicationContext());
+                mConfig = new ARWorldTrackingConfig(mArSession);
+                refreshConfig(ARConfigBase.LIGHT_MODE_ENVIRONMENT_LIGHTING | ARConfigBase.LIGHT_MODE_ENVIRONMENT_TEXTURE);
             } catch (Exception capturedException) {
                 setMessageWhenError(capturedException);
             }
-            if (message != null) {
+
+            if (errorMessage != null) {
                 stopArSession();
                 return;
             }
         }
+
         try {
             mArSession.resume();
         } catch (ARCameraNotAvailableException e) {
@@ -179,6 +258,41 @@ public class WorldActivity extends Activity {
         }
         mDisplayRotationManager.registerDisplayListener();
         mSurfaceView.onResume();
+    }
+
+    private void refreshConfig(int lightingMode) {
+        try {
+            mConfig.setFocusMode(ARConfigBase.FocusMode.AUTO_FOCUS);
+            mConfig.setSemanticMode(ARWorldTrackingConfig.SEMANTIC_PLANE | ARWorldTrackingConfig.SEMANTIC_TARGET);
+            mConfig.setLightingMode(lightingMode);
+            mArSession.configure(mConfig);
+        } catch (ARUnavailableServiceApkTooOldException capturedException) {
+            Toast.makeText(this, "Please update HuaweiARService.apk", Toast.LENGTH_LONG).show();
+        } finally {
+            mWorldRenderManager.setArSession(mArSession);
+            mWorldRenderManager.setArWorldTrackingConfig(mConfig);
+            showSemanticModeSupportedInfo();
+        }
+    }
+
+    private void showSemanticModeSupportedInfo() {
+        String toastMsg = "";
+        switch (mArSession.getSupportedSemanticMode()) {
+            case ARWorldTrackingConfig.SEMANTIC_NONE:
+                toastMsg = "The running environment does not support the semantic mode.";
+                break;
+            case ARWorldTrackingConfig.SEMANTIC_PLANE:
+                toastMsg = "The running environment supports only the plane semantic mode.";
+                break;
+            case ARWorldTrackingConfig.SEMANTIC_TARGET:
+                toastMsg = "The running environment supports only the target semantic mode.";
+                break;
+            default:
+                break;
+        }
+        if (!toastMsg.isEmpty()) {
+            Toast.makeText(this, toastMsg, Toast.LENGTH_LONG).show();
+        }
     }
 
     /**
@@ -201,23 +315,9 @@ public class WorldActivity extends Activity {
         return AREnginesApk.isAREngineApkReady(this);
     }
 
-    private void setMessageWhenError(Exception catchException) {
-        if (catchException instanceof ARUnavailableServiceNotInstalledException) {
-            startActivity(new Intent(this, com.huawei.arengine.demos.common.ConnectAppMarketActivity.class));
-        } else if (catchException instanceof ARUnavailableServiceApkTooOldException) {
-            message = "Please update HuaweiARService.apk";
-        } else if (catchException instanceof ARUnavailableClientSdkTooOldException) {
-            message = "Please update this app";
-        } else if (catchException instanceof ARUnSupportedConfigurationException) {
-            message = "The configuration is not supported by the device!";
-        } else {
-            message = "exception throw";
-        }
-    }
-
     private void stopArSession() {
         LogUtil.info(TAG, "stopArSession start.");
-        Toast.makeText(this, message, Toast.LENGTH_LONG).show();
+        Toast.makeText(this, errorMessage, Toast.LENGTH_LONG).show();
         if (mArSession != null) {
             mArSession.stop();
             mArSession = null;
@@ -243,6 +343,9 @@ public class WorldActivity extends Activity {
         if (mArSession != null) {
             mArSession.stop();
             mArSession = null;
+        }
+        if (mWorldRenderManager != null) {
+            mWorldRenderManager.releaseARAnchor();
         }
         super.onDestroy();
         LogUtil.info(TAG, "onDestroy end.");

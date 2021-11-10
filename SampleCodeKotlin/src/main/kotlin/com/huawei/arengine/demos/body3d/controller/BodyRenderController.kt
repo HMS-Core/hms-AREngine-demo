@@ -36,6 +36,7 @@ import com.huawei.hiar.ARBody
 import com.huawei.hiar.ARFrame
 import com.huawei.hiar.ARSession
 import com.huawei.hiar.ARTrackable
+import com.huawei.hiar.exceptions.ARSessionPausedException
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
 
@@ -110,7 +111,9 @@ class BodyRenderController(private val mActivity: Activity,
             backgroundTextureService.renderBackgroundTexture(frame)
             renderBody(frame)
         } catch (exception: SampleAppException) {
-            LogUtil.error(TAG, "Exception on the OpenGL thread!")
+            LogUtil.error(TAG, "Exception on the SampleAppException!");
+        } catch (exception: ARSessionPausedException) {
+            LogUtil.error(TAG, "Invoke session.resume before invoking Session.update.");
         }
     }
 

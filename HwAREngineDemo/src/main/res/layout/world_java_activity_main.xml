@@ -21,6 +21,56 @@
         tools:layout_editor_absoluteX="315dp"
         tools:layout_editor_absoluteY="4dp" />
 
+    <RelativeLayout
+        android:id="@+id/img_env_texture"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:layout_below="@id/wordTextView"
+        android:visibility="visible">
+
+        <ImageView
+            android:id="@+id/img_env_texture_top"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_marginStart="64dp" />
+
+        <ImageView
+            android:id="@+id/img_env_texture_left"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_below="@id/img_env_texture_top" />
+
+        <ImageView
+            android:id="@+id/img_env_texture_front"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_below="@id/img_env_texture_top"
+            android:layout_toRightOf="@id/img_env_texture_left" />
+
+        <ImageView
+            android:id="@+id/img_env_texture_right"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_below="@id/img_env_texture_top"
+            android:layout_toRightOf="@id/img_env_texture_front" />
+
+        <ImageView
+            android:id="@+id/img_env_Texture_back"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_below="@id/img_env_texture_top"
+            android:layout_toRightOf="@id/img_env_texture_right" />
+
+        <ImageView
+            android:id="@+id/img_env_texture_bottom"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_below="@id/img_env_texture_left"
+            android:layout_toRightOf="@id/img_env_texture_left"/>
+
+    </RelativeLayout>
+
     <TextView
         android:id="@+id/searchingTextView"
         android:layout_width="match_parent"
@@ -129,5 +179,52 @@
         android:textColor="#ff2211"
         tools:layout_editor_absoluteX="315dp"
         tools:layout_editor_absoluteY="4dp" />
+
+    <TextView
+        android:id="@+id/target_measure"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/plane_other"
+        android:visibility="gone"
+        android:textColor="#FFFFFF"
+        tools:layout_editor_absoluteX="315dp"
+        tools:layout_editor_absoluteY="4dp" />
+
+    <LinearLayout
+        android:id="@+id/canceling_inspect"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="24dp"
+        android:layout_marginTop="24dp"
+        android:layout_gravity="center"
+        android:layout_alignParentBottom="true"
+        android:layout_marginEnd="24dp"
+        android:layout_marginStart="24dp"
+        android:orientation="vertical">
+
+        <ToggleButton
+            android:id="@+id/btn_env_light_mode"
+            android:layout_width="200dp"
+            android:layout_height="wrap_content"
+            android:textOn="CloseEnvLighting"
+            android:textOff="OpenEnvLighting"
+            android:checked="false"
+            android:layout_gravity="center"
+            android:textAllCaps="false"
+            android:textSize="15sp"
+            android:visibility="gone"/>
+
+        <ToggleButton
+            android:id="@+id/btn_env_texture_mode"
+            android:layout_width="200dp"
+            android:layout_height="wrap_content"
+            android:textOff="OpenEnvTexture"
+            android:textOn="CloseEnvTexture"
+            android:checked="false"
+            android:layout_gravity="center"
+            android:textAllCaps="false"
+            android:textSize="15sp"
+            android:visibility="gone"/>
+    </LinearLayout>
 
 </RelativeLayout>

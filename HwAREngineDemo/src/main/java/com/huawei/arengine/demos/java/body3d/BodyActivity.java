@@ -16,7 +16,6 @@
 
 package com.huawei.arengine.demos.java.body3d;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
@@ -26,6 +25,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.huawei.arengine.demos.R;
+import com.huawei.arengine.demos.common.BaseActivity;
 import com.huawei.arengine.demos.common.DisplayRotationManager;
 import com.huawei.arengine.demos.common.LogUtil;
 import com.huawei.arengine.demos.common.PermissionManager;
@@ -35,10 +35,6 @@ import com.huawei.hiar.ARConfigBase;
 import com.huawei.hiar.AREnginesApk;
 import com.huawei.hiar.ARSession;
 import com.huawei.hiar.exceptions.ARCameraNotAvailableException;
-import com.huawei.hiar.exceptions.ARUnSupportedConfigurationException;
-import com.huawei.hiar.exceptions.ARUnavailableClientSdkTooOldException;
-import com.huawei.hiar.exceptions.ARUnavailableServiceApkTooOldException;
-import com.huawei.hiar.exceptions.ARUnavailableServiceNotInstalledException;
 
 /**
  * The sample code demonstrates the capability of HUAWEI AR Engine to identify
@@ -48,7 +44,7 @@ import com.huawei.hiar.exceptions.ARUnavailableServiceNotInstalledException;
  * @author HW
  * @since 2020-04-01
  */
-public class BodyActivity extends Activity {
+public class BodyActivity extends BaseActivity {
     private static final String TAG = BodyActivity.class.getSimpleName();
 
     private ARSession mArSession;
@@ -63,8 +59,6 @@ public class BodyActivity extends Activity {
      * Used for the display of recognition data.
      */
     private TextView mTextView;
-
-    private String message = null;
 
     private boolean isRemindInstall = false;
 
@@ -102,14 +96,14 @@ public class BodyActivity extends Activity {
         if (!PermissionManager.hasPermission(this)) {
             this.finish();
         }
-        message = null;
+        errorMessage = null;
         if (mArSession == null) {
             try {
                 if (!arEngineAbilityCheck()) {
                     finish();
                     return;
                 }
-                mArSession = new ARSession(this);
+                mArSession = new ARSession(this.getApplicationContext());
                 ARBodyTrackingConfig config = new ARBodyTrackingConfig(mArSession);
                 config.setEnableItem(ARConfigBase.ENABLE_DEPTH | ARConfigBase.ENABLE_MASK);
                 mArSession.configure(config);
@@ -117,8 +111,8 @@ public class BodyActivity extends Activity {
             } catch (Exception capturedException) {
                 setMessageWhenError(capturedException);
             }
-            if (message != null) {
-                Toast.makeText(this, message, Toast.LENGTH_LONG).show();
+            if (errorMessage != null) {
+                Toast.makeText(this, errorMessage, Toast.LENGTH_LONG).show();
                 LogUtil.error(TAG, "Creating session");
                 if (mArSession != null) {
                     mArSession.stop();
@@ -142,7 +136,7 @@ public class BodyActivity extends Activity {
      * Check whether HUAWEI AR Engine server (com.huawei.arengine.service) is installed on the current device.
      * If not, redirect the user to HUAWEI AppGallery for installation.
      *
-     * @return true:AR Engine ready
+     * @return true:AR Engine ready.
      */
     private boolean arEngineAbilityCheck() {
         boolean isInstallArEngineApk = AREnginesApk.isAREngineApkReady(this);
@@ -156,20 +150,6 @@ public class BodyActivity extends Activity {
             isRemindInstall = true;
         }
         return AREnginesApk.isAREngineApkReady(this);
-    }
-
-    private void setMessageWhenError(Exception catchException) {
-        if (catchException instanceof ARUnavailableServiceNotInstalledException) {
-            startActivity(new Intent(this, com.huawei.arengine.demos.common.ConnectAppMarketActivity.class));
-        } else if (catchException instanceof ARUnavailableServiceApkTooOldException) {
-            message = "Please update HuaweiARService.apk";
-        } else if (catchException instanceof ARUnavailableClientSdkTooOldException) {
-            message = "Please update this app";
-        } else if (catchException instanceof ARUnSupportedConfigurationException) {
-            message = "The configuration is not supported by the device!";
-        } else {
-            message = "exception throw";
-        }
     }
 
     @Override

@@ -64,7 +64,7 @@ public class ImageShaderUtil {
     /**
      * Code of the image vertex shader.
      */
-    public static final String LP_VERTEX =
+    private static final String LP_VERTEX =
         "uniform vec4 inColor;" + LS
             + "attribute vec4 inPosition;" + LS
             + "uniform float inPointSize;" + LS
@@ -79,7 +79,7 @@ public class ImageShaderUtil {
     /**
      * Code of the image fragment shader.
      */
-    public static final String LP_FRAGMENT =
+    private static final String LP_FRAGMENT =
         "precision mediump float;" + LS
             + "varying vec4 varColor;" + LS
             + "void main() {" + LS

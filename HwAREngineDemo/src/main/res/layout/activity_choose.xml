@@ -139,6 +139,20 @@
                 android:onClick="onClick"
                 android:text="Cloud3DObject"
                 android:textColor="@color/white" />
+
+            <Button
+                    android:id="@+id/btn_cloud_2DImage"
+                    android:layout_width="match_parent"
+                    android:layout_height="40dp"
+                    android:layout_marginLeft="20dp"
+                    android:layout_marginRight="20dp"
+                    android:layout_marginBottom="20dp"
+                    android:textAllCaps="false"
+                    android:background="@drawable/selector_reset"
+                    android:gravity="center"
+                    android:onClick="onClick"
+                    android:text="Cloud2DImage"
+                    android:textColor="@color/white" />
         </LinearLayout>
     </ScrollView>
 </RelativeLayout>

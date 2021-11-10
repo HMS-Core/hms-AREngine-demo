@@ -144,7 +144,8 @@ public class SceneMeshDisplay implements SceneMeshComponenDisplay {
         GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, mVerticeVBO);
         if (mVerticeVBOSize < mPointsNum * BYTES_PER_POINT) {
             while (mVerticeVBOSize < mPointsNum * BYTES_PER_POINT) {
-                mVerticeVBOSize *= 2; // If the VBO is not large enough in size, double it.
+                // If the VBO is not large enough in size, double it.
+                mVerticeVBOSize *= 2;
             }
             GLES20.glBufferData(GLES20.GL_ARRAY_BUFFER, mVerticeVBOSize, null, GLES20.GL_DYNAMIC_DRAW);
         }
@@ -161,7 +162,8 @@ public class SceneMeshDisplay implements SceneMeshComponenDisplay {
         GLES20.glBindBuffer(GLES20.GL_ELEMENT_ARRAY_BUFFER, mTriangleVBO);
         if (mTriangleVBOSize < mTrianglesNum * BYTES_PER_POINT) {
             while (mTriangleVBOSize < mTrianglesNum * BYTES_PER_POINT) {
-                mTriangleVBOSize *= 2; // If the triangle VBO is not large enough in size, double it.
+                // If the triangle VBO is not large enough in size, double it.
+                mTriangleVBOSize *= 2;
             }
             GLES20.glBufferData(GLES20.GL_ELEMENT_ARRAY_BUFFER, mTriangleVBOSize, null, GLES20.GL_DYNAMIC_DRAW);
         }
@@ -193,7 +195,9 @@ public class SceneMeshDisplay implements SceneMeshComponenDisplay {
             BYTES_PER_POINT, 0);
         GLES20.glUniform4f(mColorUniform, 1.0f, 0.0f, 0.0f, 1.0f);
         GLES20.glUniformMatrix4fv(mModelViewProjectionUniform, 1, false, mModelViewProjection, 0);
-        GLES20.glUniform1f(mPointSizeUniform, 5.0f); // Set the point size to 5.
+
+        // Set the point size to 5.
+        GLES20.glUniform1f(mPointSizeUniform, 5.0f);
         GLES20.glDrawArrays(GLES20.GL_POINTS, 0, mPointsNum);
         GLES20.glDisableVertexAttribArray(mColorUniform);
         GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, 0);

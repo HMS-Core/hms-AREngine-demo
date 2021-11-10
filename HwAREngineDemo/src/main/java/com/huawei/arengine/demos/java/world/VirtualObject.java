@@ -58,14 +58,14 @@ public class VirtualObject {
         init();
     }
 
-    @Override
-    protected void finalize() throws Throwable {
-        // If the anchor object is destroyed, call the detach() method to instruct
-        // the AR Engine to stop tracking the anchor.
+    /**
+     * If the anchor object is destroyed, call the detach() method to instruct the AR Engine to stop tracking the
+     * anchor.
+     */
+    public void detachAnchor() {
         if (mArAnchor != null) {
             mArAnchor.detach();
         }
-        super.finalize();
     }
 
     private void init() {

@@ -15,32 +15,24 @@
  */
 package com.huawei.arengine.demos.face
 
-
-import android.app.Activity
 import android.opengl.GLSurfaceView
 import android.os.Bundle
 import android.view.View
 import android.view.WindowManager
 import android.widget.Toast
-import com.huawei.arengine.demos.R
+
 import com.huawei.arengine.demos.common.LogUtil
 import com.huawei.arengine.demos.common.controller.DisplayRotationController
 import com.huawei.arengine.demos.common.service.PermissionManageService
 import com.huawei.arengine.demos.common.util.isAvailableArEngine
-import com.huawei.arengine.demos.common.util.startActivityByType
-import com.huawei.arengine.demos.common.view.ConnectAppMarketActivity
+import com.huawei.arengine.demos.common.view.BaseActivity
+import com.huawei.arengine.demos.databinding.FaceActivityMainBinding
 import com.huawei.arengine.demos.face.controller.CameraController
 import com.huawei.arengine.demos.face.controller.FaceRenderController
-import com.huawei.arengine.demos.face.service.FaceGeometryService
 import com.huawei.hiar.ARConfigBase
 import com.huawei.hiar.ARFaceTrackingConfig
 import com.huawei.hiar.ARSession
 import com.huawei.hiar.exceptions.ARCameraNotAvailableException
-import com.huawei.hiar.exceptions.ARUnSupportedConfigurationException
-import com.huawei.hiar.exceptions.ARUnavailableClientSdkTooOldException
-import com.huawei.hiar.exceptions.ARUnavailableServiceApkTooOldException
-import com.huawei.hiar.exceptions.ARUnavailableServiceNotInstalledException
-import kotlinx.android.synthetic.main.face_activity_main.faceSurfaceView
 
 /**
  * This demo shows the capabilities of HUAWEI AR Engine to recognize faces, including facial
@@ -51,7 +43,7 @@ import kotlinx.android.synthetic.main.face_activity_main.faceSurfaceView
  * @author HW
  * @since 2020-10-10
  */
-class FaceActivity : Activity() {
+class FaceActivity : BaseActivity() {
     companion object {
         private const val TAG = "FaceActivity"
     }
@@ -70,15 +62,18 @@ class FaceActivity : Activity() {
         FaceRenderController(this, displayRotationController, isOpenCameraOutside)
     }
 
+    private lateinit var faceActivityBinding: FaceActivityMainBinding
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.face_activity_main)
+        faceActivityBinding = FaceActivityMainBinding.inflate(layoutInflater)
+        setContentView(faceActivityBinding.root)
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         initUi()
     }
 
     private fun initUi() {
-        faceSurfaceView.run {
+        faceActivityBinding.faceSurfaceView.run {
             preserveEGLContextOnPause = true
             setEGLContextClientVersion(2)
             setEGLConfigChooser(8, 8, 8, 8, 16, 0)
@@ -93,17 +88,17 @@ class FaceActivity : Activity() {
         if (!PermissionManageService.hasPermission()) {
             finish()
         }
+        errorMessage = null
         arSession?.let {
             resumeView()
             return
         }
-        var message: String? = null
         try {
             if (!isAvailableArEngine(this)) {
                 finish()
                 return
             }
-            arSession = ARSession(this)
+            arSession = ARSession(this.applicationContext)
             arConfig = ARFaceTrackingConfig(arSession).apply {
                 powerMode = ARConfigBase.PowerMode.POWER_SAVING
                 if (isOpenCameraOutside) {
@@ -115,18 +110,10 @@ class FaceActivity : Activity() {
                 cameraController.arSession = it
                 cameraController.arConfig = arConfig
             }
-        } catch (e: ARUnavailableServiceNotInstalledException) {
-            startActivityByType<ConnectAppMarketActivity>()
-        } catch (e: ARUnavailableServiceApkTooOldException) {
-            message = "Please update AREngineServer.apk"
-        } catch (e: ARUnavailableClientSdkTooOldException) {
-            message = "Please update this app"
-        } catch (e: ARUnSupportedConfigurationException) {
-            message = "The configuration is not supported by the device!"
-        } catch (e: Exception) {
-            message = "exception throw"
+        } catch (capturedException: Exception) {
+            setMessageWhenError(capturedException)
         }
-        message?.let {
+        errorMessage?.let {
             Toast.makeText(this, it, Toast.LENGTH_LONG).show()
             stopArSession()
             return
@@ -143,7 +130,7 @@ class FaceActivity : Activity() {
                 faceRenderController.mTextureId = textureId
             }
         }
-        faceSurfaceView.onResume()
+        faceActivityBinding.faceSurfaceView.onResume()
     }
 
     private fun isSuccessResumeSession(): Boolean {
@@ -176,7 +163,7 @@ class FaceActivity : Activity() {
         }
         displayRotationController.unregisterDisplayListener()
         arSession?.pause()
-        faceSurfaceView.onPause()
+        faceActivityBinding.faceSurfaceView.onPause()
         LogUtil.info(TAG, "onPause end.")
     }
 

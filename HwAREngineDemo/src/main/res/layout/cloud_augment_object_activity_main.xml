@@ -27,7 +27,16 @@
         android:background="@drawable/label_border"
         android:text="Object"
         android:visibility="gone"
+        android:rotation="180"
         android:textColor="#fafad2"
         tools:layout_editor_absoluteX="315dp"
         tools:layout_editor_absoluteY="4dp" />
+
+    <TextView
+        android:id="@+id/change_mode_id"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_marginEnd="0dp"
+        android:text="change mode ID" />
 </RelativeLayout>

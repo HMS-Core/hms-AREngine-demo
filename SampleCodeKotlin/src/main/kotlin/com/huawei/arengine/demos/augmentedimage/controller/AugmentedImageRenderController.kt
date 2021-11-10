@@ -28,11 +28,13 @@ import com.huawei.arengine.demos.augmentedimage.service.ImageKeyLineService
 import com.huawei.arengine.demos.augmentedimage.service.ImageKeyPointService
 import com.huawei.arengine.demos.augmentedimage.service.ImageLabelService
 import com.huawei.arengine.demos.augmentedimage.util.Constants
+import com.huawei.arengine.demos.common.LogUtil
 import com.huawei.arengine.demos.common.LogUtil.debug
 import com.huawei.arengine.demos.common.LogUtil.info
 import com.huawei.arengine.demos.common.controller.DisplayRotationController
 import com.huawei.arengine.demos.common.service.BackgroundTextureService
 import com.huawei.hiar.*
+import com.huawei.hiar.exceptions.ARSessionPausedException
 import java.util.*
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
@@ -102,7 +104,13 @@ class AugmentedImageRenderController(private val mActivity: Activity,
             }
         }
         mSession!!.setCameraTextureName(backgroundDisplay.externalTextureId)
-        val arFrame = mSession!!.update()
+        val arFrame: ARFrame;
+        try {
+            arFrame = mSession!!.update()
+        } catch (exception: ARSessionPausedException) {
+            LogUtil.error(TAG, "Invoke session.resume before invoking Session.update.");
+            return;
+        }
         val arCamera = arFrame.camera
         backgroundDisplay.renderBackgroundTexture(arFrame)
 

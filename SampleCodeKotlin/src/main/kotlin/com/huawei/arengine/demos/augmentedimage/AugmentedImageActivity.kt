@@ -19,8 +19,6 @@
 
 package com.huawei.arengine.demos.augmentedimage
 
-import android.app.Activity
-import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.opengl.GLSurfaceView
@@ -28,22 +26,22 @@ import android.os.Bundle
 import android.view.View
 import android.view.WindowManager
 import android.widget.Toast
-import com.huawei.arengine.demos.R
+
 import com.huawei.arengine.demos.augmentedimage.controller.AugmentedImageRenderController
 import com.huawei.arengine.demos.common.LogUtil
 import com.huawei.arengine.demos.common.controller.DisplayRotationController
 import com.huawei.arengine.demos.common.service.PermissionManageService
 import com.huawei.arengine.demos.common.util.isAvailableArEngine
-import com.huawei.arengine.demos.common.view.ConnectAppMarketActivity
-import com.huawei.hiar.*
+import com.huawei.arengine.demos.common.view.BaseActivity
+import com.huawei.arengine.demos.databinding.AugmentImageActivityMainBinding
+import com.huawei.hiar.ARAugmentedImageDatabase
+import com.huawei.hiar.ARConfigBase
+import com.huawei.hiar.ARImageTrackingConfig
+import com.huawei.hiar.ARSession
 import com.huawei.hiar.exceptions.ARCameraNotAvailableException
-import com.huawei.hiar.exceptions.ARUnSupportedConfigurationException
-import com.huawei.hiar.exceptions.ARUnavailableClientSdkTooOldException
-import com.huawei.hiar.exceptions.ARUnavailableServiceApkTooOldException
-import com.huawei.hiar.exceptions.ARUnavailableServiceNotInstalledException
+
 import java.io.IOException
-import kotlinx.android.synthetic.main.augment_image_activity_main.ImageSurfaceview
-import java.util.*
+import java.util.Optional
 
 /**
  * This code demonstrates the image augmentation capability of AR Engine, including obtaining the center
@@ -53,7 +51,7 @@ import java.util.*
  * @author HW
  * @since 2021-03-29
  */
-class AugmentedImageActivity : Activity() {
+class AugmentedImageActivity : BaseActivity() {
     companion object {
         private const val TAG = "AugmentedImageActivity"
 
@@ -68,15 +66,18 @@ class AugmentedImageActivity : Activity() {
         AugmentedImageRenderController(this, displayRotationController)
     }
 
+    private lateinit var augmentImageBinding: AugmentImageActivityMainBinding
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-        setContentView(R.layout.augment_image_activity_main)
+        augmentImageBinding = AugmentImageActivityMainBinding.inflate(layoutInflater)
+        setContentView(augmentImageBinding.root)
         initUi()
     }
 
     private fun initUi() {
-        ImageSurfaceview.run {
+        augmentImageBinding.ImageSurfaceview.run {
             preserveEGLContextOnPause = true
             setEGLContextClientVersion(OPENGLES_VERSION)
             // Configure the EGL, including the bit and depth of the color buffer.
@@ -92,20 +93,20 @@ class AugmentedImageActivity : Activity() {
         if (!PermissionManageService.hasPermission()) {
             finish()
         }
+        errorMessage = null
         mArSession?.let {
             resumeView()
             return
         }
-        var errorMessage: String? = null
         try {
             if (!isAvailableArEngine(this)) {
                 finish()
                 return
             }
-            mArSession = ARSession(this)
+            mArSession = ARSession(this.applicationContext)
             ARImageTrackingConfig(mArSession).apply {
                 focusMode = ARConfigBase.FocusMode.AUTO_FOCUS
-                if(!setupInitAugmentedImageDatabase(this)) {
+                if (!setupInitAugmentedImageDatabase(this)) {
                     LogUtil.error(TAG, "Could not setup augmented image database")
                 }
             }.also {
@@ -115,16 +116,8 @@ class AugmentedImageActivity : Activity() {
                 setImageTrackOnly(true)
                 setArSession(mArSession)
             }
-        } catch (capturedException: ARUnavailableServiceNotInstalledException) {
-            startActivity(Intent(this, ConnectAppMarketActivity::class.java))
-        } catch (capturedException: ARUnavailableServiceApkTooOldException) {
-            errorMessage = "Please update HuaweiARService.apk"
-        } catch (capturedException: ARUnavailableClientSdkTooOldException) {
-            errorMessage = "Please update this app"
-        } catch (capturedException: ARUnSupportedConfigurationException) {
-            errorMessage = "The configuration is not supported by the device!"
         } catch (capturedException: Exception) {
-            errorMessage = "unknown exception throws!"
+            setMessageWhenError(capturedException)
         }
         errorMessage?.let {
             Toast.makeText(this, it, Toast.LENGTH_LONG).show()
@@ -137,7 +130,7 @@ class AugmentedImageActivity : Activity() {
     private fun resumeView() {
         if (!isSuccessResumeSession()) return
         displayRotationController.registerDisplayListener()
-        ImageSurfaceview.onResume()
+        augmentImageBinding.ImageSurfaceview.onResume()
     }
 
     private fun isSuccessResumeSession(): Boolean {
@@ -189,7 +182,7 @@ class AugmentedImageActivity : Activity() {
         LogUtil.debug(TAG, "onPause start.")
         super.onPause()
         displayRotationController.unregisterDisplayListener()
-        ImageSurfaceview.onPause()
+        augmentImageBinding.ImageSurfaceview.onPause()
         mArSession?.pause()
         LogUtil.debug(TAG, "onPause end.")
     }

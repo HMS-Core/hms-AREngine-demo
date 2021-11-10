@@ -33,6 +33,7 @@ import com.huawei.hiar.ARFace
 import com.huawei.hiar.ARFrame
 import com.huawei.hiar.ARSession
 import com.huawei.hiar.ARTrackable.TrackingState
+import com.huawei.hiar.exceptions.ARSessionPausedException
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
 
@@ -101,7 +102,9 @@ class FaceRenderController(private val activity: Activity,
             backgroundTextureService.renderBackgroundTexture(frame)
             renderFace(frame)
         } catch (exception: SampleAppException) {
-            LogUtil.error(TAG, "Exception on the ArDemoRuntimeException!")
+            LogUtil.error(TAG, "Exception on the SampleAppException!");
+        } catch (exception: ARSessionPausedException) {
+            LogUtil.error(TAG, "Invoke session.resume before invoking Session.update.");
         }
     }
 
@@ -115,11 +118,11 @@ class FaceRenderController(private val activity: Activity,
         faces.forEach { face ->
             if (face.trackingState == TrackingState.TRACKING) {
                 camera?.let { faceGeometryService.renderFace(it, face) }
-                StringBuilder().let {
-                    updateScreenText(it, face, fps)
-                    faceTextService.drawText(it)
-                }
             }
+        }
+        StringBuilder().let {
+            updateScreenText(it, faces, fps)
+            faceTextService.drawText(it)
         }
     }
 

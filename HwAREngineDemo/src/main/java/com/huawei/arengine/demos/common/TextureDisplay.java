@@ -1,5 +1,5 @@
 /**
- * Copyright 2020. Huawei Technologies Co., Ltd. All rights reserved.
+ * Copyright 2021. Huawei Technologies Co., Ltd. All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -239,7 +239,7 @@ public class TextureDisplay {
 
     private static int loadShader(int shaderType, String source) {
         int shader = GLES20.glCreateShader(shaderType);
-        if (0 != shader) {
+        if (shader != 0) {
             GLES20.glShaderSource(shader, source);
             GLES20.glCompileShader(shader);
             int[] compiled = new int[1];
@@ -254,7 +254,7 @@ public class TextureDisplay {
         return shader;
     }
 
-    private static void glError(Object index) {
+    private static void glError(String index) {
         Log.e(TAG, "glError: " + index);
     }
 

@@ -31,6 +31,7 @@ import com.huawei.hiar.ARCamera;
 import com.huawei.hiar.ARFrame;
 import com.huawei.hiar.ARSession;
 import com.huawei.hiar.ARTrackable;
+import com.huawei.hiar.exceptions.ARSessionPausedException;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -135,9 +136,14 @@ public class AugmentedImageRenderManager implements GLSurfaceView.Renderer {
         if (mDisplayRotationManager.getDeviceRotation()) {
             mDisplayRotationManager.updateArSessionDisplayGeometry(mSession);
         }
-
         mSession.setCameraTextureName(backgroundDisplay.getExternalTextureId());
-        ARFrame arFrame = mSession.update();
+        ARFrame arFrame;
+        try {
+            arFrame = mSession.update();
+        } catch (ARSessionPausedException e) {
+            LogUtil.error(TAG, "Invoke session.resume before invoking Session.update.");
+            return;
+        }
         ARCamera arCamera = arFrame.getCamera();
         backgroundDisplay.onDrawFrame(arFrame);
 

@@ -16,7 +16,6 @@
 
 package com.huawei.arengine.demos.java.scenemesh;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
@@ -27,6 +26,7 @@ import android.view.WindowManager;
 import android.widget.Toast;
 
 import com.huawei.arengine.demos.R;
+import com.huawei.arengine.demos.common.BaseActivity;
 import com.huawei.arengine.demos.common.DisplayRotationManager;
 import com.huawei.arengine.demos.common.LogUtil;
 import com.huawei.arengine.demos.common.PermissionManager;
@@ -37,9 +37,6 @@ import com.huawei.hiar.ARSession;
 import com.huawei.hiar.ARWorldTrackingConfig;
 import com.huawei.hiar.exceptions.ARCameraNotAvailableException;
 import com.huawei.hiar.exceptions.ARUnSupportedConfigurationException;
-import com.huawei.hiar.exceptions.ARUnavailableClientSdkTooOldException;
-import com.huawei.hiar.exceptions.ARUnavailableServiceApkTooOldException;
-import com.huawei.hiar.exceptions.ARUnavailableServiceNotInstalledException;
 
 import java.util.concurrent.ArrayBlockingQueue;
 
@@ -49,7 +46,7 @@ import java.util.concurrent.ArrayBlockingQueue;
  * @author HW
  * @since 2021-01-25
  */
-public class SceneMeshActivity extends Activity {
+public class SceneMeshActivity extends BaseActivity {
     private static final String TAG = SceneMeshActivity.class.getSimpleName();
 
     private static final int CONFIG_CHOOSER_RED_SIZE = 8;
@@ -81,8 +78,6 @@ public class SceneMeshActivity extends Activity {
     private GestureDetector mGestureDetector;
 
     private boolean isRemindInstall = false;
-
-    private String errorMessage = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -152,7 +147,7 @@ public class SceneMeshActivity extends Activity {
                 return;
             }
             try {
-                mArSession = new ARSession(this);
+                mArSession = new ARSession(this.getApplicationContext());
                 ARConfigBase config = new ARWorldTrackingConfig(mArSession);
                 config.setFocusMode(ARConfigBase.FocusMode.AUTO_FOCUS);
                 config.setEnableItem(ARConfigBase.ENABLE_MESH | ARConfigBase.ENABLE_DEPTH);
@@ -182,25 +177,6 @@ public class SceneMeshActivity extends Activity {
         }
         mSurfaceView.onResume();
         mDisplayRotationManager.registerDisplayListener();
-    }
-
-    /**
-     * Input the captured exception items and output the corresponding exception information.
-     *
-     * @param catchException Captured exception.
-     */
-    private void setMessageWhenError(Exception catchException) {
-        if (catchException instanceof ARUnavailableServiceNotInstalledException) {
-            startActivity(new Intent(this, com.huawei.arengine.demos.common.ConnectAppMarketActivity.class));
-        } else if (catchException instanceof ARUnavailableServiceApkTooOldException) {
-            errorMessage = "Please update HuaweiARService.apk";
-        } else if (catchException instanceof ARUnavailableClientSdkTooOldException) {
-            errorMessage = "Please update this app";
-        } else if (catchException instanceof ARUnSupportedConfigurationException) {
-            errorMessage = "The configuration is not supported by the device!";
-        } else {
-            errorMessage = "unknown exception throws!";
-        }
     }
 
     /**

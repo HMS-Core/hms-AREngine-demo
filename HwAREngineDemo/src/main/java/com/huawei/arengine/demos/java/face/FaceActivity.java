@@ -16,7 +16,6 @@
 
 package com.huawei.arengine.demos.java.face;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.graphics.SurfaceTexture;
 import android.opengl.GLES20;
@@ -30,6 +29,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.huawei.arengine.demos.R;
+import com.huawei.arengine.demos.common.BaseActivity;
 import com.huawei.arengine.demos.common.DisplayRotationManager;
 import com.huawei.arengine.demos.common.LogUtil;
 import com.huawei.arengine.demos.common.PermissionManager;
@@ -39,10 +39,6 @@ import com.huawei.hiar.AREnginesApk;
 import com.huawei.hiar.ARFaceTrackingConfig;
 import com.huawei.hiar.ARSession;
 import com.huawei.hiar.exceptions.ARCameraNotAvailableException;
-import com.huawei.hiar.exceptions.ARUnSupportedConfigurationException;
-import com.huawei.hiar.exceptions.ARUnavailableClientSdkTooOldException;
-import com.huawei.hiar.exceptions.ARUnavailableServiceApkTooOldException;
-import com.huawei.hiar.exceptions.ARUnavailableServiceNotInstalledException;
 
 import java.util.List;
 
@@ -55,7 +51,7 @@ import java.util.List;
  * @author HW
  * @since 2020-03-18
  */
-public class FaceActivity extends Activity {
+public class FaceActivity extends BaseActivity {
     private static final String TAG = FaceActivity.class.getSimpleName();
 
     private ARSession mArSession;
@@ -81,8 +77,6 @@ public class FaceActivity extends Activity {
     private ARConfigBase mArConfig;
 
     private TextView mTextView;
-
-    private String message = null;
 
     private boolean isRemindInstall = false;
 
@@ -126,16 +120,16 @@ public class FaceActivity extends Activity {
             this.finish();
         }
         mDisplayRotationManager.registerDisplayListener();
-        message = null;
+        errorMessage = null;
         if (mArSession == null) {
             try {
                 if (!arEngineAbilityCheck()) {
                     finish();
                     return;
                 }
-                mArSession = new ARSession(this);
+                mArSession = new ARSession(this.getApplicationContext());
                 mArConfig = new ARFaceTrackingConfig(mArSession);
-
+                mArConfig.setLightingMode(ARConfigBase.LIGHT_MODE_ENVIRONMENT_LIGHTING);
                 mArConfig.setPowerMode(ARConfigBase.PowerMode.POWER_SAVING);
 
                 if (isOpenCameraOutside) {
@@ -145,7 +139,13 @@ public class FaceActivity extends Activity {
             } catch (Exception capturedException) {
                 setMessageWhenError(capturedException);
             }
-            if (message != null) {
+
+            if (mArConfig.getLightingMode() != ARConfigBase.LIGHT_MODE_ENVIRONMENT_LIGHTING) {
+                String toastMsg = "Please update HUAWEI AR Engine app in the AppGallery.";
+                Toast.makeText(this, toastMsg, Toast.LENGTH_LONG).show();
+            }
+
+            if (errorMessage != null) {
                 stopArSession();
                 return;
             }
@@ -160,6 +160,7 @@ public class FaceActivity extends Activity {
         mDisplayRotationManager.registerDisplayListener();
         setCamera();
         mFaceRenderManager.setArSession(mArSession);
+        mFaceRenderManager.setArConfigBase(mArConfig);
         mFaceRenderManager.setOpenCameraOutsideFlag(isOpenCameraOutside);
         mFaceRenderManager.setTextureId(textureId);
         glSurfaceView.onResume();
@@ -169,7 +170,7 @@ public class FaceActivity extends Activity {
      * Check whether HUAWEI AR Engine server (com.huawei.arengine.service) is installed on the current device.
      * If not, redirect the user to HUAWEI AppGallery for installation.
      *
-     * @return true:AR Engine ready
+     * @return true:AR Engine ready.
      */
     private boolean arEngineAbilityCheck() {
         boolean isInstallArEngineApk = AREnginesApk.isAREngineApkReady(this);
@@ -185,23 +186,9 @@ public class FaceActivity extends Activity {
         return AREnginesApk.isAREngineApkReady(this);
     }
 
-    private void setMessageWhenError(Exception catchException) {
-        if (catchException instanceof ARUnavailableServiceNotInstalledException) {
-            startActivity(new Intent(this, com.huawei.arengine.demos.common.ConnectAppMarketActivity.class));
-        } else if (catchException instanceof ARUnavailableServiceApkTooOldException) {
-            message = "Please update HuaweiARService.apk";
-        } else if (catchException instanceof ARUnavailableClientSdkTooOldException) {
-            message = "Please update this app";
-        } else if (catchException instanceof ARUnSupportedConfigurationException) {
-            message = "The configuration is not supported by the device!";
-        } else {
-            message = "exception throw";
-        }
-    }
-
     private void stopArSession() {
         LogUtil.info(TAG, "Stop session start.");
-        Toast.makeText(this, message, Toast.LENGTH_LONG).show();
+        Toast.makeText(this, errorMessage, Toast.LENGTH_LONG).show();
         if (mArSession != null) {
             mArSession.stop();
             mArSession = null;

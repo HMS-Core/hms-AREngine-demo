@@ -29,12 +29,15 @@ import com.huawei.arengine.demos.common.LogUtil;
 import com.huawei.arengine.demos.common.TextDisplay;
 import com.huawei.arengine.demos.common.TextureDisplay;
 import com.huawei.hiar.ARCamera;
+import com.huawei.hiar.ARConfigBase;
 import com.huawei.hiar.ARFace;
 import com.huawei.hiar.ARFrame;
+import com.huawei.hiar.ARLightEstimate;
 import com.huawei.hiar.ARPose;
 import com.huawei.hiar.ARSession;
 import com.huawei.hiar.ARTrackable.TrackingState;
 
+import java.util.Arrays;
 import java.util.Collection;
 
 import javax.microedition.khronos.egl.EGLConfig;
@@ -56,6 +59,8 @@ public class FaceRenderManager implements GLSurfaceView.Renderer {
     private long lastInterval;
 
     private ARSession mArSession;
+
+    private ARConfigBase mArConfigBase;
 
     private float fps;
 
@@ -104,6 +109,19 @@ public class FaceRenderManager implements GLSurfaceView.Renderer {
             return;
         }
         mArSession = arSession;
+    }
+
+    /**
+     * Set ARConfigBase to obtain the configuration mode.
+     *
+     * @param arConfig ARConfigBase。
+     */
+    public void setArConfigBase(ARConfigBase arConfig) {
+        if (arConfig == null) {
+            LogUtil.error(TAG, "setArFaceTrackingConfig error, arConfig is null.");
+            return;
+        }
+        mArConfigBase = arConfig;
     }
 
     /**
@@ -233,11 +251,11 @@ public class FaceRenderManager implements GLSurfaceView.Renderer {
             for (ARFace face : faces) {
                 if (face.getTrackingState() == TrackingState.TRACKING) {
                     mFaceGeometryDisplay.onDrawFrame(camera, face);
-                    StringBuilder sb = new StringBuilder();
-                    updateMessageData(sb, fpsResult, face);
-                    mTextDisplay.onDrawFrame(sb);
                 }
             }
+            StringBuilder sb = new StringBuilder();
+            updateMessageData(sb, fpsResult, faces, frame);
+            mTextDisplay.onDrawFrame(sb);
         } catch (ArDemoRuntimeException e) {
             LogUtil.error(TAG, "Exception on the ArDemoRuntimeException!");
         } catch (Throwable t) {
@@ -246,23 +264,46 @@ public class FaceRenderManager implements GLSurfaceView.Renderer {
         }
     }
 
-    private void updateMessageData(StringBuilder sb, float fpsResult, ARFace face) {
+    private void updateMessageData(StringBuilder sb, float fpsResult, Collection<ARFace> faces, ARFrame frame) {
         sb.append("FPS= ").append(fpsResult).append(System.lineSeparator());
-        ARPose pose = face.getPose();
-        if (pose != null) {
-            sb.append("face pose information:");
+        int index = 1;
+        for (ARFace face : faces) {
+            if (face.getTrackingState() != TrackingState.TRACKING) {
+                continue;
+            }
+            ARPose pose = face.getPose();
+            if (pose == null) {
+                continue;
+            }
+            sb.append("face " + index + " pose information:");
             sb.append("face pose tx:[").append(pose.tx()).append("]").append(System.lineSeparator());
             sb.append("face pose ty:[").append(pose.ty()).append("]").append(System.lineSeparator());
             sb.append("face pose tz:[").append(pose.tz()).append("]").append(System.lineSeparator());
-            sb.append("face pose qx:[").append(pose.qx()).append("]").append(System.lineSeparator());
-            sb.append("face pose qy:[").append(pose.qy()).append("]").append(System.lineSeparator());
-            sb.append("face pose qz:[").append(pose.qz()).append("]").append(System.lineSeparator());
-            sb.append("face pose qw:[").append(pose.qw()).append("]").append(System.lineSeparator());
-        }
-        sb.append(System.lineSeparator());
+            sb.append(System.lineSeparator());
 
-        float[] textureCoordinates = face.getFaceGeometry().getTextureCoordinates().array();
-        sb.append("textureCoordinates length:[ ").append(textureCoordinates.length).append(" ]");
+            float[] textureCoordinates = face.getFaceGeometry().getTextureCoordinates().array();
+            sb.append("textureCoordinates length:[ ").append(textureCoordinates.length).append(" ]");
+            sb.append(System.lineSeparator()).append(System.lineSeparator());
+            index++;
+
+            ARLightEstimate lightEstimate = frame.getLightEstimate();
+            if (lightEstimate == null) {
+                LogUtil.warn(TAG, "lightEstimate is null.");
+                continue;
+            }
+
+            // Obtain the data of main light source and ambient light
+            // when the ambient lighting estimation mode is enabled.
+            if ((mArConfigBase.getLightingMode() & ARConfigBase.LIGHT_MODE_ENVIRONMENT_LIGHTING) != 0) {
+                sb.append("PrimaryLightIntensity=").append(lightEstimate.getPrimaryLightIntensity())
+                        .append(System.lineSeparator());
+                sb.append("PrimaryLightDirection=").append(Arrays.toString(lightEstimate.getPrimaryLightDirection()))
+                        .append(System.lineSeparator());
+                sb.append("LightSphericalHarmonicCoefficients=")
+                        .append(Arrays.toString(lightEstimate.getSphericalHarmonicCoefficients()))
+                        .append(System.lineSeparator());
+            }
+        }
     }
 
     private float doFpsCalculate() {

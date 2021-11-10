@@ -15,29 +15,23 @@
  */
 package com.huawei.arengine.demos.body3d
 
-import android.app.Activity
 import android.opengl.GLSurfaceView
 import android.os.Bundle
 import android.view.View
 import android.view.WindowManager
 import android.widget.Toast
-import com.huawei.arengine.demos.R
+
 import com.huawei.arengine.demos.body3d.controller.BodyRenderController
 import com.huawei.arengine.demos.common.LogUtil
 import com.huawei.arengine.demos.common.controller.DisplayRotationController
 import com.huawei.arengine.demos.common.service.PermissionManageService
 import com.huawei.arengine.demos.common.util.isAvailableArEngine
-import com.huawei.arengine.demos.common.util.startActivityByType
-import com.huawei.arengine.demos.common.view.ConnectAppMarketActivity
+import com.huawei.arengine.demos.common.view.BaseActivity
+import com.huawei.arengine.demos.databinding.Body3dActivityMainBinding
 import com.huawei.hiar.ARBodyTrackingConfig
 import com.huawei.hiar.ARConfigBase
 import com.huawei.hiar.ARSession
 import com.huawei.hiar.exceptions.ARCameraNotAvailableException
-import com.huawei.hiar.exceptions.ARUnSupportedConfigurationException
-import com.huawei.hiar.exceptions.ARUnavailableClientSdkTooOldException
-import com.huawei.hiar.exceptions.ARUnavailableServiceApkTooOldException
-import com.huawei.hiar.exceptions.ARUnavailableServiceNotInstalledException
-import kotlinx.android.synthetic.main.body3d_activity_main.bodySurfaceView
 
 /**
  * The sample code demonstrates the capability of HUAWEI AR Engine to identify
@@ -47,7 +41,7 @@ import kotlinx.android.synthetic.main.body3d_activity_main.bodySurfaceView
  * @author HW
  * @since 2020-10-10
  */
-class BodyActivity : Activity() {
+class BodyActivity : BaseActivity() {
     companion object {
         private const val TAG = "BodyActivity"
     }
@@ -60,15 +54,18 @@ class BodyActivity : Activity() {
         BodyRenderController(this, displayRotationController)
     }
 
+    private lateinit var bodyActivityBinding: Body3dActivityMainBinding
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.body3d_activity_main)
+        bodyActivityBinding = Body3dActivityMainBinding.inflate(layoutInflater)
+        setContentView(bodyActivityBinding.root)
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         initUi()
     }
 
     private fun initUi() {
-        bodySurfaceView.run {
+        bodyActivityBinding.bodySurfaceView.run {
             preserveEGLContextOnPause = true
             setEGLContextClientVersion(2)
             setEGLConfigChooser(8, 8, 8, 8, 16, 0)
@@ -83,33 +80,25 @@ class BodyActivity : Activity() {
         if (!PermissionManageService.hasPermission()) {
             finish()
         }
+        errorMessage = null
         arSession?.let {
             resumeView()
             return
         }
-        var message: String? = null
         try {
             if (!isAvailableArEngine(this)) {
                 finish()
                 return
             }
-            arSession = ARSession(this)
+            arSession = ARSession(this.applicationContext)
             ARBodyTrackingConfig(arSession).apply {
                 enableItem = (ARConfigBase.ENABLE_DEPTH or ARConfigBase.ENABLE_MASK).toLong()
             }.also { arSession?.configure(it) }
             bodyRenderController.setArSession(arSession)
-        } catch (e: ARUnavailableServiceNotInstalledException) {
-            startActivityByType<ConnectAppMarketActivity>()
-        } catch (e: ARUnavailableServiceApkTooOldException) {
-            message = "Please update HuaweiARService.apk"
-        } catch (e: ARUnavailableClientSdkTooOldException) {
-            message = "Please update this app"
-        } catch (e: ARUnSupportedConfigurationException) {
-            message = "The configuration is not supported by the device!"
-        } catch (e: Exception) {
-            message = "exception throw"
+        } catch (capturedException: Exception) {
+            setMessageWhenError(capturedException)
         }
-        message?.let {
+        errorMessage?.let {
             Toast.makeText(this, it, Toast.LENGTH_LONG).show()
             stopArSession()
             return
@@ -120,7 +109,7 @@ class BodyActivity : Activity() {
     private fun resumeView() {
         if (!isSuccessResumeSession()) return
         displayRotationController.registerDisplayListener()
-        bodySurfaceView.onResume()
+        bodyActivityBinding.bodySurfaceView.onResume()
     }
 
     private fun isSuccessResumeSession(): Boolean {
@@ -146,7 +135,7 @@ class BodyActivity : Activity() {
         LogUtil.info(TAG, "onPause start.")
         super.onPause()
         displayRotationController.unregisterDisplayListener()
-        bodySurfaceView.onPause()
+        bodyActivityBinding.bodySurfaceView.onPause()
         arSession?.pause()
         LogUtil.info(TAG, "onPause end.")
     }
