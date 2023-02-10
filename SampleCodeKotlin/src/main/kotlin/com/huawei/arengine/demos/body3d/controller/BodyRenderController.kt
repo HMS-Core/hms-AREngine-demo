@@ -1,18 +1,19 @@
-/**
- * Copyright 2021. Huawei Technologies Co., Ltd. All rights reserved.
+/*
+ * Copyright 2023. Huawei Technologies Co., Ltd. All rights reserved.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
  */
+
 package com.huawei.arengine.demos.body3d.controller
 
 import android.app.Activity
@@ -114,6 +115,9 @@ class BodyRenderController(private val mActivity: Activity,
             LogUtil.error(TAG, "Exception on the SampleAppException!");
         } catch (exception: ARSessionPausedException) {
             LogUtil.error(TAG, "Invoke session.resume before invoking Session.update.");
+        } catch (exception: Exception) {
+            // This prevents the app from crashing due to unhandled exceptions.
+            LogUtil.error(TAG, "Exception on the OpenGL thread, " + exception.javaClass)
         }
     }
 

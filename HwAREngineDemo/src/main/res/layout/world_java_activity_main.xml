@@ -194,37 +194,66 @@
         android:id="@+id/canceling_inspect"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="24dp"
-        android:layout_marginTop="24dp"
-        android:layout_gravity="center"
         android:layout_alignParentBottom="true"
-        android:layout_marginEnd="24dp"
+        android:layout_gravity="center"
         android:layout_marginStart="24dp"
+        android:layout_marginTop="24dp"
+        android:layout_marginEnd="24dp"
+        android:layout_marginBottom="24dp"
         android:orientation="vertical">
 
-        <ToggleButton
-            android:id="@+id/btn_env_light_mode"
-            android:layout_width="200dp"
-            android:layout_height="wrap_content"
-            android:textOn="CloseEnvLighting"
-            android:textOff="OpenEnvLighting"
-            android:checked="false"
-            android:layout_gravity="center"
-            android:textAllCaps="false"
-            android:textSize="15sp"
-            android:visibility="gone"/>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:orientation="horizontal">
 
-        <ToggleButton
-            android:id="@+id/btn_env_texture_mode"
-            android:layout_width="200dp"
-            android:layout_height="wrap_content"
-            android:textOff="OpenEnvTexture"
-            android:textOn="CloseEnvTexture"
-            android:checked="false"
-            android:layout_gravity="center"
-            android:textAllCaps="false"
-            android:textSize="15sp"
-            android:visibility="gone"/>
+            <ToggleButton
+                android:id="@+id/btn_env_light_mode"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:checked="false"
+                android:textAllCaps="false"
+                android:textOff="OpenEnvLighting"
+                android:textOn="CloseEnvLighting"
+                android:textSize="15sp" />
+
+            <ToggleButton
+                android:id="@+id/btn_env_texture_mode"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:checked="false"
+                android:textAllCaps="false"
+                android:textOff="OpenEnvTexture"
+                android:textOn="CloseEnvTexture"
+                android:textSize="15sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <EditText
+                android:id="@+id/text_max_size"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:hint="Max map size(MB)"
+                android:inputType="number"
+                android:textSize="15sp" />
+
+            <Button
+                android:id="@+id/btn_config_session"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="setMaxMapSize"
+                android:textAllCaps="false"
+                android:textSize="15sp" />
+        </LinearLayout>
     </LinearLayout>
 
 </RelativeLayout>

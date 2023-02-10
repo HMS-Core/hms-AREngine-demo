@@ -1,5 +1,5 @@
-/**
- * Copyright 2021. Huawei Technologies Co., Ltd. All rights reserved.
+/*
+ * Copyright 2023. Huawei Technologies Co., Ltd. All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -124,12 +124,30 @@ public class CameraHelper {
      *
      * @param width Device screen width, in pixels.
      * @param height Device screen height, in pixels.
+     * @param cameraFacing Camera facing, facing back is 1, facing front is 0.
      */
-    void setupCamera(int width, int height) {
+    void setupCamera(int width, int height, int cameraFacing) {
+        mPreviewSize = getOptimalSize(getPreviewSizeList(cameraFacing), width, height);
+        LogUtil.info(TAG,
+            "Preview width = " + mPreviewSize.getWidth() + ", height = " + mPreviewSize.getHeight() + ", cameraId = "
+                + mCameraId);
+    }
+
+    /**
+     * Obtain the preview size list.
+     *
+     * @param cameraFacing Camera facing, facing back is 1, facing front is 0.
+     * @return Preview size list.
+     */
+    public Size[] getPreviewSizeList(int cameraFacing) {
+        if (!(mActivity.getSystemService(Context.CAMERA_SERVICE) instanceof CameraManager)) {
+            LogUtil.error(TAG, "Set upCamera error. service invalid!");
+            return new Size[0];
+        }
         CameraManager cameraManager = (CameraManager) mActivity.getSystemService(Context.CAMERA_SERVICE);
         if (cameraManager == null) {
             LogUtil.error(TAG, "Set upCamera error. cameraManager == null");
-            return;
+            return new Size[0];
         }
         try {
             for (String id : cameraManager.getCameraIdList()) {
@@ -138,7 +156,7 @@ public class CameraHelper {
                 if (cameraLensFacing == null) {
                     continue;
                 }
-                if (cameraLensFacing != CameraCharacteristics.LENS_FACING_FRONT) {
+                if (cameraLensFacing != cameraFacing) {
                     continue;
                 }
                 StreamConfigurationMap maps =
@@ -146,15 +164,13 @@ public class CameraHelper {
                 if (maps == null || maps.getOutputSizes(SurfaceTexture.class) == null) {
                     continue;
                 }
-                mPreviewSize = getOptimalSize(maps.getOutputSizes(SurfaceTexture.class), width, height);
                 mCameraId = id;
-                LogUtil.info(TAG, "Preview width = " + mPreviewSize.getWidth() + ", height = "
-                    + mPreviewSize.getHeight() + ", cameraId = " + mCameraId);
-                break;
+                return maps.getOutputSizes(SurfaceTexture.class);
             }
         } catch (CameraAccessException e) {
             LogUtil.error(TAG, "Set upCamera error");
         }
+        return new Size[0];
     }
 
     /**
@@ -163,7 +179,7 @@ public class CameraHelper {
     private void startCameraThread() {
         mCameraThread = new HandlerThread("CameraThread");
         mCameraThread.start();
-        if (mCameraThread.getLooper() != null) {
+        if (mCameraThread.getLooper() == null) {
             LogUtil.error(TAG, "startCameraThread mCameraThread.getLooper() null!");
             return;
         }

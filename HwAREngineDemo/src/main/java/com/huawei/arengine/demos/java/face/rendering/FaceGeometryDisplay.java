@@ -1,5 +1,5 @@
-/**
- * Copyright 2021. Huawei Technologies Co., Ltd. All rights reserved.
+/*
+ * Copyright 2023. Huawei Technologies Co., Ltd. All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -190,7 +190,7 @@ public class FaceGeometryDisplay {
 
     private void createProgram() {
         ShaderUtil.checkGlError(TAG, "Create gl program start.");
-        mProgram = createGlProgram();
+        mProgram = ShaderUtil.createGlProgram(FACE_GEOMETRY_VERTEX, FACE_GEOMETRY_FRAGMENT);
         mPositionAttribute = GLES20.glGetAttribLocation(mProgram, "inPosition");
         mColorUniform = GLES20.glGetUniformLocation(mProgram, "inColor");
         mModelViewProjectionUniform = GLES20.glGetUniformLocation(mProgram, "inMVPMatrix");
@@ -198,48 +198,6 @@ public class FaceGeometryDisplay {
         mTextureUniform = GLES20.glGetUniformLocation(mProgram, "inTexture");
         mTextureCoordAttribute = GLES20.glGetAttribLocation(mProgram, "inTexCoord");
         ShaderUtil.checkGlError(TAG, "Create gl program end.");
-    }
-
-    private static int createGlProgram() {
-        int vertex = loadShader(GLES20.GL_VERTEX_SHADER, FACE_GEOMETRY_VERTEX);
-        if (vertex == 0) {
-            return 0;
-        }
-        int fragment = loadShader(GLES20.GL_FRAGMENT_SHADER, FACE_GEOMETRY_FRAGMENT);
-        if (fragment == 0) {
-            return 0;
-        }
-        int program = GLES20.glCreateProgram();
-        if (program != 0) {
-            GLES20.glAttachShader(program, vertex);
-            GLES20.glAttachShader(program, fragment);
-            GLES20.glLinkProgram(program);
-            int[] linkStatus = new int[1];
-            GLES20.glGetProgramiv(program, GLES20.GL_LINK_STATUS, linkStatus, 0);
-            if (linkStatus[0] != GLES20.GL_TRUE) {
-                LogUtil.error(TAG, "Could not link program: " + GLES20.glGetProgramInfoLog(program));
-                GLES20.glDeleteProgram(program);
-                program = 0;
-            }
-        }
-        return program;
-    }
-
-    private static int loadShader(int shaderType, String source) {
-        int shader = GLES20.glCreateShader(shaderType);
-        if (shader != 0) {
-            GLES20.glShaderSource(shader, source);
-            GLES20.glCompileShader(shader);
-            int[] compiled = new int[1];
-            GLES20.glGetShaderiv(shader, GLES20.GL_COMPILE_STATUS, compiled, 0);
-            if (compiled[0] == 0) {
-                LogUtil.error(TAG, "glError: Could not compile shader " + shaderType);
-                LogUtil.error(TAG, "GLES20 Error: " + GLES20.glGetShaderInfoLog(shader));
-                GLES20.glDeleteShader(shader);
-                shader = 0;
-            }
-        }
-        return shader;
     }
 
     /**

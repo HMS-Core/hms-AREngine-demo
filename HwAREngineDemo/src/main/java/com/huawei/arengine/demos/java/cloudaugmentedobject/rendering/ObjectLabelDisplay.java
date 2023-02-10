@@ -1,5 +1,5 @@
-/**
- * Copyright 2021. Huawei Technologies Co., Ltd. All rights reserved.
+/*
+ * Copyright 2023. Huawei Technologies Co., Ltd. All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -17,16 +17,12 @@
 package com.huawei.arengine.demos.java.cloudaugmentedobject.rendering;
 
 import android.app.Activity;
-import android.graphics.Bitmap;
 import android.opengl.GLES20;
-import android.opengl.GLUtils;
 import android.opengl.Matrix;
-import android.view.View;
 import android.widget.TextView;
 
 import com.huawei.arengine.demos.R;
 import com.huawei.arengine.demos.common.LabelDisplayUtil;
-import com.huawei.arengine.demos.common.LogUtil;
 import com.huawei.arengine.demos.common.ShaderUtil;
 import com.huawei.hiar.ARObject;
 import com.huawei.hiar.ARPose;
@@ -48,50 +44,46 @@ public class ObjectLabelDisplay implements ObjectRelatedDisplay {
 
     private static final int IMAGE_ANGLE_MATRIX_SIZE = 4;
 
-    private static final float MATRIX_SCALE_SX = 1.0f;
-
-    private static final float MATRIX_SCALE_SY = 1.0f;
-
     private static final int COORDS_PER_VERTEX = 3;
 
     private static final float LABEL_WIDTH = 0.1f;
 
     private static final float LABEL_HEIGHT = 0.1f;
 
-    private static final int TEXTURES_SIZE = 1;
-
     private static final int MATRIX_SIZE = 16;
+
+    private static final int TEXTURES_SIZE = 1;
 
     /**
      * Plane angle UV matrix, which is used to adjust the rotation angle of the label and
      * vertical/horizontal scaling ratio.
      */
-    private final float[] imageAngleUvMatrix = new float[IMAGE_ANGLE_MATRIX_SIZE];
+    private final float[] mImageAngleUvMatrix = new float[IMAGE_ANGLE_MATRIX_SIZE];
 
-    private final float[] modelViewProjectionMatrix = new float[MATRIX_SIZE];
+    private final float[] mModelViewMatrix = new float[MATRIX_SIZE];
 
-    private final float[] modelViewMatrix = new float[MATRIX_SIZE];
+    private final float[] mModelViewProjectionMatrix = new float[MATRIX_SIZE];
 
     /**
      * Allocate a temporary matrix to reduce the number of allocations per frame.
      */
-    private final float[] modelMatrix = new float[MATRIX_SIZE];
+    private final float[] mModelMatrix = new float[MATRIX_SIZE];
 
-    private final int[] textures = new int[TEXTURES_SIZE];
-
-    private int mProgram;
-
-    private int glPositionParameter;
-
-    private int glModelViewProjectionMatrix;
-
-    private int glTexture;
-
-    private int glPlaneUvMatrix;
+    private final int[] mTextures = new int[TEXTURES_SIZE];
 
     private final Activity mActivity;
 
-    private TextView labelTextView;
+    private int mLabelProgram;
+
+    private int mGlPositionParameter;
+
+    private int mGlTexture;
+
+    private int mGlPlaneUvMatrix;
+
+    private int mGlModelViewProjectionMatrix;
+
+    private TextView mLabelTextView;
 
     /**
      * Pass the activity.
@@ -107,58 +99,24 @@ public class ObjectLabelDisplay implements ObjectRelatedDisplay {
      */
     @Override
     public void init() {
-        labelTextView = mActivity.findViewById(R.id.image_ar_object);
+        mLabelTextView = mActivity.findViewById(R.id.image_ar_object);
         createProgram();
-        initLabel();
-    }
-
-    private void initLabel() {
-        ShaderUtil.checkGlError(TAG, "Update start.");
-        GLES20.glGenTextures(textures.length, textures, 0);
-
-        // Label plane.
-        GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
-        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textures[0]);
-        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR_MIPMAP_LINEAR);
-        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR);
-        Bitmap labelBitmap = getImageBitmap(labelTextView);
-        GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, labelBitmap, 0);
-        GLES20.glGenerateMipmap(GLES20.GL_TEXTURE_2D);
-        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0);
-        ShaderUtil.checkGlError(TAG, "Update end.");
-    }
-
-    private Bitmap getImageBitmap(TextView view) {
-        view.measure(View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
-            View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
-        view.layout(0, 0, labelTextView.getMeasuredWidth(), labelTextView.getMeasuredHeight());
-        view.setDrawingCacheEnabled(true);
-        view.destroyDrawingCache();
-        view.buildDrawingCache();
-        Bitmap bitmap = view.getDrawingCache();
-        LogUtil.debug(TAG, "object bitmap create start!");
-        android.graphics.Matrix matrix = new android.graphics.Matrix();
-        matrix.setScale(MATRIX_SCALE_SX, MATRIX_SCALE_SY);
-        if (bitmap != null) {
-            bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
-        }
-        LogUtil.debug(TAG, "object bitmap create end!");
-        return bitmap;
+        ShaderUtil.initLabel(TAG, mTextures, mLabelTextView);
     }
 
     private void createProgram() {
         ShaderUtil.checkGlError(TAG, "program start.");
-        mProgram = ObjectShaderUtil.getLabelProgram();
-        glTexture = GLES20.glGetUniformLocation(mProgram, "inTexture");
-        glPositionParameter = GLES20.glGetAttribLocation(mProgram, "inPosXZAlpha");
-        glPlaneUvMatrix = GLES20.glGetUniformLocation(mProgram, "inPlanUVMatrix");
-        glModelViewProjectionMatrix = GLES20.glGetUniformLocation(mProgram, "inMVPMatrix");
+        mLabelProgram = ShaderUtil.getLabelProgram();
+        mGlTexture = GLES20.glGetUniformLocation(mLabelProgram, "inTexture");
+        mGlPositionParameter = GLES20.glGetAttribLocation(mLabelProgram, "inPosXZAlpha");
+        mGlPlaneUvMatrix = GLES20.glGetUniformLocation(mLabelProgram, "inPlanUVMatrix");
+        mGlModelViewProjectionMatrix = GLES20.glGetUniformLocation(mLabelProgram, "inMVPMatrix");
         ShaderUtil.checkGlError(TAG, "program end.");
     }
 
     /**
      * Draw an image label to mark the recognized 3D object.
-     * This method will call {@link ObjectRenderManager#onDrawFrame} in the following cases.
+     * This method will call {@link ObjectRendererManager#onDrawFrame} in the following cases.
      *
      * @param arObjects 3D object.
      * @param viewMatrix View matrix.
@@ -176,14 +134,6 @@ public class ObjectLabelDisplay implements ObjectRelatedDisplay {
         recycleGl();
     }
 
-    private void prepareForGl() {
-        GLES20.glDepthMask(false);
-        GLES20.glEnable(GLES20.GL_BLEND);
-        GLES20.glBlendFuncSeparate(GLES20.GL_DST_ALPHA, GLES20.GL_ONE, GLES20.GL_ZERO, GLES20.GL_ONE_MINUS_SRC_ALPHA);
-        GLES20.glUseProgram(mProgram);
-        GLES20.glEnableVertexAttribArray(glPositionParameter);
-    }
-
     /**
      * Update the label of the 3D object.
      *
@@ -192,21 +142,30 @@ public class ObjectLabelDisplay implements ObjectRelatedDisplay {
      */
     private void updateImageLabelData(ARObject arObject, ARPose cameraPose) {
         float[] imageMatrix = getLabelModeMatrix(cameraPose, arObject);
-        System.arraycopy(imageMatrix, 0, modelMatrix, 0, MATRIX_SIZE);
+        System.arraycopy(imageMatrix, 0, mModelMatrix, 0, MATRIX_SIZE);
 
         float scaleU = 1.0f / LABEL_WIDTH;
 
         // Set the value of the plane angle UV matrix.
-        imageAngleUvMatrix[0] = scaleU;
-        imageAngleUvMatrix[1] = 0.0f;
-        imageAngleUvMatrix[2] = 0.0f;
+        int index = 0;
+        mImageAngleUvMatrix[index] = scaleU;
+        mImageAngleUvMatrix[++index] = 0.0f;
+        mImageAngleUvMatrix[++index] = 0.0f;
         float scaleV = 1.0f / LABEL_HEIGHT;
-        imageAngleUvMatrix[3] = scaleV;
+        mImageAngleUvMatrix[++index] = scaleV;
 
         GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
-        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textures[0]);
-        GLES20.glUniform1i(glTexture, 0);
-        GLES20.glUniformMatrix2fv(glPlaneUvMatrix, 1, false, imageAngleUvMatrix, 0);
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mTextures[0]);
+        GLES20.glUniform1i(mGlTexture, 0);
+        GLES20.glUniformMatrix2fv(mGlPlaneUvMatrix, 1, false, mImageAngleUvMatrix, 0);
+    }
+
+    private void prepareForGl() {
+        GLES20.glDepthMask(false);
+        GLES20.glEnable(GLES20.GL_BLEND);
+        GLES20.glBlendFuncSeparate(GLES20.GL_DST_ALPHA, GLES20.GL_ONE, GLES20.GL_ZERO, GLES20.GL_ONE_MINUS_SRC_ALPHA);
+        GLES20.glUseProgram(mLabelProgram);
+        GLES20.glEnableVertexAttribArray(mGlPositionParameter);
     }
 
     /**
@@ -234,8 +193,8 @@ public class ObjectLabelDisplay implements ObjectRelatedDisplay {
      */
     private void drawLabel(float[] cameraViews, float[] cameraProjection) {
         ShaderUtil.checkGlError(TAG, "Draw object label start.");
-        Matrix.multiplyMM(modelViewMatrix, 0, cameraViews, 0, modelMatrix, 0);
-        Matrix.multiplyMM(modelViewProjectionMatrix, 0, cameraProjection, 0, modelViewMatrix, 0);
+        Matrix.multiplyMM(mModelViewMatrix, 0, cameraViews, 0, mModelMatrix, 0);
+        Matrix.multiplyMM(mModelViewProjectionMatrix, 0, cameraProjection, 0, mModelViewMatrix, 0);
 
         // Obtain half of the width and height as the coordinate data.
         float halfWidth = LABEL_WIDTH / 2.0f;
@@ -251,7 +210,7 @@ public class ObjectLabelDisplay implements ObjectRelatedDisplay {
             vetBuffer.put(vertex);
         }
         vetBuffer.rewind();
-        GLES20.glVertexAttribPointer(glPositionParameter, COORDS_PER_VERTEX, GLES20.GL_FLOAT, false,
+        GLES20.glVertexAttribPointer(mGlPositionParameter, COORDS_PER_VERTEX, GLES20.GL_FLOAT, false,
             4 * COORDS_PER_VERTEX, vetBuffer);
 
         // Set the sequence of OpenGL drawing points to generate two triangles to form a plane.
@@ -266,13 +225,13 @@ public class ObjectLabelDisplay implements ObjectRelatedDisplay {
         }
         idxBuffer.rewind();
 
-        GLES20.glUniformMatrix4fv(glModelViewProjectionMatrix, 1, false, modelViewProjectionMatrix, 0);
+        GLES20.glUniformMatrix4fv(mGlModelViewProjectionMatrix, 1, false, mModelViewProjectionMatrix, 0);
         GLES20.glDrawElements(GLES20.GL_TRIANGLE_STRIP, idxBuffer.limit(), GLES20.GL_UNSIGNED_SHORT, idxBuffer);
         ShaderUtil.checkGlError(TAG, "Draw object label end.");
     }
 
     private void recycleGl() {
-        GLES20.glDisableVertexAttribArray(glPositionParameter);
+        GLES20.glDisableVertexAttribArray(mGlPositionParameter);
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0);
         GLES20.glDisable(GLES20.GL_BLEND);
         GLES20.glDepthMask(true);

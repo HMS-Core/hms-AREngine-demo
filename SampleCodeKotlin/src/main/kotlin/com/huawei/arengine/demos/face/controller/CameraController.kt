@@ -1,25 +1,32 @@
-/**
- * Copyright 2021. Huawei Technologies Co., Ltd. All rights reserved.
+/*
+ * Copyright 2023. Huawei Technologies Co., Ltd. All rights reserved.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
  */
+
 package com.huawei.arengine.demos.face.controller
 
 import android.app.Activity
+import android.content.Context
 import android.graphics.SurfaceTexture
+import android.hardware.camera2.CameraAccessException
+import android.hardware.camera2.CameraCharacteristics
+import android.hardware.camera2.CameraManager
 import android.opengl.GLES20
 import android.util.DisplayMetrics
+import android.util.Size
 import android.view.Surface
+
 import com.huawei.arengine.demos.common.LogUtil
 import com.huawei.arengine.demos.face.service.CameraService
 import com.huawei.hiar.ARConfigBase
@@ -52,12 +59,12 @@ class CameraController(private val activity: Activity) {
 
     lateinit var arConfig: ARConfigBase
 
-    fun startCameraService() {
+    fun startCameraService(cameraLensFacing: Int) {
         if (cameraService == null) {
             LogUtil.info(TAG, "new Camera")
             val displayMetrics = DisplayMetrics()
             cameraService = CameraService().apply {
-                setupCamera(displayMetrics.widthPixels, displayMetrics.heightPixels)
+                setupCamera(displayMetrics.widthPixels, displayMetrics.heightPixels, cameraLensFacing)
             }
         }
 
@@ -107,5 +114,41 @@ class CameraController(private val activity: Activity) {
 
     fun stopCameraThread() {
         cameraService?.stopCameraThread()
+    }
+
+    /**
+     * Obtain the preview size list.
+     *
+     * @param cameraFacing Camera facing, facing back is 1, facing front is 0.
+     * @return Preview size list.
+     */
+    fun getPreviewSizeList(cameraFacing: Int): Array<Size?>? {
+        if (activity.getSystemService(Context.CAMERA_SERVICE) !is CameraManager) {
+            LogUtil.error(TAG, "Set upCamera error. service invalid!")
+            return arrayOfNulls(0)
+        }
+        val cameraManager = activity.getSystemService(Context.CAMERA_SERVICE) as CameraManager
+        if (cameraManager == null) {
+            LogUtil.error(TAG, "Set upCamera error. cameraManager == null")
+            return arrayOfNulls(0)
+        }
+        try {
+            for (id in cameraManager.cameraIdList) {
+                val characteristics = cameraManager.getCameraCharacteristics(id)
+                val cameraLensFacing = characteristics.get(CameraCharacteristics.LENS_FACING)
+                    ?: continue
+                if (cameraLensFacing != cameraFacing) {
+                    continue
+                }
+                val maps = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)
+                if (maps?.getOutputSizes(SurfaceTexture::class.java) == null) {
+                    continue
+                }
+                return maps.getOutputSizes(SurfaceTexture::class.java)
+            }
+        } catch (e: CameraAccessException) {
+            LogUtil.error(TAG, "Set upCamera error")
+        }
+        return arrayOfNulls(0)
     }
 }

@@ -1,5 +1,5 @@
-/**
- * Copyright 2021. Huawei Technologies Co., Ltd. All rights reserved.
+/*
+ * Copyright 2023. Huawei Technologies Co., Ltd. All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -93,7 +93,6 @@ class SceneMeshActivity : BaseActivity() {
                 config.focusMode = ARConfigBase.FocusMode.AUTO_FOCUS
                 config.enableItem = (ARConfigBase.ENABLE_MESH or ARConfigBase.ENABLE_DEPTH.toLong().toInt()).toLong()
                 mArSession!!.configure(config)
-                mSceneMeshRenderController.setArSession(mArSession)
 
                 // Detect whether the current mobile phone camera is a depth camera.
                 if (config.enableItem and ARConfigBase.ENABLE_MESH.toLong() == 0L) {
@@ -104,19 +103,18 @@ class SceneMeshActivity : BaseActivity() {
                 setMessageWhenError(capturedException)
             }
             errorMessage?.let {
-                Toast.makeText(this, it, Toast.LENGTH_LONG).show()
                 stopArSession()
                 return
             }
         }
         try {
             mArSession!!.resume()
-            mDisplayRotationController.registerDisplayListener()
         } catch (e: ARCameraNotAvailableException) {
             Toast.makeText(this, "Camera open failed, please restart the app", Toast.LENGTH_LONG).show()
             mArSession = null
             return
         }
+        mSceneMeshRenderController.setArSession(mArSession)
         sceneMeshActivityBinding.surfaceview.onResume()
         mDisplayRotationController.registerDisplayListener()
     }
@@ -146,19 +144,6 @@ class SceneMeshActivity : BaseActivity() {
         }
         super.onDestroy()
         LogUtil.info(TAG, "onDestroy end.")
-    }
-
-    override fun onWindowFocusChanged(isHasFocus: Boolean) {
-        LogUtil.debug(TAG, "onWindowFocusChanged")
-        super.onWindowFocusChanged(isHasFocus)
-        if (isHasFocus) {
-            window.decorView.systemUiVisibility = (View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                or View.SYSTEM_UI_FLAG_FULLSCREEN
-                or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY)
-        }
     }
 
     /**

@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -21,15 +20,65 @@
         tools:layout_editor_absoluteX="315dp"
         tools:layout_editor_absoluteY="4dp" />
 
+    <RelativeLayout
+        android:id="@+id/img_env_texture"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/wordTextView"
+        android:layout_centerInParent="true"
+        android:visibility="visible">
+
+        <ImageView
+            android:id="@+id/img_env_texture_top"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_marginStart="64dp" />
+
+        <ImageView
+            android:id="@+id/img_env_texture_left"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_below="@id/img_env_texture_top" />
+
+        <ImageView
+            android:id="@+id/img_env_texture_front"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_below="@id/img_env_texture_top"
+            android:layout_toRightOf="@id/img_env_texture_left" />
+
+        <ImageView
+            android:id="@+id/img_env_texture_right"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_below="@id/img_env_texture_top"
+            android:layout_toRightOf="@id/img_env_texture_front" />
+
+        <ImageView
+            android:id="@+id/img_env_Texture_back"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_below="@id/img_env_texture_top"
+            android:layout_toRightOf="@id/img_env_texture_right" />
+
+        <ImageView
+            android:id="@+id/img_env_texture_bottom"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_below="@id/img_env_texture_left"
+            android:layout_toRightOf="@id/img_env_texture_left" />
+
+    </RelativeLayout>
+
     <TextView
         android:id="@+id/searchingTextView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentStart="true"
         android:layout_alignParentTop="true"
-        android:layout_marginBottom="403dp"
         android:layout_marginStart="2dp"
         android:layout_marginTop="59dp"
+        android:layout_marginBottom="403dp"
         android:gravity="center"
         android:text="@string/tips_move_plane"
         android:textColor="#ffffff"
@@ -134,4 +183,80 @@
         android:visibility="gone"
         tools:layout_editor_absoluteX="315dp"
         tools:layout_editor_absoluteY="4dp" />
+
+    <TextView
+        android:id="@+id/target_measure"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/plane_other"
+        android:textColor="#FFFFFF"
+        android:visibility="gone"
+        tools:layout_editor_absoluteX="315dp"
+        tools:layout_editor_absoluteY="4dp" />
+
+    <LinearLayout
+        android:id="@+id/canceling_inspect"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_gravity="center"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="24dp"
+        android:layout_marginEnd="24dp"
+        android:layout_marginBottom="24dp"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <ToggleButton
+                android:id="@+id/btn_env_light_mode"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:checked="false"
+                android:textAllCaps="false"
+                android:textOff="OpenEnvLighting"
+                android:textOn="CloseEnvLighting"
+                android:textSize="15sp" />
+
+            <ToggleButton
+                android:id="@+id/btn_env_texture_mode"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:checked="false"
+                android:textAllCaps="false"
+                android:textOff="OpenEnvTexture"
+                android:textOn="CloseEnvTexture"
+                android:textSize="15sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <EditText
+                android:id="@+id/text_max_size"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:hint="Max map size(MB)"
+                android:inputType="number"
+                android:textSize="15sp" />
+
+            <Button
+                android:id="@+id/btn_config_session"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="setMaxMapSize"
+                android:textAllCaps="false"
+                android:textSize="15sp" />
+        </LinearLayout>
+    </LinearLayout>
 </RelativeLayout>

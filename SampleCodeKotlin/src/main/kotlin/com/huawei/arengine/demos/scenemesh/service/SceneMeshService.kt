@@ -1,5 +1,5 @@
-/**
- * Copyright 2021. Huawei Technologies Co., Ltd. All rights reserved.
+/*
+ * Copyright 2023. Huawei Technologies Co., Ltd. All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -16,15 +16,23 @@
 
 package com.huawei.arengine.demos.scenemesh.service
 
+import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.opengl.GLES20
+import android.opengl.GLUtils
 import android.opengl.Matrix
-import com.huawei.arengine.demos.common.LogUtil.debug
+
+import com.huawei.arengine.demos.common.LogUtil
 import com.huawei.arengine.demos.common.util.checkGlError
 import com.huawei.arengine.demos.common.util.createGlProgram
 import com.huawei.arengine.demos.scenemesh.pojo.SceneMeshPojo
 import com.huawei.arengine.demos.scenemesh.util.Constants
 import com.huawei.hiar.ARFrame
 import com.huawei.hiar.ARSceneMesh
+
+import java.io.IOException
+
 import javax.microedition.khronos.opengles.GL10
 
 /**
@@ -40,9 +48,11 @@ class SceneMeshService {
 
     private val mModelViewProjection: FloatArray = FloatArray(Constants.MODLE_VIEW_PROJ_SIZE)
 
+    private val mTexture: IntArray = IntArray(1)
+
     private val mSceneMeshPojo by lazy { SceneMeshPojo() }
 
-    fun init() {
+    fun init(context: Context) {
         mSceneMeshPojo.run {
             val buffers = IntArray(Constants.BUFFER_OBJECT_NUMBER)
             GLES20.glGenBuffers(Constants.BUFFER_OBJECT_NUMBER, buffers, 0)
@@ -61,11 +71,33 @@ class SceneMeshService {
             GLES20.glUseProgram(mProgram)
             checkGlError(TAG, "program")
             mPositionAttribute = GLES20.glGetAttribLocation(mProgram, "a_Position")
-            mColorUniform = GLES20.glGetUniformLocation(mProgram, "u_Color")
             mModelViewProjectionUniform = GLES20.glGetUniformLocation(mProgram, "u_ModelViewProjection")
-            mPointSizeUniform = GLES20.glGetUniformLocation(mProgram, "u_PointSize")
+            loadTexture(context)
             checkGlError(TAG, "program params")
         }
+    }
+
+    private fun loadTexture(context: Context) {
+        val textureBitmap: Bitmap = try {
+            BitmapFactory.decodeStream(context.assets.open("grid.png"))
+        } catch (exception: IOException) {
+            LogUtil.warn(TAG, "loadTexture error, catch " + exception.javaClass)
+            return
+        } catch (exception: IllegalStateException) {
+            LogUtil.warn(TAG, "loadTexture error, catch " + exception.javaClass)
+            return
+        }
+        GLES20.glActiveTexture(GLES20.GL_TEXTURE0)
+        GLES20.glGenTextures(mTexture.size, mTexture, 0)
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mTexture[0])
+        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_REPEAT)
+        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_REPEAT)
+        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR_MIPMAP_LINEAR)
+        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR)
+        GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, textureBitmap, 0)
+        GLES20.glGenerateMipmap(GLES20.GL_TEXTURE_2D)
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0)
+        checkGlError(TAG, "loadTexture end")
     }
 
     /**
@@ -78,9 +110,8 @@ class SceneMeshService {
             checkGlError(TAG, "before update")
             val meshVertices = sceneMesh.vertices
             mPointsNum = meshVertices.limit() / Constants.FLOATS_PER_POINT
-            debug(TAG, "updateData: Meshsize:" + mPointsNum + "position:" + meshVertices.position()
+            LogUtil.debug(TAG, "updateData: Meshsize:" + mPointsNum + "position:" + meshVertices.position()
                 + " limit:" + meshVertices.limit() + " remaining:" + meshVertices.remaining())
-            debug(TAG, "Vertices = ")
 
             GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, mVerticeVBO)
             if (mVerticeVBOSize < mPointsNum * Constants.BYTES_PER_POINT) {
@@ -93,7 +124,7 @@ class SceneMeshService {
             GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, 0)
             val meshTriangleIndices = sceneMesh.triangleIndices
             mTrianglesNum = meshTriangleIndices.limit() / Constants.INT_PER_TRIANGE
-            debug(TAG, "updateData: MeshTrianglesize:" + mTrianglesNum + "position:"
+            LogUtil.debug(TAG, "updateData: MeshTrianglesize:" + mTrianglesNum + "position:"
                 + meshTriangleIndices.position() + " limit:" + meshTriangleIndices.limit()
                 + " remaining:" + meshTriangleIndices.remaining())
 
@@ -119,7 +150,7 @@ class SceneMeshService {
     fun draw(cameraView: FloatArray, cameraPerspective: FloatArray) {
         mSceneMeshPojo.run {
             checkGlError(TAG, "Before draw")
-            debug(TAG, "draw: mPointsNum:$mPointsNum mTrianglesNum:$mTrianglesNum")
+            LogUtil.debug(TAG, "draw: mPointsNum:$mPointsNum mTrianglesNum:$mTrianglesNum")
 
             GLES20.glEnable(GLES20.GL_DEPTH_TEST)
             GLES20.glEnable(GLES20.GL_CULL_FACE)
@@ -127,33 +158,29 @@ class SceneMeshService {
 
             // Drawing point.
             GLES20.glUseProgram(mProgram)
+            GLES20.glActiveTexture(GLES20.GL_TEXTURE0)
+            GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mTexture[0])
             GLES20.glEnableVertexAttribArray(mPositionAttribute)
-            GLES20.glEnableVertexAttribArray(mColorUniform)
             GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, mVerticeVBO)
             GLES20.glVertexAttribPointer(mPositionAttribute, Constants.POSITION_COMPONENTS_NUMBER, GLES20.GL_FLOAT, false, Constants.BYTES_PER_POINT, 0)
-            GLES20.glUniform4f(mColorUniform, 1.0f, 0.0f, 0.0f, 1.0f)
             GLES20.glUniformMatrix4fv(mModelViewProjectionUniform, 1, false, mModelViewProjection, 0)
-            GLES20.glUniform1f(mPointSizeUniform, 5.0f) // Set the point size to 5.
 
-            GLES20.glDrawArrays(GLES20.GL_POINTS, 0, mPointsNum)
-            GLES20.glDisableVertexAttribArray(mColorUniform)
             GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, 0)
             checkGlError(TAG, "Draw point")
 
             // Draw a triangle.
             GLES20.glEnable(GL10.GL_BLEND)
             GLES20.glBlendFunc(GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA)
-            GLES20.glEnableVertexAttribArray(mColorUniform)
-            GLES20.glUniform4f(mColorUniform, 0.0f, 1.0f, 0.0f, 0.5f)
             GLES20.glBindBuffer(GLES20.GL_ELEMENT_ARRAY_BUFFER, mTriangleVBO)
 
             // Each triangle has three vertices.
             GLES20.glDrawElements(GLES20.GL_TRIANGLES, mTrianglesNum * 3, GLES20.GL_UNSIGNED_INT, 0)
             GLES20.glBindBuffer(GLES20.GL_ELEMENT_ARRAY_BUFFER, 0)
-            GLES20.glDisableVertexAttribArray(mColorUniform)
             checkGlError(TAG, "Draw triangles")
             GLES20.glDisableVertexAttribArray(mPositionAttribute)
 
+            GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0)
+            GLES20.glDisable(GLES20.GL_DEPTH_TEST)
             GLES20.glDisable(GLES20.GL_CULL_FACE)
             GLES20.glDisable(GL10.GL_BLEND)
             checkGlError(TAG, "Draw after")

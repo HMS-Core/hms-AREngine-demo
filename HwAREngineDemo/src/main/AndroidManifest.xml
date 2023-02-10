@@ -1,7 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.huawei.arengine.demos"
-    android:versionCode="142"
-    android:versionName="3.5.0.1">
+    android:versionCode="158"
+    android:versionName="4.0.0.5">
     <uses-permission android:name="android.permission.CAMERA" />
 
     <application
@@ -11,11 +11,13 @@
         android:networkSecurityConfig="@xml/network_security_config"
         android:resizeableActivity="false"
         android:supportsRtl="true"
-        android:theme="@style/AppTheme">
+        android:theme="@style/AppTheme"
+        android:requestLegacyExternalStorage="true">
 
         <activity
             android:name="com.huawei.arengine.demos.ChooseActivity"
             android:exported="true"
+            android:launchMode="singleTop"
             android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -36,24 +38,35 @@
             android:name="com.huawei.arengine.demos.java.world.WorldActivity"
             android:configChanges="orientation|screenSize"
             android:exported="false"
+            android:launchMode="singleTop"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.AppCompat.NoActionBar" />
+        <activity
+            android:name="com.huawei.arengine.demos.java.instant.InstantActivity"
+            android:configChanges="orientation|screenSize"
+            android:exported="false"
+            android:launchMode="singleTop"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.AppCompat.NoActionBar" />
         <activity
             android:name="com.huawei.arengine.demos.java.face.FaceActivity"
             android:configChanges="orientation|screenSize"
             android:exported="false"
+            android:launchMode="singleTop"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.AppCompat.NoActionBar" />
         <activity
             android:name="com.huawei.arengine.demos.java.body3d.BodyActivity"
             android:configChanges="orientation|screenSize"
             android:exported="false"
+            android:launchMode="singleTop"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.AppCompat.NoActionBar" />
         <activity
             android:name="com.huawei.arengine.demos.java.hand.HandActivity"
             android:configChanges="orientation|screenSize"
             android:exported="false"
+            android:launchMode="singleTop"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.AppCompat.NoActionBar" />
         <activity
@@ -61,35 +74,41 @@
             android:theme="@style/Theme.AppCompat.NoActionBar"
             android:configChanges="orientation|screenSize"
             android:exported="false"
+            android:launchMode="singleTop"
             android:screenOrientation="portrait" />
         <activity android:name=".java.scenemesh.SceneMeshActivity"
             android:theme="@style/Theme.AppCompat.NoActionBar"
             android:configChanges="orientation|screenSize"
             android:exported="false"
+            android:launchMode="singleTop"
             android:screenOrientation="portrait" />
         <activity
             android:name="com.huawei.arengine.demos.java.augmentedimage.AugmentedImageActivity"
             android:configChanges="orientation|screenSize"
             android:screenOrientation="portrait"
             android:exported="false"
+            android:launchMode="singleTop"
             android:theme="@style/Theme.AppCompat.NoActionBar" />
         <activity
             android:name="com.huawei.arengine.demos.java.worldbody.WorldBodyActivity"
             android:configChanges="orientation|screenSize"
             android:screenOrientation="portrait"
             android:exported="false"
+            android:launchMode="singleTop"
             android:theme="@style/Theme.AppCompat.NoActionBar" />
         <activity
             android:name="com.huawei.arengine.demos.java.cloudaugmentedobject.CloudAugmentedObjectActivity"
             android:configChanges="orientation|screenSize"
             android:screenOrientation="portrait"
             android:exported="false"
+            android:launchMode="singleTop"
             android:theme="@style/Theme.AppCompat.NoActionBar" />
         <activity
-                android:name="com.huawei.arengine.demos.java.cloudimage.CloudAugmentedImageActivity"
-                android:configChanges="orientation|screenSize"
-                android:screenOrientation="portrait"
-                android:exported="false"
-                android:theme="@style/Theme.AppCompat.NoActionBar" />
+            android:name="com.huawei.arengine.demos.java.cloudimage.CloudAugmentedImageActivity"
+            android:configChanges="orientation|screenSize"
+            android:screenOrientation="portrait"
+            android:exported="false"
+            android:launchMode="singleTop"
+            android:theme="@style/Theme.AppCompat.NoActionBar" />
     </application>
 </manifest>

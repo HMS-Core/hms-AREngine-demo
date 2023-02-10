@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.huawei.arengine.demos.java.instant.InstantActivity">
+
+    <android.opengl.GLSurfaceView
+        android:id="@+id/surfaceview"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_gravity="top" />
+
+    <TextView
+        android:id="@+id/instantTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="TextView"
+        android:textColor="@color/red"
+        tools:layout_editor_absoluteX="315dp"
+        tools:layout_editor_absoluteY="4dp" />
+
+    <SeekBar
+        android:id="@+id/scaleSeekBar"
+        android:layout_width="300dp"
+        android:layout_height="40dp"
+        android:layout_alignParentEnd="true"
+        android:min="1"
+        android:max="100"
+        android:progress="20"/>
+
+    <SeekBar
+        android:id="@+id/rotationSeekBar"
+        android:layout_width="300dp"
+        android:layout_height="40dp"
+        android:layout_below="@id/scaleSeekBar"
+        android:layout_alignParentEnd="true"
+        android:min="0"
+        android:max="360"
+        android:progress="0"/>
+</RelativeLayout>

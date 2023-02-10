@@ -1,5 +1,5 @@
-/**
- * Copyright 2021. Huawei Technologies Co., Ltd. All rights reserved.
+/*
+ * Copyright 2023. Huawei Technologies Co., Ltd. All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -40,7 +40,9 @@ public class PermissionManager {
 
     private static final int MAX_ARRAYS = 10;
 
-    private static final String[] PERMISSIONS_ARRAYS = new String[]{Manifest.permission.CAMERA};
+    private static final String[] PERMISSIONS_ARRAYS =
+        new String[] {Manifest.permission.CAMERA, Manifest.permission.ACCESS_NETWORK_STATE,
+            Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE};
 
     private PermissionManager() {
     }
@@ -71,8 +73,8 @@ public class PermissionManager {
                     permissionsList.add(permission);
                 }
             }
-            ActivityCompat.requestPermissions(activity,
-                permissionsList.toArray(new String[permissionsList.size()]), REQUEST_CODE_ASK_PERMISSIONS);
+            ActivityCompat.requestPermissions(activity, permissionsList.toArray(new String[permissionsList.size()]),
+                REQUEST_CODE_ASK_PERMISSIONS);
         }
     }
 
@@ -83,9 +85,10 @@ public class PermissionManager {
      * @param activity Activity.
      * @return Has permission or not.
      */
-    public static boolean hasPermission(@NonNull final Activity activity) {
+    public static boolean isPermissionEnable(@NonNull final Activity activity) {
         for (String permission : PERMISSIONS_ARRAYS) {
-            if (ContextCompat.checkSelfPermission(activity, permission) != PackageManager.PERMISSION_GRANTED) {
+            int permissionCode = ContextCompat.checkSelfPermission(activity, permission);
+            if (permissionCode != PackageManager.PERMISSION_GRANTED) {
                 return false;
             }
         }

@@ -1,5 +1,5 @@
-/**
- * Copyright 2021. Huawei Technologies Co., Ltd. All rights reserved.
+/*
+ * Copyright 2023. Huawei Technologies Co., Ltd. All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -16,30 +16,27 @@
 
 package com.huawei.arengine.demos.java.health;
 
-import android.content.Intent;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
-import android.view.View;
 import android.view.WindowManager;
 import android.widget.ProgressBar;
 import android.widget.TableLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatDelegate;
 
 import com.huawei.arengine.demos.R;
 import com.huawei.arengine.demos.common.BaseActivity;
-import com.huawei.arengine.demos.common.DisplayRotationManager;
 import com.huawei.arengine.demos.common.LogUtil;
-import com.huawei.arengine.demos.common.PermissionManager;
-import com.huawei.arengine.demos.java.health.rendering.HealthRenderManager;
+import com.huawei.arengine.demos.java.health.rendering.HealthRendererManager;
 import com.huawei.hiar.ARConfigBase;
-import com.huawei.hiar.AREnginesApk;
 import com.huawei.hiar.ARFaceTrackingConfig;
 import com.huawei.hiar.ARSession;
 import com.huawei.hiar.common.FaceHealthCheckState;
-import com.huawei.hiar.exceptions.ARCameraNotAvailableException;
+import com.huawei.hiar.exceptions.ARFatalException;
+import com.huawei.hiar.exceptions.ARUnSupportedConfigurationException;
+import com.huawei.hiar.exceptions.ARUnavailableServiceApkTooOldException;
+import com.huawei.hiar.exceptions.ARUnavailableServiceNotInstalledException;
 import com.huawei.hiar.listener.FaceHealthCheckStateEvent;
 import com.huawei.hiar.listener.FaceHealthServiceListener;
 
@@ -56,17 +53,7 @@ public class HealthActivity extends BaseActivity {
 
     private static final int MAX_PROGRESS = 100;
 
-    private GLSurfaceView mGlSurfaceView;
-
-    private ARSession mArSession;
-
-    private ARFaceTrackingConfig mArFaceTrackingConfig;
-
-    private boolean isRemindInstall = false;
-
-    private HealthRenderManager mHealthRenderManager;
-
-    private DisplayRotationManager mDisplayRotationManager;
+    private HealthRendererManager mHealthRendererManager;
 
     private ProgressBar mHealthProgressBar;
 
@@ -82,132 +69,51 @@ public class HealthActivity extends BaseActivity {
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
         mHealthProgressBar = findViewById(R.id.health_progress_bar);
-        mGlSurfaceView = findViewById(R.id.healthSurfaceView);
+        mSurfaceView = findViewById(R.id.healthSurfaceView);
         mProgressTips = findViewById(R.id.process_tips);
         mHealthCheckStatusTextView = findViewById(R.id.health_check_status);
-        mDisplayRotationManager = new DisplayRotationManager(this);
 
-        mGlSurfaceView.setPreserveEGLContextOnPause(true);
+        mSurfaceView.setPreserveEGLContextOnPause(true);
 
         // Set the OpenGLES version.
-        mGlSurfaceView.setEGLContextClientVersion(2);
+        mSurfaceView.setEGLContextClientVersion(2);
 
         // Set the EGL configuration chooser, including for the
         // number of bits of the color buffer and the number of depth bits.
-        mGlSurfaceView.setEGLConfigChooser(8, 8, 8, 8, 16, 0);
-        mHealthRenderManager = new HealthRenderManager(this, this);
-        mHealthRenderManager.setDisplayRotationManage(mDisplayRotationManager);
+        mSurfaceView.setEGLConfigChooser(8, 8, 8, 8, 16, 0);
+        mHealthRendererManager = new HealthRendererManager(this);
+        mHealthRendererManager.setDisplayRotationManager(mDisplayRotationManager);
         TableLayout mHealthParamTable = findViewById(R.id.health_param_table);
-        mHealthRenderManager.setHealthParamTable(mHealthParamTable);
-        mGlSurfaceView.setRenderer(mHealthRenderManager);
-        mGlSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
+        mHealthRendererManager.setHealthParamTable(mHealthParamTable);
+        mSurfaceView.setRenderer(mHealthRendererManager);
+        mSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
     }
 
     @Override
     protected void onResume() {
         LogUtil.debug(TAG, "onResume");
         super.onResume();
-        if (!PermissionManager.hasPermission(this)) {
-            this.finish();
-        }
-        errorMessage = null;
         if (mArSession == null) {
             try {
-                if (!arEngineAbilityCheck()) {
-                    finish();
-                    return;
-                }
                 mArSession = new ARSession(this.getApplicationContext());
-                mArFaceTrackingConfig = new ARFaceTrackingConfig(mArSession);
-                mArFaceTrackingConfig.setEnableItem(ARConfigBase.ENABLE_HEALTH_DEVICE);
-                mArFaceTrackingConfig
-                    .setFaceDetectMode(ARConfigBase.FaceDetectMode.HEALTH_ENABLE_DEFAULT.getEnumValue());
-                mArSession.configure(mArFaceTrackingConfig);
+                ARFaceTrackingConfig config = new ARFaceTrackingConfig(mArSession);
+                config.setEnableItem(ARConfigBase.ENABLE_HEALTH_DEVICE);
+                config.setFaceDetectMode(ARConfigBase.FaceDetectMode.HEALTH_ENABLE_DEFAULT.getEnumValue());
+                mArConfigBase = config;
+                mArSession.configure(mArConfigBase);
                 setHealthServiceListener();
-            } catch (Exception capturedException) {
+            } catch (ARFatalException | ARUnSupportedConfigurationException | ARUnavailableServiceNotInstalledException
+                | ARUnavailableServiceApkTooOldException capturedException) {
                 setMessageWhenError(capturedException);
+            } finally {
+                showCapabilitySupportInfo();
             }
             if (errorMessage != null) {
                 stopArSession();
                 return;
             }
         }
-        try {
-            mArSession.resume();
-        } catch (ARCameraNotAvailableException e) {
-            Toast.makeText(this, "Camera open failed, please restart the app", Toast.LENGTH_LONG).show();
-            mArSession = null;
-            return;
-        }
-        mDisplayRotationManager.registerDisplayListener();
-        mHealthRenderManager.setArSession(mArSession);
-        mGlSurfaceView.onResume();
-    }
-
-    private void stopArSession() {
-        LogUtil.info(TAG, "Stop session start.");
-        Toast.makeText(this, errorMessage, Toast.LENGTH_LONG).show();
-        if (mArSession != null) {
-            mArSession.stop();
-            mArSession = null;
-        }
-        LogUtil.info(TAG, "Stop session end.");
-    }
-
-    /**
-     * Check whether HUAWEI AR Engine server (com.huawei.arengine.service) is installed on the current device.
-     * If not, redirect the user to HUAWEI AppGallery for installation.
-     *
-     * @return true:AR Engine ready
-     */
-    private boolean arEngineAbilityCheck() {
-        boolean isInstallArEngineApk = AREnginesApk.isAREngineApkReady(this);
-        if (!isInstallArEngineApk && isRemindInstall) {
-            Toast.makeText(this, "Please agree to install.", Toast.LENGTH_LONG).show();
-            finish();
-        }
-        LogUtil.debug(TAG, "Is Install AR Engine Apk: " + isInstallArEngineApk);
-        if (!isInstallArEngineApk) {
-            startActivity(new Intent(this, com.huawei.arengine.demos.common.ConnectAppMarketActivity.class));
-            isRemindInstall = true;
-        }
-        return AREnginesApk.isAREngineApkReady(this);
-    }
-
-    @Override
-    protected void onPause() {
-        LogUtil.info(TAG, "onPause start.");
-        super.onPause();
-        if (mArSession != null) {
-            mDisplayRotationManager.unregisterDisplayListener();
-            mGlSurfaceView.onPause();
-            mArSession.pause();
-            LogUtil.info(TAG, "Session paused!");
-        }
-        LogUtil.info(TAG, "onPause end.");
-    }
-
-    @Override
-    protected void onDestroy() {
-        LogUtil.info(TAG, "onDestroy start.");
-        super.onDestroy();
-        if (mArSession != null) {
-            mArSession.stop();
-            mArSession = null;
-        }
-        LogUtil.info(TAG, "onDestroy end.");
-    }
-
-    @Override
-    public void onWindowFocusChanged(boolean isHasFocus) {
-        LogUtil.debug(TAG, "onWindowFocusChanged");
-        super.onWindowFocusChanged(isHasFocus);
-        if (isHasFocus) {
-            getWindow().getDecorView()
-                .setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                    | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                    | View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
-        }
+        sessionResume(mHealthRendererManager);
     }
 
     private void setHealthServiceListener() {
@@ -229,7 +135,7 @@ public class HealthActivity extends BaseActivity {
 
             @Override
             public void handleProcessProgressEvent(final int progress) {
-                mHealthRenderManager.setHealthCheckProgress(progress);
+                mHealthRendererManager.setHealthCheckProgress(progress);
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {

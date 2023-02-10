@@ -1,5 +1,5 @@
-/**
- * Copyright 2021. Huawei Technologies Co., Ltd. All rights reserved.
+/*
+ * Copyright 2023. Huawei Technologies Co., Ltd. All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@ package com.huawei.arengine.demos.common;
 
 import android.opengl.GLES11Ext;
 import android.opengl.GLES20;
-import android.util.Log;
 
 import com.huawei.hiar.ARFrame;
 
@@ -34,7 +33,7 @@ import javax.microedition.khronos.opengles.GL10;
  * @author hw
  * @since 2020-03-25
  */
-public class TextureDisplay {
+public class TextureDisplay implements BaseBackgroundDisplay {
     private static final String TAG = TextureDisplay.class.getSimpleName();
 
     private static final String LS = System.lineSeparator();
@@ -112,6 +111,7 @@ public class TextureDisplay {
      * @param width Width.
      * @param height Height
      */
+    @Override
     public void onSurfaceChanged(int width, int height) {
         MatrixUtil.getProjectionMatrix(mProjectionMatrix, width, height);
     }
@@ -120,6 +120,7 @@ public class TextureDisplay {
      * This method is called when {@link android.opengl.GLSurfaceView.Renderer#onSurfaceCreated}
      * to initialize the texture ID and create the OpenGL ES shader program.
      */
+    @Override
     public void init() {
         int[] textures = new int[1];
         GLES20.glGenTextures(1, textures, 0);
@@ -134,6 +135,7 @@ public class TextureDisplay {
      *
      * @param textureId Texture id.
      */
+    @Override
     public void init(int textureId) {
         mExternalTextureId = textureId;
         generateExternalTexture();
@@ -145,6 +147,7 @@ public class TextureDisplay {
      *
      * @return Texture id.
      */
+    @Override
     public int getExternalTextureId() {
         return mExternalTextureId;
     }
@@ -154,6 +157,7 @@ public class TextureDisplay {
      *
      * @param frame ARFrame
      */
+    @Override
     public void onDrawFrame(ARFrame frame) {
         ShaderUtil.checkGlError(TAG, "On draw frame start.");
         if (frame == null) {
@@ -204,58 +208,12 @@ public class TextureDisplay {
     }
 
     private void createProgram() {
-        mProgram = createGlProgram();
+        mProgram = ShaderUtil.createGlProgram(BASE_VERTEX, BASE_FRAGMENT);
         mPosition = GLES20.glGetAttribLocation(mProgram, "vPosition");
         mCoord = GLES20.glGetAttribLocation(mProgram, "vCoord");
         mMatrix = GLES20.glGetUniformLocation(mProgram, "vMatrix");
         mTexture = GLES20.glGetUniformLocation(mProgram, "vTexture");
         mCoordMatrix = GLES20.glGetUniformLocation(mProgram, "vCoordMatrix");
-    }
-
-    private static int createGlProgram() {
-        int vertex = loadShader(GLES20.GL_VERTEX_SHADER, BASE_VERTEX);
-        if (vertex == 0) {
-            return 0;
-        }
-        int fragment = loadShader(GLES20.GL_FRAGMENT_SHADER, BASE_FRAGMENT);
-        if (fragment == 0) {
-            return 0;
-        }
-        int program = GLES20.glCreateProgram();
-        if (program != 0) {
-            GLES20.glAttachShader(program, vertex);
-            GLES20.glAttachShader(program, fragment);
-            GLES20.glLinkProgram(program);
-            int[] linkStatus = new int[1];
-            GLES20.glGetProgramiv(program, GLES20.GL_LINK_STATUS, linkStatus, 0);
-            if (linkStatus[0] != GLES20.GL_TRUE) {
-                glError("Could not link program:" + GLES20.glGetProgramInfoLog(program));
-                GLES20.glDeleteProgram(program);
-                program = 0;
-            }
-        }
-        return program;
-    }
-
-    private static int loadShader(int shaderType, String source) {
-        int shader = GLES20.glCreateShader(shaderType);
-        if (shader != 0) {
-            GLES20.glShaderSource(shader, source);
-            GLES20.glCompileShader(shader);
-            int[] compiled = new int[1];
-            GLES20.glGetShaderiv(shader, GLES20.GL_COMPILE_STATUS, compiled, 0);
-            if (compiled[0] == 0) {
-                glError("Could not compile shader:" + shaderType);
-                glError("GLES20 Error:" + GLES20.glGetShaderInfoLog(shader));
-                GLES20.glDeleteShader(shader);
-                shader = 0;
-            }
-        }
-        return shader;
-    }
-
-    private static void glError(String index) {
-        Log.e(TAG, "glError: " + index);
     }
 
     private void initBuffers() {

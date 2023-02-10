@@ -1,26 +1,28 @@
-/**
- * Copyright 2021. Huawei Technologies Co., Ltd. All rights reserved.
+/*
+ * Copyright 2023. Huawei Technologies Co., Ltd. All rights reserved.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
  */
+
 package com.huawei.arengine.demos.hand
 
 import android.opengl.GLSurfaceView
 import android.os.Bundle
-import android.view.View
 import android.view.WindowManager
+import android.widget.Button
 import android.widget.Toast
 
+import com.huawei.arengine.demos.R
 import com.huawei.arengine.demos.common.LogUtil
 import com.huawei.arengine.demos.common.controller.DisplayRotationController
 import com.huawei.arengine.demos.common.service.PermissionManageService
@@ -50,6 +52,10 @@ class HandActivity : BaseActivity() {
 
     private var arSession: ARSession? = null
 
+    private var cameraFacingButton: Button? = null
+
+    private var mCameraLensFacing: ARConfigBase.CameraLensFacing = ARConfigBase.CameraLensFacing.FRONT
+
     private val displayRotationController by lazy { DisplayRotationController() }
 
     private val handRenderController by lazy {
@@ -76,6 +82,24 @@ class HandActivity : BaseActivity() {
             setRenderer(handRenderController)
             renderMode = GLSurfaceView.RENDERMODE_CONTINUOUSLY
         }
+        cameraFacingButton = findViewById(R.id.cameraFacingButton)
+        initCameraFacingClickListener()
+    }
+
+    private fun initCameraFacingClickListener() {
+        cameraFacingButton?.setOnClickListener {
+            cameraFacingButton?.isEnabled = false
+            stopArSession()
+            handActivityBinding.handSurfaceView.onPause()
+            arSession?.pause()
+            mCameraLensFacing = if (mCameraLensFacing == ARConfigBase.CameraLensFacing.FRONT) {
+                ARConfigBase.CameraLensFacing.REAR
+            } else {
+                ARConfigBase.CameraLensFacing.FRONT
+            }
+            setArConfig()
+            cameraFacingButton?.isEnabled = true
+        }
     }
 
     override fun onResume() {
@@ -89,6 +113,10 @@ class HandActivity : BaseActivity() {
             resumeView()
             return
         }
+        setArConfig()
+    }
+
+    private fun setArConfig() {
         try {
             if (!isAvailableArEngine(this)) {
                 finish()
@@ -96,21 +124,25 @@ class HandActivity : BaseActivity() {
             }
             arSession = ARSession(this.applicationContext)
             ARHandTrackingConfig(arSession).apply {
-                cameraLensFacing = ARConfigBase.CameraLensFacing.FRONT
+                cameraLensFacing = mCameraLensFacing
                 powerMode = ARConfigBase.PowerMode.ULTRA_POWER_SAVING
                 enableItem = ARConfigBase.ENABLE_DEPTH.toLong()
+                arConfigBase = this
             }.also {
                 arSession?.configure(it)
             }
-            handRenderController.setArSession(arSession)
         } catch (capturedException: Exception) {
+            // This prevents the app from crashing due to unhandled exceptions.
             setMessageWhenError(capturedException)
+        } finally {
+            showCapabilitySupportInfo()
         }
         errorMessage?.let {
             Toast.makeText(this, it, Toast.LENGTH_LONG).show()
             stopArSession()
             return
         }
+        handRenderController.setArSession(arSession)
         resumeView()
     }
 
@@ -155,12 +187,14 @@ class HandActivity : BaseActivity() {
         LogUtil.info(TAG, "onDestroy end.")
     }
 
-    override fun onWindowFocusChanged(isHasFocus: Boolean) {
-        super.onWindowFocusChanged(isHasFocus)
-        if (!isHasFocus) return
-        window.decorView.systemUiVisibility = (
-            View.SYSTEM_UI_FLAG_LAYOUT_STABLE or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                or View.SYSTEM_UI_FLAG_FULLSCREEN or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY)
+    private fun showCapabilitySupportInfo() {
+        if (arConfigBase == null) {
+            LogUtil.warn(TAG, "showCapabilitySupportInfo arConfigBase is null.")
+            return
+        }
+        val runningDetectionInfo =
+            if (arConfigBase!!.enableItem and ARConfigBase.ENABLE_DEPTH.toLong() != 0L) "3D" else "2D"
+        Toast.makeText(this, String.format("%s detection mode is enabled.", runningDetectionInfo), Toast.LENGTH_LONG)
+            .show()
     }
 }

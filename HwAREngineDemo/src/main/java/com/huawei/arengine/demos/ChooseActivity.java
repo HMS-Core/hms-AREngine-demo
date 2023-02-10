@@ -1,5 +1,5 @@
-/**
- * Copyright 2021. Huawei Technologies Co., Ltd. All rights reserved.
+/*
+ * Copyright 2023. Huawei Technologies Co., Ltd. All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -60,7 +60,7 @@ public class ChooseActivity extends Activity {
 
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] results) {
-        if (!PermissionManager.hasPermission(this)) {
+        if (!PermissionManager.isPermissionEnable(this)) {
             Toast.makeText(this, "This application needs camera permission.", Toast.LENGTH_LONG).show();
             finish();
         }
@@ -88,6 +88,10 @@ public class ChooseActivity extends Activity {
             case R.id.btn_WorldAR_Java:
                 startActivity(new Intent(this,
                     com.huawei.arengine.demos.java.world.WorldActivity.class));
+                break;
+            case R.id.btn_InstantAR:
+                startActivity(new Intent(this,
+                    com.huawei.arengine.demos.java.instant.InstantActivity.class));
                 break;
             case R.id.btn_FaceAR:
                 startActivity(new Intent(this,

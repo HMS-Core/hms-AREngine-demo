@@ -1,5 +1,5 @@
-/**
- * Copyright 2021. Huawei Technologies Co., Ltd. All rights reserved.
+/*
+ * Copyright 2023. Huawei Technologies Co., Ltd. All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -141,7 +141,6 @@ public class LabelDisplayUtil {
                 squareW + squareY - squareX - squareZ);
         }
 
-        float[] res = {yaw, pitch, roll};
-        return res;
+        return new float[]{yaw, pitch, roll};
     }
 }

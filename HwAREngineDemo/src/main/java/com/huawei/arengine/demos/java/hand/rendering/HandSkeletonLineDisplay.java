@@ -1,5 +1,5 @@
-/**
- * Copyright 2021. Huawei Technologies Co., Ltd. All rights reserved.
+/*
+ * Copyright 2023. Huawei Technologies Co., Ltd. All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -62,7 +62,7 @@ class HandSkeletonLineDisplay implements HandRelatedDisplay {
 
     /**
      * Create and build a shader for the hand skeleton line on the OpenGL thread,
-     * which is called when {@link HandRenderManager#onSurfaceCreated}.
+     * which is called when {@link HandRendererManager#onSurfaceCreated}.
      */
     @Override
     public void init() {
@@ -80,19 +80,19 @@ class HandSkeletonLineDisplay implements HandRelatedDisplay {
     }
 
     private void createProgram() {
-        ShaderUtil.checkGlError(TAG, "Create program start.");
-        mProgram = HandShaderUtil.createGlProgram();
+        ShaderUtil.checkGlError(TAG, "Create hand skeleton line program start.");
+        mProgram = ShaderUtil.getGlProgram();
         ShaderUtil.checkGlError(TAG, "program");
         mPosition = GLES20.glGetAttribLocation(mProgram, "inPosition");
         mColor = GLES20.glGetUniformLocation(mProgram, "inColor");
         mPointSize = GLES20.glGetUniformLocation(mProgram, "inPointSize");
         mModelViewProjectionMatrix = GLES20.glGetUniformLocation(mProgram, "inMVPMatrix");
-        ShaderUtil.checkGlError(TAG, "Create program end.");
+        ShaderUtil.checkGlError(TAG, "Create hand skeleton line program end.");
     }
 
     /**
      * Draw hand skeleton connection line.
-     * This method is called when {@link HandRenderManager#onDrawFrame}.
+     * This method is called when {@link HandRendererManager#onDrawFrame}.
      *
      * @param hands ARHand data collection.
      * @param projectionMatrix ProjectionMatrix(4 * 4).

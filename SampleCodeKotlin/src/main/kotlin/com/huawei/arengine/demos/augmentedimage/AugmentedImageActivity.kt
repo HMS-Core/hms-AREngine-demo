@@ -1,5 +1,5 @@
-/**
- * Copyright 2021. Huawei Technologies Co., Ltd. All rights reserved.
+/*
+ * Copyright 2023. Huawei Technologies Co., Ltd. All rights reserved.
  *
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -112,10 +112,6 @@ class AugmentedImageActivity : BaseActivity() {
             }.also {
                 mArSession?.configure(it)
             }
-            augmentedImageRenderController.run {
-                setImageTrackOnly(true)
-                setArSession(mArSession)
-            }
         } catch (capturedException: Exception) {
             setMessageWhenError(capturedException)
         }
@@ -129,6 +125,10 @@ class AugmentedImageActivity : BaseActivity() {
 
     private fun resumeView() {
         if (!isSuccessResumeSession()) return
+        augmentedImageRenderController.run {
+            setImageTrackOnly(true)
+            setArSession(mArSession)
+        }
         displayRotationController.registerDisplayListener()
         augmentImageBinding.ImageSurfaceview.onResume()
     }
@@ -173,7 +173,7 @@ class AugmentedImageActivity : BaseActivity() {
 
     private fun stopArSession() {
         LogUtil.debug(TAG, "stopArSession start.")
-        mArSession!!.stop()
+        mArSession?.stop()
         mArSession = null
         LogUtil.debug(TAG, "stopArSession end.")
     }
@@ -193,14 +193,5 @@ class AugmentedImageActivity : BaseActivity() {
         mArSession?.stop()
         mArSession = null
         LogUtil.debug(TAG, "onDestroy end.")
-    }
-
-    override fun onWindowFocusChanged(isHasFocus: Boolean) {
-        super.onWindowFocusChanged(isHasFocus)
-        if (isHasFocus) {
-            window.decorView.systemUiVisibility = (View.SYSTEM_UI_FLAG_LAYOUT_STABLE or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                or View.SYSTEM_UI_FLAG_FULLSCREEN or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY)
-        }
     }
 }

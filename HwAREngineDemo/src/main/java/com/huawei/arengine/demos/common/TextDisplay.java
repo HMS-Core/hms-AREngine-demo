@@ -1,5 +1,5 @@
-/**
- * Copyright 2020. Huawei Technologies Co., Ltd. All rights reserved.
+/*
+ * Copyright 2023. Huawei Technologies Co., Ltd. All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -25,30 +25,28 @@ package com.huawei.arengine.demos.common;
  * @since 2020-03-16
  */
 public class TextDisplay {
+    private static final String TAG = "TextDisplay";
+
     private OnTextInfoChangeListener mTextInfoListener;
 
     /**
      * Display the string information. This method is called in each frame
      * when {@link android.opengl.GLSurfaceView.Renderer#onDrawFrame}.
      *
-     * @param sb String builder.
+     * @param sb String.
      */
-    public void onDrawFrame(StringBuilder sb) {
-        if (sb == null) {
-            showTextInfo();
-            return;
-        }
-        showTextInfo(sb.toString());
+    public void onDrawFrame(String sb) {
+        showTextInfo(sb);
     }
 
     /**
      * Set the listener to display information in the UI thread. This method is called
      * when {@link android.opengl.GLSurfaceView.Renderer#onSurfaceCreated}.
      *
-     * @param listener OnTextInfoChangeListener.
+     * @param textInfoListener OnTextInfoChangeListener.
      */
-    public void setListener(OnTextInfoChangeListener listener) {
-        mTextInfoListener = listener;
+    public void setListener(OnTextInfoChangeListener textInfoListener) {
+        mTextInfoListener = textInfoListener;
     }
 
     /**
@@ -65,18 +63,14 @@ public class TextDisplay {
          * @param positionX X-coordinates of points
          * @param positionY Y-coordinates of points
          */
-        void textInfoChanged(String text, float positionX, float positionY);
+        void onTextInfoChanged(String text, float positionX, float positionY);
     }
 
     private void showTextInfo(String text) {
         if (mTextInfoListener != null) {
-            mTextInfoListener.textInfoChanged(text, 0, 0);
-        }
-    }
-
-    private void showTextInfo() {
-        if (mTextInfoListener != null) {
-            mTextInfoListener.textInfoChanged(null, 0, 0);
+            mTextInfoListener.onTextInfoChanged(text, 0, 0);
+        } else {
+            LogUtil.error(TAG, "listener was not initialized.");
         }
     }
 }

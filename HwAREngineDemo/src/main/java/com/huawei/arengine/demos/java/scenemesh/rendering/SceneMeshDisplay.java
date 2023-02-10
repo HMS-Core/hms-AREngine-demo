@@ -1,5 +1,5 @@
-/**
- * Copyright 2021. Huawei Technologies Co., Ltd. All rights reserved.
+/*
+ * Copyright 2023. Huawei Technologies Co., Ltd. All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -21,7 +21,10 @@ import static javax.microedition.khronos.opengles.GL10.GL_ONE_MINUS_SRC_ALPHA;
 import static javax.microedition.khronos.opengles.GL10.GL_SRC_ALPHA;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.opengl.GLES20;
+import android.opengl.GLUtils;
 import android.opengl.Matrix;
 
 import com.huawei.arengine.demos.common.LogUtil;
@@ -29,6 +32,7 @@ import com.huawei.arengine.demos.common.ShaderUtil;
 import com.huawei.hiar.ARFrame;
 import com.huawei.hiar.ARSceneMesh;
 
+import java.io.IOException;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
@@ -73,17 +77,15 @@ public class SceneMeshDisplay implements SceneMeshComponenDisplay {
 
     private int mPositionAttribute;
 
-    private int mColorUniform;
-
     private int mModelViewProjectionUniform;
-
-    private int mPointSizeUniform;
 
     private int mPointsNum = 0;
 
     private int mTrianglesNum = 0;
 
     private float[] mModelViewProjection = new float[MODLE_VIEW_PROJ_SIZE];
+
+    private final int[] mTexture = new int[1];
 
     /**
      * Scene mesh display constructor.
@@ -114,10 +116,32 @@ public class SceneMeshDisplay implements SceneMeshComponenDisplay {
         ShaderUtil.checkGlError(TAG, "program");
 
         mPositionAttribute = GLES20.glGetAttribLocation(mProgram, "a_Position");
-        mColorUniform = GLES20.glGetUniformLocation(mProgram, "u_Color");
         mModelViewProjectionUniform = GLES20.glGetUniformLocation(mProgram, "u_ModelViewProjection");
-        mPointSizeUniform = GLES20.glGetUniformLocation(mProgram, "u_PointSize");
+        loadTexture(context);
         ShaderUtil.checkGlError(TAG, "program params");
+    }
+
+    private void loadTexture(Context context) {
+        Bitmap textureBitmap;
+        try {
+            textureBitmap = BitmapFactory.decodeStream(context.getAssets().open("grid.png"));
+        } catch (IOException | IllegalStateException exception) {
+            LogUtil.debug(TAG, "loadTexture error, catch " + exception.getClass());
+            return;
+        }
+
+        GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
+        GLES20.glGenTextures(mTexture.length, mTexture, 0);
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mTexture[0]);
+
+        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_REPEAT);
+        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_REPEAT);
+        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR_MIPMAP_LINEAR);
+        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR);
+        GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, textureBitmap, 0);
+        GLES20.glGenerateMipmap(GLES20.GL_TEXTURE_2D);
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0);
+        ShaderUtil.checkGlError(TAG, "loadTexture end");
     }
 
     @Override
@@ -188,35 +212,29 @@ public class SceneMeshDisplay implements SceneMeshComponenDisplay {
 
         // Drawing point.
         GLES20.glUseProgram(mProgram);
+        GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mTexture[0]);
         GLES20.glEnableVertexAttribArray(mPositionAttribute);
-        GLES20.glEnableVertexAttribArray(mColorUniform);
         GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, mVerticeVBO);
         GLES20.glVertexAttribPointer(mPositionAttribute, POSITION_COMPONENTS_NUMBER, GLES20.GL_FLOAT, false,
             BYTES_PER_POINT, 0);
-        GLES20.glUniform4f(mColorUniform, 1.0f, 0.0f, 0.0f, 1.0f);
         GLES20.glUniformMatrix4fv(mModelViewProjectionUniform, 1, false, mModelViewProjection, 0);
 
-        // Set the point size to 5.
-        GLES20.glUniform1f(mPointSizeUniform, 5.0f);
-        GLES20.glDrawArrays(GLES20.GL_POINTS, 0, mPointsNum);
-        GLES20.glDisableVertexAttribArray(mColorUniform);
         GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, 0);
         ShaderUtil.checkGlError(TAG, "Draw point");
 
-        // Draw a triangle.
         GLES20.glEnable(GL_BLEND);
         GLES20.glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        GLES20.glEnableVertexAttribArray(mColorUniform);
-        GLES20.glUniform4f(mColorUniform, 0.0f, 1.0f, 0.0f, 0.5f);
         GLES20.glBindBuffer(GLES20.GL_ELEMENT_ARRAY_BUFFER, mTriangleVBO);
 
         // Each triangle has three vertices.
         GLES20.glDrawElements(GLES20.GL_TRIANGLES, mTrianglesNum * 3, GLES20.GL_UNSIGNED_INT, 0);
         GLES20.glBindBuffer(GLES20.GL_ELEMENT_ARRAY_BUFFER, 0);
-        GLES20.glDisableVertexAttribArray(mColorUniform);
         ShaderUtil.checkGlError(TAG, "Draw triangles");
         GLES20.glDisableVertexAttribArray(mPositionAttribute);
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0);
 
+        GLES20.glDisable(GLES20.GL_DEPTH_TEST);
         GLES20.glDisable(GLES20.GL_CULL_FACE);
         GLES20.glDisable(GL_BLEND);
         ShaderUtil.checkGlError(TAG, "Draw after");

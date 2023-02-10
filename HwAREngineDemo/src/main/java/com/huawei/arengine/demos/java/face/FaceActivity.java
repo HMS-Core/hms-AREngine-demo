@@ -1,5 +1,5 @@
-/**
- * Copyright 2021. Huawei Technologies Co., Ltd. All rights reserved.
+/*
+ * Copyright 2023. Huawei Technologies Co., Ltd. All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -16,30 +16,36 @@
 
 package com.huawei.arengine.demos.java.face;
 
-import android.content.Intent;
 import android.graphics.SurfaceTexture;
+import android.hardware.camera2.CameraCharacteristics;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
 import android.util.DisplayMetrics;
+import android.util.Size;
 import android.view.Surface;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.huawei.arengine.demos.R;
 import com.huawei.arengine.demos.common.BaseActivity;
-import com.huawei.arengine.demos.common.DisplayRotationManager;
+import com.huawei.arengine.demos.common.ListDialog;
 import com.huawei.arengine.demos.common.LogUtil;
-import com.huawei.arengine.demos.common.PermissionManager;
-import com.huawei.arengine.demos.java.face.rendering.FaceRenderManager;
+import com.huawei.arengine.demos.common.SecurityUtil;
+import com.huawei.arengine.demos.java.face.rendering.FaceRendererManager;
 import com.huawei.hiar.ARConfigBase;
-import com.huawei.hiar.AREnginesApk;
 import com.huawei.hiar.ARFaceTrackingConfig;
 import com.huawei.hiar.ARSession;
 import com.huawei.hiar.exceptions.ARCameraNotAvailableException;
+import com.huawei.hiar.exceptions.ARUnavailableServiceApkTooOldException;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -54,13 +60,25 @@ import java.util.List;
 public class FaceActivity extends BaseActivity {
     private static final String TAG = FaceActivity.class.getSimpleName();
 
-    private ARSession mArSession;
+    private static final int MSG_OPEN_MULTI_FACE_MODE = 1;
 
-    private GLSurfaceView glSurfaceView;
+    private static final int MSG_OPEN_SINGLE_FACE_WITH_LIGHT_MODE = 2;
 
-    private FaceRenderManager mFaceRenderManager;
+    private static final long BUTTON_REPEAT_CLICK_INTERVAL_TIME = 1000L;
 
-    private DisplayRotationManager mDisplayRotationManager;
+    private static final String OPEN_MULTI_FACE_MODE = "OpenMultiFaceMode";
+
+    private static final String OPEN_SINGLE_FACE_WITH_LIGHT_MODE = "OpenSingleFaceWithLightMode";
+
+    private static final float RATIO_4_TO_3 = (float) 4 / 3f;
+
+    private static final float EPSINON = 0.000001f;
+
+    private int mFaceMode = MSG_OPEN_SINGLE_FACE_WITH_LIGHT_MODE;
+
+    private int mCameraLensFacing = CameraCharacteristics.LENS_FACING_FRONT;
+
+    private FaceRendererManager mFaceRendererManager;
 
     private boolean isOpenCameraOutside = false;
 
@@ -74,166 +92,262 @@ public class FaceActivity extends BaseActivity {
 
     private Surface mDepthSurface;
 
-    private ARConfigBase mArConfig;
+    private Button mButton;
 
-    private TextView mTextView;
+    private Button mCameraFacingButton;
 
-    private boolean isRemindInstall = false;
+    private Button mRatioButton;
+
+    private volatile boolean mIsCameraInit = false;
+
+    private List<Size> mPreviewSizes;
+
+    private List<String> mKeyList;
+
+    private int mPreviewWidth;
+
+    private int mPreviewHeight;
 
     /**
      * The initial texture ID is -1.
      */
     private int textureId = -1;
 
+    private Handler mHandler = new Handler(Looper.getMainLooper()) {
+        @Override
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
+                case MSG_OPEN_MULTI_FACE_MODE:
+                    mButton.setText(OPEN_SINGLE_FACE_WITH_LIGHT_MODE);
+                    break;
+                case MSG_OPEN_SINGLE_FACE_WITH_LIGHT_MODE:
+                    mButton.setText(OPEN_MULTI_FACE_MODE);
+                    break;
+                default:
+                    LogUtil.info(TAG, "handleMessage default in FaceActivity.");
+                    break;
+            }
+            mButton.setEnabled(true);
+        }
+    };
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.face_activity_main);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-        mTextView = findViewById(R.id.faceTextView);
-        glSurfaceView = findViewById(R.id.faceSurfaceview);
+        mButton = findViewById(R.id.faceButton);
+        mCameraFacingButton = findViewById(R.id.cameraFacingButton);
+        mSurfaceView = findViewById(R.id.faceSurfaceview);
+        mRatioButton = findViewById(R.id.ratioButton);
+        getPreviewSizeList();
+        initClickListener();
+        initCameraFacingClickListener();
 
-        mDisplayRotationManager = new DisplayRotationManager(this);
-
-        glSurfaceView.setPreserveEGLContextOnPause(true);
+        mSurfaceView.setPreserveEGLContextOnPause(true);
 
         // Set the OpenGLES version.
-        glSurfaceView.setEGLContextClientVersion(2);
+        mSurfaceView.setEGLContextClientVersion(2);
 
         // Set the EGL configuration chooser, including for the
         // number of bits of the color buffer and the number of depth bits.
-        glSurfaceView.setEGLConfigChooser(8, 8, 8, 8, 16, 0);
+        mSurfaceView.setEGLConfigChooser(8, 8, 8, 8, 16, 0);
 
-        mFaceRenderManager = new FaceRenderManager(this, this);
-        mFaceRenderManager.setDisplayRotationManage(mDisplayRotationManager);
-        mFaceRenderManager.setTextView(mTextView);
+        mFaceRendererManager = new FaceRendererManager(this);
+        mFaceRendererManager.setDisplayRotationManager(mDisplayRotationManager);
+        TextView textView = findViewById(R.id.faceTextView);
+        mFaceRendererManager.setTextView(textView);
 
-        glSurfaceView.setRenderer(mFaceRenderManager);
-        glSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
+        mSurfaceView.setRenderer(mFaceRendererManager);
+        mSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
+    }
+
+    private void initClickListener() {
+        mButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                mButton.setEnabled(false);
+                if (mArSession != null) {
+                    mArSession.pause();
+                    mArSession.stop();
+                    mArSession = null;
+                }
+                stopCamera();
+                if (mButton.getText().toString().equals(OPEN_MULTI_FACE_MODE)) {
+                    mFaceMode = MSG_OPEN_MULTI_FACE_MODE;
+                    setArConfig(mFaceMode, false);
+                    mHandler.sendEmptyMessageDelayed(MSG_OPEN_MULTI_FACE_MODE, BUTTON_REPEAT_CLICK_INTERVAL_TIME);
+                    return;
+                }
+                if (mButton.getText().toString().equals(OPEN_SINGLE_FACE_WITH_LIGHT_MODE)) {
+                    mFaceMode = MSG_OPEN_SINGLE_FACE_WITH_LIGHT_MODE;
+                    setArConfig(mFaceMode, false);
+                    mHandler.sendEmptyMessageDelayed(MSG_OPEN_SINGLE_FACE_WITH_LIGHT_MODE,
+                        BUTTON_REPEAT_CLICK_INTERVAL_TIME);
+                }
+            }
+        });
+    }
+
+    private void initCameraFacingClickListener() {
+        mCameraFacingButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (!mIsCameraInit) {
+                    LogUtil.debug(TAG, "camera preview not finish");
+                    return;
+                }
+                if (mArSession != null) {
+                    mArSession.pause();
+                    mArSession.stop();
+                    mArSession = null;
+                }
+                stopCamera();
+                mCameraLensFacing = mCameraLensFacing == CameraCharacteristics.LENS_FACING_FRONT
+                    ? CameraCharacteristics.LENS_FACING_BACK : CameraCharacteristics.LENS_FACING_FRONT;
+                setArConfig(mFaceMode, false);
+                getPreviewSizeList();
+            }
+        });
+
+        mRatioButton.setOnClickListener(view -> showDialog());
+    }
+
+    private void showDialog() {
+        if (mPreviewSizes == null || mPreviewSizes.size() == 0) {
+            return;
+        }
+        ListDialog dialogUtils = new ListDialog();
+        dialogUtils.setDialogOnItemClickListener(position -> {
+            mPreviewWidth = mPreviewSizes.get(position).getWidth();
+            mPreviewHeight = mPreviewSizes.get(position).getHeight();
+            stopArSession();
+            setArConfig(mFaceMode, true);
+        });
+        dialogUtils.showDialogList(FaceActivity.this, mKeyList);
+    }
+
+    private void getPreviewSizeList() {
+        if (mCamera == null) {
+            mCamera = new CameraHelper(this);
+        }
+        Size[] supportedPreviewSizes = mCamera.getPreviewSizeList(mCameraLensFacing);
+        mPreviewSizes = new ArrayList<>();
+        mKeyList = new ArrayList<>();
+        for (Size option : supportedPreviewSizes) {
+            if (Math.abs(option.getWidth() / (float) option.getHeight() - RATIO_4_TO_3) < EPSINON) {
+                mPreviewSizes.add(option);
+                mKeyList.add(option.getWidth() + "×" + option.getHeight());
+            }
+        }
+    }
+
+    private void setArConfig(int faceMode, boolean isModifyPreviewSize) {
+        try {
+            if (mArSession == null) {
+                mArSession = new ARSession(this.getApplicationContext());
+            }
+            ARFaceTrackingConfig config = new ARFaceTrackingConfig(mArSession);
+            config.setPowerMode(ARConfigBase.PowerMode.POWER_SAVING);
+            if (isModifyPreviewSize) {
+                config.setPreviewSize(mPreviewWidth, mPreviewHeight);
+            }
+            if (faceMode == MSG_OPEN_SINGLE_FACE_WITH_LIGHT_MODE) {
+                config.setLightingMode(ARConfigBase.LIGHT_MODE_ENVIRONMENT_LIGHTING);
+            } else {
+                config.setFaceDetectMode(ARConfigBase.FaceDetectMode.FACE_ENABLE_MULTIFACE.getEnumValue()
+                    | ARConfigBase.FaceDetectMode.FACE_ENABLE_DEFAULT.getEnumValue());
+            }
+            if (isOpenCameraOutside) {
+                mArConfigBase.setImageInputMode(ARConfigBase.ImageInputMode.EXTERNAL_INPUT_ALL);
+            }
+            config.setCameraLensFacing(mCameraLensFacing == CameraCharacteristics.LENS_FACING_FRONT
+                ? ARFaceTrackingConfig.CameraLensFacing.FRONT : ARFaceTrackingConfig.CameraLensFacing.REAR);
+            mArConfigBase = config;
+            mArSession.configure(mArConfigBase);
+        } catch (Exception capturedException) {
+            setMessageWhenError(capturedException);
+        } finally {
+            showCapabilitySupportInfo(faceMode);
+        }
+        if (errorMessage != null) {
+            stopArSession();
+            return;
+        }
+        try {
+            mArSession.resume();
+        } catch (ARCameraNotAvailableException capturedException) {
+            Toast.makeText(this, "Camera open failed, please restart the app", Toast.LENGTH_LONG).show();
+            mArSession = null;
+            return;
+        }
+        setCamera();
+        mFaceRendererManager.setArSession(mArSession);
+        mFaceRendererManager.setArConfigBase(mArConfigBase);
+        mDisplayRotationManager.onDisplayChanged(0);
+        mIsCameraInit = false;
     }
 
     @Override
     protected void onResume() {
         LogUtil.debug(TAG, "onResume");
         super.onResume();
-        if (!PermissionManager.hasPermission(this)) {
-            this.finish();
-        }
+        setArConfig(mFaceMode, false);
         mDisplayRotationManager.registerDisplayListener();
-        errorMessage = null;
-        if (mArSession == null) {
-            try {
-                if (!arEngineAbilityCheck()) {
-                    finish();
-                    return;
-                }
-                mArSession = new ARSession(this.getApplicationContext());
-                mArConfig = new ARFaceTrackingConfig(mArSession);
-                mArConfig.setLightingMode(ARConfigBase.LIGHT_MODE_ENVIRONMENT_LIGHTING);
-                mArConfig.setPowerMode(ARConfigBase.PowerMode.POWER_SAVING);
-
-                if (isOpenCameraOutside) {
-                    mArConfig.setImageInputMode(ARConfigBase.ImageInputMode.EXTERNAL_INPUT_ALL);
-                }
-                mArSession.configure(mArConfig);
-            } catch (Exception capturedException) {
-                setMessageWhenError(capturedException);
-            }
-
-            if (mArConfig.getLightingMode() != ARConfigBase.LIGHT_MODE_ENVIRONMENT_LIGHTING) {
-                String toastMsg = "Please update HUAWEI AR Engine app in the AppGallery.";
-                Toast.makeText(this, toastMsg, Toast.LENGTH_LONG).show();
-            }
-
-            if (errorMessage != null) {
-                stopArSession();
-                return;
-            }
-        }
-        try {
-            mArSession.resume();
-        } catch (ARCameraNotAvailableException e) {
-            Toast.makeText(this, "Camera open failed, please restart the app", Toast.LENGTH_LONG).show();
-            mArSession = null;
-            return;
-        }
-        mDisplayRotationManager.registerDisplayListener();
-        setCamera();
-        mFaceRenderManager.setArSession(mArSession);
-        mFaceRenderManager.setArConfigBase(mArConfig);
-        mFaceRenderManager.setOpenCameraOutsideFlag(isOpenCameraOutside);
-        mFaceRenderManager.setTextureId(textureId);
-        glSurfaceView.onResume();
-    }
-
-    /**
-     * Check whether HUAWEI AR Engine server (com.huawei.arengine.service) is installed on the current device.
-     * If not, redirect the user to HUAWEI AppGallery for installation.
-     *
-     * @return true:AR Engine ready.
-     */
-    private boolean arEngineAbilityCheck() {
-        boolean isInstallArEngineApk = AREnginesApk.isAREngineApkReady(this);
-        if (!isInstallArEngineApk && isRemindInstall) {
-            Toast.makeText(this, "Please agree to install.", Toast.LENGTH_LONG).show();
-            finish();
-        }
-        LogUtil.debug(TAG, "Is Install AR Engine Apk: " + isInstallArEngineApk);
-        if (!isInstallArEngineApk) {
-            startActivity(new Intent(this, com.huawei.arengine.demos.common.ConnectAppMarketActivity.class));
-            isRemindInstall = true;
-        }
-        return AREnginesApk.isAREngineApkReady(this);
-    }
-
-    private void stopArSession() {
-        LogUtil.info(TAG, "Stop session start.");
-        Toast.makeText(this, errorMessage, Toast.LENGTH_LONG).show();
-        if (mArSession != null) {
-            mArSession.stop();
-            mArSession = null;
-        }
-        LogUtil.info(TAG, "Stop session end.");
+        mFaceRendererManager.setOpenCameraOutsideFlag(isOpenCameraOutside);
+        mFaceRendererManager.setTextureId(textureId);
+        mSurfaceView.onResume();
     }
 
     private void setCamera() {
-        if (isOpenCameraOutside && mCamera == null) {
+        if (!isOpenCameraOutside) {
+            return;
+        }
+        if (mCamera == null) {
             LogUtil.info(TAG, "new Camera");
             DisplayMetrics dm = new DisplayMetrics();
             mCamera = new CameraHelper(this);
-            mCamera.setupCamera(dm.widthPixels, dm.heightPixels);
+            mCamera.setupCamera(dm.widthPixels, dm.heightPixels, mCameraLensFacing);
         }
 
         // Check whether setCamera is called for the first time.
-        if (isOpenCameraOutside) {
-            if (textureId != -1) {
-                mArSession.setCameraTextureName(textureId);
-                initSurface();
-            } else {
-                int[] textureIds = new int[1];
-                GLES20.glGenTextures(1, textureIds, 0);
-                textureId = textureIds[0];
-                mArSession.setCameraTextureName(textureId);
-                initSurface();
-            }
+        if (textureId == -1) {
+            int[] textureIds = new int[1];
+            GLES20.glGenTextures(1, textureIds, 0);
+            textureId = textureIds[0];
+        }
+        mArSession.setCameraTextureName(textureId);
+        initSurface();
 
-            SurfaceTexture surfaceTexture = new SurfaceTexture(textureId);
-            mCamera.setPreviewTexture(surfaceTexture);
-            mCamera.setPreViewSurface(mPreViewSurface);
-            mCamera.setVgaSurface(mVgaSurface);
-            mCamera.setDepthSurface(mDepthSurface);
-            if (!mCamera.openCamera()) {
-                String showMessage = "Open camera filed!";
-                LogUtil.error(TAG, showMessage);
-                Toast.makeText(this, showMessage, Toast.LENGTH_LONG).show();
-                finish();
-            }
+        SurfaceTexture surfaceTexture = new SurfaceTexture(textureId);
+        mCamera.setPreviewTexture(surfaceTexture);
+        mCamera.setPreViewSurface(mPreViewSurface);
+        mCamera.setVgaSurface(mVgaSurface);
+        mCamera.setDepthSurface(mDepthSurface);
+        if (!mCamera.openCamera()) {
+            String showMessage = "Open camera failed!";
+            LogUtil.error(TAG, showMessage);
+            Toast.makeText(this, showMessage, Toast.LENGTH_LONG).show();
+            SecurityUtil.safeFinishActivity(this);
+        }
+    }
+
+    private void stopCamera() {
+        if (!isOpenCameraOutside) {
+            return;
+        }
+        if (mCamera != null) {
+            LogUtil.info(TAG, "Stop camera start.");
+            mCamera.closeCamera();
+            mCamera.stopCameraThread();
+            mCamera = null;
+            LogUtil.info(TAG, "Stop camera end.");
         }
     }
 
     private void initSurface() {
-        List<ARConfigBase.SurfaceType> surfaceTypeList = mArConfig.getImageInputSurfaceTypes();
-        List<Surface> surfaceList = mArConfig.getImageInputSurfaces();
+        List<ARConfigBase.SurfaceType> surfaceTypeList = mArConfigBase.getImageInputSurfaceTypes();
+        List<Surface> surfaceList = mArConfigBase.getImageInputSurfaces();
 
         LogUtil.info(TAG, "surfaceList size : " + surfaceList.size());
         int size = surfaceTypeList.size();
@@ -256,48 +370,53 @@ public class FaceActivity extends BaseActivity {
     }
 
     @Override
-    protected void onPause() {
-        LogUtil.info(TAG, "onPause start.");
-        super.onPause();
-        if (isOpenCameraOutside) {
-            if (mCamera != null) {
-                mCamera.closeCamera();
-                mCamera.stopCameraThread();
-                mCamera = null;
-            }
-        }
-
-        if (mArSession != null) {
-            mDisplayRotationManager.unregisterDisplayListener();
-            glSurfaceView.onPause();
-            mArSession.pause();
-            LogUtil.info(TAG, "Session paused!");
-        }
-        LogUtil.info(TAG, "onPause end.");
-    }
-
-    @Override
     protected void onDestroy() {
         LogUtil.info(TAG, "onDestroy start.");
         super.onDestroy();
-        if (mArSession != null) {
-            LogUtil.info(TAG, "Session onDestroy!");
-            mArSession.stop();
-            mArSession = null;
-            LogUtil.info(TAG, "Session stop!");
+        if (mHandler != null) {
+            mHandler.removeCallbacksAndMessages(null);
         }
         LogUtil.info(TAG, "onDestroy end.");
     }
 
-    @Override
-    public void onWindowFocusChanged(boolean isHasFocus) {
-        LogUtil.debug(TAG, "onWindowFocusChanged");
-        super.onWindowFocusChanged(isHasFocus);
-        if (isHasFocus) {
-            getWindow().getDecorView()
-                .setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                    | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                    | View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+    /**
+     * Reset the camera status to indicate that the process from camera initialization to preview is complete.
+     */
+    public void resetCameraStatus() {
+        mIsCameraInit = true;
+    }
+
+    /**
+     * For HUAWEI AR Engine 3.18 or later versions, you can call configure of ARSession, then call getLightingMode and
+     * getFaceDetectMode respectively to check whether the current device supports ambient light detection and
+     * multi-face recognition.
+     *
+     * @param faceMode Facial recognition mode.
+     */
+    private void showCapabilitySupportInfo(int faceMode) {
+        if (mArConfigBase == null) {
+            LogUtil.warn(TAG, "showCapabilitySupportInfo arConfigBase is null.");
+            return;
         }
+
+        String toastStr = "";
+        try {
+            if (faceMode == MSG_OPEN_SINGLE_FACE_WITH_LIGHT_MODE) {
+                toastStr = (mArConfigBase.getLightingMode() & ARConfigBase.LIGHT_MODE_ENVIRONMENT_LIGHTING) == 0
+                    ? "The device does not support LIGHT_MODE_ENVIRONMENT_LIGHTING." : "";
+            }
+            if (faceMode != MSG_OPEN_SINGLE_FACE_WITH_LIGHT_MODE && mArConfigBase instanceof ARFaceTrackingConfig) {
+                toastStr = (((ARFaceTrackingConfig) mArConfigBase).getFaceDetectMode()
+                    & ARConfigBase.FaceDetectMode.FACE_ENABLE_MULTIFACE.getEnumValue()) == 0
+                        ? "The device does not support FACE_ENABLE_MULTIFACE." : "";
+            }
+        } catch (ARUnavailableServiceApkTooOldException capturedException) {
+            LogUtil.debug(TAG, "show capability support info has exception:" + capturedException.getClass());
+        }
+
+        if (toastStr.isEmpty()) {
+            return;
+        }
+        Toast.makeText(this, toastStr, Toast.LENGTH_LONG).show();
     }
 }

@@ -1,5 +1,5 @@
-/**
- * Copyright 2021. Huawei Technologies Co., Ltd. All rights reserved.
+/*
+ * Copyright 2023. Huawei Technologies Co., Ltd. All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -29,28 +29,19 @@ object Constants {
      * Vertex shader used for label rendering.
      */
     const val SCENE_MESH_VERTEX = ("uniform mat4 u_ModelViewProjection;"
-        + "uniform vec4 u_Color;"
-        + "uniform float u_PointSize;"
-        + "attribute vec2 a_TexCoord;"
         + "attribute vec4 a_Position;"
-        + "varying vec4 v_Color;"
-        + "varying vec4 v_Ambient;"
-        + "varying vec2 v_TexCoord;"
+        + "varying vec4 v_Position;"
         + "void main() {"
-        + "    v_Color = u_Color;"
+        + "    v_Position = a_Position;"
         + "    gl_Position = u_ModelViewProjection * vec4(a_Position.xyz, 1.0);"
-        + "    gl_PointSize = u_PointSize;"
-        + "    v_TexCoord = a_TexCoord;"
-        + "    v_Ambient = vec4(1.0, 1.0, 1.0, 1.0);"
         + "}")
 
     const val SCENE_MESH_FRAGMENT = ("precision mediump float;"
-        + "uniform sampler2D vv;"
-        + "varying vec4 v_Color;"
-        + "varying vec4 v_Ambient;"
-        + "varying vec2 v_TexCoord;"
+        + "uniform sampler2D u_Texture;"
+        + "varying vec4 v_Position;"
         + "void main() {"
-        + "    gl_FragColor = v_Color;"
+        + "    vec4 control = texture2D(u_Texture, v_Position.xz);"
+        + "    gl_FragColor = vec4(control.rgb, 0.6);"
         + "}")
 
     const val VIRTUAL_OBJECT_FRAGMENT = ("precision mediump float;"

@@ -1,5 +1,5 @@
-/**
- * Copyright 2021. Huawei Technologies Co., Ltd. All rights reserved.
+/*
+ * Copyright 2023. Huawei Technologies Co., Ltd. All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -62,14 +62,7 @@ public class RectRenderer extends TargetRenderer {
 
         ShaderUtil.checkGlError(TAG, "before update");
         GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, vbo);
-
-        if (vboSize < pointNum * BYTES_PER_POINT) {
-            while (vboSize < pointNum * BYTES_PER_POINT) {
-                vboSize *= VBO_SIZE_GROWTH_FACTOR;
-            }
-            GLES20.glBufferData(GLES20.GL_ARRAY_BUFFER, vboSize, null, GLES20.GL_DYNAMIC_DRAW);
-        }
-
+        updateBufferSizeIfNeeded();
         FloatBuffer linePointBuffer = FloatBuffer.wrap(linePoints);
         GLES20.glBufferSubData(GLES20.GL_ARRAY_BUFFER, 0, pointNum * BYTES_PER_POINT, linePointBuffer);
         GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, 0);
@@ -91,16 +84,14 @@ public class RectRenderer extends TargetRenderer {
         extentZ = Math.abs(axisAlignBoundingBox[OFFSET_Z]) * LENGTH_MULTIPLE_NUM;
 
         float[] res = new float[QUATERNION_SIZE];
-        float[] in;
-
-        int idx = 0;
         float baseX = axisAlignBoundingBox[OFFSET_X];
         float baseY = axisAlignBoundingBox[OFFSET_Y];
         float baseZ = axisAlignBoundingBox[OFFSET_Z];
 
-        in = new float[] {baseX, baseY, -baseZ, W_VALUE};
+        float[] in = new float[] {baseX, baseY, -baseZ, W_VALUE};
         Matrix.multiplyMV(res, 0, boxMatrix, 0, in, 0);
         float[] calcVertexes = new float[SQUARE_SIZE * CUBE_POINT_NUM];
+        int idx = 0;
         numericalNormalization(idx, res, calcVertexes);
         idx = idx + FLOATS_PER_POINT;
 

@@ -1,17 +1,17 @@
-/**
- * Copyright 2021. Huawei Technologies Co., Ltd. All rights reserved.
+/*
+ * Copyright 2023. Huawei Technologies Co., Ltd. All rights reserved.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
  */
 
 package com.huawei.arengine.demos.worldbody
@@ -104,13 +104,15 @@ class WorldBodyActivity : BaseActivity() {
             arSession = ARSession(this.applicationContext)
             ARWorldBodyTrackingConfig(arSession).apply {
                 focusMode = ARConfigBase.FocusMode.AUTO_FOCUS
-                semanticMode = ARWorldBodyTrackingConfig.SEMANTIC_PLANE
+                enableItem = (ARConfigBase.ENABLE_DEPTH or ARConfigBase.ENABLE_MASK).toLong()
+                arConfigBase = this
             }.also {
                 arSession?.configure(it)
             }
-            worldbodyRenderController.setArSession(arSession)
         } catch (capturedException: Exception) {
             setMessageWhenError(capturedException)
+        } finally {
+            showCapabilitySupportInfo()
         }
         errorMessage?.let {
             Toast.makeText(this, it, Toast.LENGTH_LONG).show()
@@ -122,6 +124,7 @@ class WorldBodyActivity : BaseActivity() {
 
     private fun resumeView() {
         if (!isSuccessResumeSession()) return
+        worldbodyRenderController.setArSession(arSession)
         displayRotationController.registerDisplayListener()
         worldActivityBinding.surfaceView.onResume()
     }
@@ -161,14 +164,14 @@ class WorldBodyActivity : BaseActivity() {
         LogUtil.info(TAG, "onDestroy end.")
     }
 
-    override fun onWindowFocusChanged(hasFocus: Boolean) {
-        super.onWindowFocusChanged(hasFocus)
-        hasFocus.let {
-            window.decorView.systemUiVisibility = (
-                View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                    or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                    or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                    or View.SYSTEM_UI_FLAG_FULLSCREEN or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY)
+    private fun showCapabilitySupportInfo() {
+        if (arConfigBase == null) {
+            LogUtil.warn(TAG, "showCapabilitySupportInfo arConfigBase is null.")
+            return
         }
+        val runningDetectionInfo =
+            if (arConfigBase!!.enableItem and ARConfigBase.ENABLE_DEPTH.toLong() != 0L) "3D" else "2D"
+        Toast.makeText(this, String.format("%s detection mode is enabled.", runningDetectionInfo), Toast.LENGTH_LONG)
+            .show()
     }
 }

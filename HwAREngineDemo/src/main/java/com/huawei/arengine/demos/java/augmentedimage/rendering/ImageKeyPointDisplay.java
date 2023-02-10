@@ -1,17 +1,17 @@
-/**
- * Copyright 2021. Huawei Technologies Co., Ltd. All rights reserved.
- * <p>
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * <p>
- * http://www.apache.org/licenses/LICENSE-2.0
- * <p>
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+/*
+ * Copyright 2023. Huawei Technologies Co., Ltd. All rights reserved.
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
  */
 
 package com.huawei.arengine.demos.java.augmentedimage.rendering;
@@ -32,7 +32,6 @@ import java.nio.FloatBuffer;
  * @since 2021-02-04
  */
 public class ImageKeyPointDisplay implements AugmentedImageComponentDisplay {
-    private static final float[] COEFFICIENTS = {0.5f, 0.5f};
 
     private static final String TAG = ImageKeyPointDisplay.class.getSimpleName();
 
@@ -46,11 +45,11 @@ public class ImageKeyPointDisplay implements AugmentedImageComponentDisplay {
 
     private static final int BYTES_PER_CORNER = 4;
 
-    private float[] centerPointCoordinates;
+    private float[] mCenterPointCoordinates;
 
-    private float[] cornerPointCoordinates;
+    private float[] mCornerPointCoordinates;
 
-    private float[] allPointCoordinates;
+    private float[] mAllPointCoordinates;
 
     private int mVbo;
 
@@ -68,14 +67,14 @@ public class ImageKeyPointDisplay implements AugmentedImageComponentDisplay {
 
     private int mNumPoints;
 
-    private int index = 0;
+    private int mIndex = 0;
 
     /**
      * Create and build shaders for image keypoints on the OpenGL thread.
      */
     @Override
     public void init() {
-        ShaderUtil.checkGlError(TAG, "Init start.");
+        ShaderUtil.checkGlError(TAG, "Init image key points shader start.");
         int[] buffers = new int[1];
         GLES20.glGenBuffers(1, buffers, 0);
         mVbo = buffers[0];
@@ -84,12 +83,12 @@ public class ImageKeyPointDisplay implements AugmentedImageComponentDisplay {
         GLES20.glBufferData(GLES20.GL_ARRAY_BUFFER, mVboSize, null, GLES20.GL_DYNAMIC_DRAW);
         GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, 0);
         createProgram();
-        ShaderUtil.checkGlError(TAG, "Init end.");
+        ShaderUtil.checkGlError(TAG, "Init image key points shader end.");
     }
 
     private void createProgram() {
         ShaderUtil.checkGlError(TAG, "Create gl program start.");
-        mProgram = ImageShaderUtil.getImageKeyMsgProgram();
+        mProgram = ShaderUtil.getGlProgram();
         mPosition = GLES20.glGetAttribLocation(mProgram, "inPosition");
         mColor = GLES20.glGetUniformLocation(mProgram, "inColor");
         mPointSize = GLES20.glGetUniformLocation(mProgram, "inPointSize");
@@ -113,18 +112,18 @@ public class ImageKeyPointDisplay implements AugmentedImageComponentDisplay {
 
     private void draw(ARAugmentedImage augmentedImage, float[] viewProjectionMatrix) {
         createImageCenterPoint(augmentedImage);
-        updateImageAllPoints(centerPointCoordinates);
+        updateImageAllPoints(mCenterPointCoordinates);
 
-        cornerPointCoordinates = new float[BYTES_PER_CORNER * 4];
+        mCornerPointCoordinates = new float[BYTES_PER_CORNER * 4];
         for (CornerType cornerType : CornerType.values()) {
             createImageCorner(augmentedImage, cornerType);
         }
-        mergeArray(centerPointCoordinates, cornerPointCoordinates);
+        mergeArray(mCenterPointCoordinates, mCornerPointCoordinates);
 
-        updateImageAllPoints(allPointCoordinates);
+        updateImageAllPoints(mAllPointCoordinates);
         drawImageKeyPoint(viewProjectionMatrix);
-        cornerPointCoordinates = null;
-        index = 0;
+        mCornerPointCoordinates = null;
+        mIndex = 0;
     }
 
     /**
@@ -134,12 +133,13 @@ public class ImageKeyPointDisplay implements AugmentedImageComponentDisplay {
      * @param augmentedImage  Augmented image object.
      */
     private void createImageCenterPoint(ARAugmentedImage augmentedImage) {
-        centerPointCoordinates = new float[4];
+        mCenterPointCoordinates = new float[4];
         ARPose centerPose = augmentedImage.getCenterPose();
-        centerPointCoordinates[0] = centerPose.tx();
-        centerPointCoordinates[1] = centerPose.ty();
-        centerPointCoordinates[2] = centerPose.tz();
-        centerPointCoordinates[3] = 1.0f;
+        int index = 0;
+        mCenterPointCoordinates[index] = centerPose.tx();
+        mCenterPointCoordinates[++index] = centerPose.ty();
+        mCenterPointCoordinates[++index] = centerPose.tz();
+        mCenterPointCoordinates[++index] = 1.0f;
     }
 
     /**
@@ -150,44 +150,9 @@ public class ImageKeyPointDisplay implements AugmentedImageComponentDisplay {
      * @param cornerType Corner type.
      */
     private void createImageCorner(ARAugmentedImage augmentedImage, CornerType cornerType) {
-        ARPose localBoundaryPose;
-        float[] coefficient = new float[COEFFICIENTS.length];
-        switch (cornerType) {
-            case LOWER_RIGHT:
-                generateCoefficent(coefficient, 1, 1);
-                break;
-            case UPPER_LEFT:
-                generateCoefficent(coefficient, -1, -1);
-                break;
-            case UPPER_RIGHT:
-                generateCoefficent(coefficient, 1, -1);
-                break;
-            case LOWER_LEFT:
-                generateCoefficent(coefficient, -1, 1);
-                break;
-            default:
-                break;
-        }
-
-        localBoundaryPose = ARPose.makeTranslation(coefficient[0] * augmentedImage.getExtentX(), 0.0f,
-            coefficient[1] * augmentedImage.getExtentZ());
-
-        ARPose centerPose = augmentedImage.getCenterPose();
-        ARPose composeCenterPose;
-        int cornerCoordinatePos = index * BYTES_PER_CORNER;
-        composeCenterPose = centerPose.compose(localBoundaryPose);
-        cornerPointCoordinates[cornerCoordinatePos] = composeCenterPose.tx();
-        cornerPointCoordinates[cornerCoordinatePos + 1] = composeCenterPose.ty();
-        cornerPointCoordinates[cornerCoordinatePos + 2] = composeCenterPose.tz();
-        cornerPointCoordinates[cornerCoordinatePos + 3] = 1.0f;
-        index++;
-    }
-
-    private void generateCoefficent(float[] coefficient, int coefficentX, int coefficentZ) {
-        for (int i = 0; i < coefficient.length; i += 2) {
-            coefficient[i] = coefficentX * COEFFICIENTS[i];
-            coefficient[i + 1] = coefficentZ * COEFFICIENTS[i + 1];
-        }
+        mCornerPointCoordinates = createImageCorner(augmentedImage, cornerType, mIndex,
+            mCornerPointCoordinates);
+        mIndex++;
     }
 
     /**
@@ -198,9 +163,10 @@ public class ImageKeyPointDisplay implements AugmentedImageComponentDisplay {
      * @param cornerCoordinates Four-corner coordinate array.
      */
     private void mergeArray(float[] centerCoordinates, float[] cornerCoordinates) {
-        allPointCoordinates = new float[centerCoordinates.length + cornerCoordinates.length];
-        System.arraycopy(centerCoordinates, 0, allPointCoordinates, 0, centerCoordinates.length);
-        System.arraycopy(cornerCoordinates, 0, allPointCoordinates, centerCoordinates.length, cornerCoordinates.length);
+        mAllPointCoordinates = new float[centerCoordinates.length + cornerCoordinates.length];
+        System.arraycopy(centerCoordinates, 0, mAllPointCoordinates, 0, centerCoordinates.length);
+        System.arraycopy(cornerCoordinates, 0, mAllPointCoordinates, centerCoordinates.length,
+            cornerCoordinates.length);
     }
 
     /**
@@ -211,9 +177,8 @@ public class ImageKeyPointDisplay implements AugmentedImageComponentDisplay {
      */
     private void updateImageAllPoints(float[] cornerPoints) {
         ShaderUtil.checkGlError(TAG, "Update image key point data start.");
-        int mPointsNum = cornerPoints.length / 4;
+        mNumPoints = cornerPoints.length / 4;
         GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, mVbo);
-        mNumPoints = mPointsNum;
         int vboSize = mVboSize;
         int numPoints = mNumPoints;
         if (vboSize < mNumPoints * BYTES_PER_POINT) {

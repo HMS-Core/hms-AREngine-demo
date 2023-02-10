@@ -1,5 +1,5 @@
-/**
- * Copyright 2021. Huawei Technologies Co., Ltd. All rights reserved.
+/*
+ * Copyright 2023. Huawei Technologies Co., Ltd. All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -66,7 +66,7 @@ class HandBoxDisplay implements HandRelatedDisplay {
 
     /**
      * Create and build a shader for the hand gestures on the OpenGL thread,
-     * which is called when {@link HandRenderManager#onSurfaceCreated}.
+     * which is called when {@link HandRendererManager#onSurfaceCreated}.
      */
     @Override
     public void init() {
@@ -76,7 +76,7 @@ class HandBoxDisplay implements HandRelatedDisplay {
         GLES20.glGenBuffers(1, buffers, 0);
         mVbo = buffers[0];
         GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, mVbo);
-
+        LogUtil.debug(TAG, "create hand box program.");
         createProgram();
         GLES20.glBufferData(GLES20.GL_ARRAY_BUFFER, mVboSize, null, GLES20.GL_DYNAMIC_DRAW);
         GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, 0);
@@ -85,7 +85,7 @@ class HandBoxDisplay implements HandRelatedDisplay {
 
     private void createProgram() {
         ShaderUtil.checkGlError(TAG, "Create program start.");
-        mProgram = HandShaderUtil.createGlProgram();
+        mProgram = ShaderUtil.getGlProgram();
         mPosition = GLES20.glGetAttribLocation(mProgram, "inPosition");
         mColor = GLES20.glGetUniformLocation(mProgram, "inColor");
         mPointSize = GLES20.glGetUniformLocation(mProgram, "inPointSize");
@@ -95,7 +95,7 @@ class HandBoxDisplay implements HandRelatedDisplay {
 
     /**
      * Render the hand bounding box and hand information.
-     * This method is called when {@link HandRenderManager#onDrawFrame}.
+     * This method is called when {@link HandRendererManager#onDrawFrame}.
      *
      * @param hands Hand data.
      * @param projectionMatrix ARCamera projection matrix.
@@ -129,7 +129,7 @@ class HandBoxDisplay implements HandRelatedDisplay {
             gesturePoints[0], gesturePoints[1], gesturePoints[2],
             gesturePoints[3], gesturePoints[1], gesturePoints[2],
             gesturePoints[3], gesturePoints[4], gesturePoints[5],
-            gesturePoints[0], gesturePoints[4], gesturePoints[5],
+            gesturePoints[0], gesturePoints[4], gesturePoints[5]
         };
         int gesturePointsNum = glGesturePoints.length / COORDINATE_DIMENSION;
 

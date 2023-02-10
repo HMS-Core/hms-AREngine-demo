@@ -1,5 +1,5 @@
-/**
- * Copyright 2021. Huawei Technologies Co., Ltd. All rights reserved.
+/*
+ * Copyright 2023. Huawei Technologies Co., Ltd. All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package com.huawei.arengine.demos.scenemesh.service
 import android.content.Context
 import android.view.MotionEvent
 import com.huawei.arengine.demos.common.LogUtil
+import com.huawei.arengine.demos.common.util.hitTest
 import com.huawei.arengine.demos.scenemesh.controller.ColoredArAnchor
 import com.huawei.arengine.demos.scenemesh.util.Constants
 import com.huawei.hiar.ARLightEstimate
@@ -102,7 +103,7 @@ class HitResultService {
         var trackable: ARTrackable? = null
         var isHasHitFlag = false
 
-        val hitTestResults: List<ARHitResult> = arFrame.hitTest(tap)
+        val hitTestResults: List<ARHitResult> = hitTest(arFrame, tap)
         for (i in hitTestResults.indices) {
             // Check whether a plane is hit and whether it is hit in a plane polygon.
             val hitResultTemp = hitTestResults[i]

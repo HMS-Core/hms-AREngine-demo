@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context="com.huawei.arengine.demos.hand.HandActivity">
 
     <android.opengl.GLSurfaceView
@@ -22,5 +23,19 @@
         tools:layout_editor_absoluteX="315dp"
         tools:layout_editor_absoluteY="4dp"
         tools:ignore="MissingConstraints"/>
+
+    <Button
+        android:id="@+id/cameraFacingButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:text="ChangeCameraFacing"
+        android:textAllCaps="false"
+        android:textSize="15sp"
+        android:layout_marginBottom="50dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        tools:ignore="MissingConstraints" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

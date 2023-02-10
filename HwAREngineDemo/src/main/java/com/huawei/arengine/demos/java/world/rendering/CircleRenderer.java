@@ -1,5 +1,5 @@
-/**
- * Copyright 2021. Huawei Technologies Co., Ltd. All rights reserved.
+/*
+ * Copyright 2023. Huawei Technologies Co., Ltd. All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -64,14 +64,7 @@ public class CircleRenderer extends TargetRenderer {
 
         ShaderUtil.checkGlError(TAG, "before update");
         GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, vbo);
-
-        if (vboSize < pointNum * BYTES_PER_POINT) {
-            while (vboSize < pointNum * BYTES_PER_POINT) {
-                vboSize *= VBO_SIZE_GROWTH_FACTOR;
-            }
-            GLES20.glBufferData(GLES20.GL_ARRAY_BUFFER, vboSize, null, GLES20.GL_DYNAMIC_DRAW);
-        }
-
+        updateBufferSizeIfNeeded();
         FloatBuffer linePointBuffer = FloatBuffer.wrap(linePoints);
         GLES20.glBufferSubData(GLES20.GL_ARRAY_BUFFER, 0, pointNum * BYTES_PER_POINT, linePointBuffer);
         GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, 0);

@@ -1,5 +1,5 @@
-/**
- * Copyright 2021. Huawei Technologies Co., Ltd. All rights reserved.
+/*
+ * Copyright 2023. Huawei Technologies Co., Ltd. All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import android.util.Pair;
 import com.huawei.arengine.demos.common.LabelDisplayUtil;
 import com.huawei.arengine.demos.common.LogUtil;
 import com.huawei.arengine.demos.common.ShaderUtil;
+import com.huawei.arengine.demos.common.WorldShaderUtil;
 import com.huawei.hiar.ARCamera;
 import com.huawei.hiar.ARPlane;
 import com.huawei.hiar.ARPose;
@@ -100,7 +101,7 @@ public class LabelDisplay {
 
     /**
      * Create the shader program for label display in the openGL thread.
-     * This method will be called when {@link WorldRenderManager#onSurfaceCreated}.
+     * This method will be called when {@link WorldRendererManager#onSurfaceCreated}.
      *
      * @param labelBitmaps View data indicating the plane type.
      */
@@ -144,7 +145,7 @@ public class LabelDisplay {
 
     /**
      * Render the plane type at the center of the currently identified plane.
-     * This method will be called when {@link WorldRenderManager#onDrawFrame}.
+     * This method will be called when {@link WorldRendererManager#onDrawFrame}.
      *
      * @param allPlanes All identified planes.
      * @param cameraPose Location and pose of the current camera.

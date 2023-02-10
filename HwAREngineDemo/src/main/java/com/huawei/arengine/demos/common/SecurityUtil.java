@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2021-2021. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2021-2022. All rights reserved.
  */
 
 package com.huawei.arengine.demos.common;
@@ -28,10 +28,8 @@ public class SecurityUtil {
     public static void safeStartActivityForResult(Activity activity, Intent intent, int requestCode) {
         try {
             activity.startActivityForResult(intent, requestCode);
-        } catch (ActivityNotFoundException ex) {
-            LogUtil.error(TAG, "Exception" + ex.getClass());
-        } catch (IllegalArgumentException ex) {
-            LogUtil.error(TAG, "Exception" + ex.getClass());
+        } catch (IllegalArgumentException | ActivityNotFoundException ex) {
+            LogUtil.error(TAG, "Exception:" + ex.getClass());
         }
     }
 

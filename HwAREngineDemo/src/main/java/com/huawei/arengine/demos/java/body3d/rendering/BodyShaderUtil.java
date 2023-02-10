@@ -1,5 +1,5 @@
-/**
- * Copyright 2021. Huawei Technologies Co., Ltd. All rights reserved.
+/*
+ * Copyright 2023. Huawei Technologies Co., Ltd. All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package com.huawei.arengine.demos.java.body3d.rendering;
 
-import android.opengl.GLES20;
-
-import com.huawei.arengine.demos.common.LogUtil;
+import com.huawei.arengine.demos.common.ShaderUtil;
 
 /**
  * This class provides code and programs related to body rendering shader.
@@ -33,6 +31,39 @@ class BodyShaderUtil {
      * Newline character.
      */
     public static final String LS = System.lineSeparator();
+
+    /**
+     * Code for the vertex shader.
+     */
+    public static final String SHADOW_VERTEX =
+        "attribute vec4 a_Position;" + LS
+        + "attribute vec2 a_TexCoord;" + LS
+        + "uniform mat4 vMatrix;" + LS
+        + "uniform mat4 vCoordMatrix;" + LS
+        + "varying vec2 v_TexCoord;" + LS
+        + "void main(){" + LS
+        + "    gl_Position = vMatrix*a_Position;" + LS
+        + "    v_TexCoord = (vCoordMatrix*vec4(a_TexCoord,0,1)).xy;" + LS
+        + "}";
+
+    /**
+     * Code for the segment shader.
+     */
+    public static final String SHADOW_FRAGMENT =
+        "#extension GL_OES_EGL_image_external : require" + LS
+        + "precision mediump float;" + LS
+        + "varying vec2 v_TexCoord;" + LS
+        + "uniform samplerExternalOES vTexture;" + LS
+        + "uniform sampler2D u_Mask;" + LS
+        + "uniform int u_UseMask;" + LS
+        + "void main() {" + LS
+        + "    if (u_UseMask == 1) {" + LS
+        + "        vec4 mColor = texture2D(u_Mask, v_TexCoord);" + LS
+        + "        gl_FragColor = texture2D(vTexture, v_TexCoord) * (1.0 - mColor.r);" + LS
+        + "    } else {" + LS
+        + "        gl_FragColor = texture2D(vTexture, v_TexCoord);" + LS
+        + "    }" + LS
+        + "}";
 
     /**
      * Code for the vertex shader.
@@ -72,45 +103,16 @@ class BodyShaderUtil {
      *
      * @return Shader program.
      */
-    static int createGlProgram() {
-        int vertex = loadShader(GLES20.GL_VERTEX_SHADER, BODY_VERTEX);
-        if (vertex == 0) {
-            return 0;
-        }
-        int fragment = loadShader(GLES20.GL_FRAGMENT_SHADER, BODY_FRAGMENT);
-        if (fragment == 0) {
-            return 0;
-        }
-        int program = GLES20.glCreateProgram();
-        if (program != 0) {
-            GLES20.glAttachShader(program, vertex);
-            GLES20.glAttachShader(program, fragment);
-            GLES20.glLinkProgram(program);
-            int[] linkStatus = new int[1];
-            GLES20.glGetProgramiv(program, GLES20.GL_LINK_STATUS, linkStatus, 0);
-            if (linkStatus[0] != GLES20.GL_TRUE) {
-                LogUtil.error(TAG, "Could not link program " + GLES20.glGetProgramInfoLog(program));
-                GLES20.glDeleteProgram(program);
-                program = 0;
-            }
-        }
-        return program;
+    static int createSkeletonGlProgram() {
+        return ShaderUtil.createGlProgram(BODY_VERTEX, BODY_FRAGMENT);
     }
 
-    private static int loadShader(int shaderType, String source) {
-        int shader = GLES20.glCreateShader(shaderType);
-        if (shader != 0) {
-            GLES20.glShaderSource(shader, source);
-            GLES20.glCompileShader(shader);
-            int[] compiled = new int[1];
-            GLES20.glGetShaderiv(shader, GLES20.GL_COMPILE_STATUS, compiled, 0);
-            if (compiled[0] == 0) {
-                LogUtil.error(TAG, "glError: Could not compile shader " + shaderType);
-                LogUtil.error(TAG, "glError: " + GLES20.glGetShaderInfoLog(shader));
-                GLES20.glDeleteShader(shader);
-                shader = 0;
-            }
-        }
-        return shader;
+    /**
+     * Create a shader.
+     *
+     * @return Shader program.
+     */
+    static int createShadowGlProgram() {
+        return ShaderUtil.createGlProgram(SHADOW_VERTEX, SHADOW_FRAGMENT);
     }
 }

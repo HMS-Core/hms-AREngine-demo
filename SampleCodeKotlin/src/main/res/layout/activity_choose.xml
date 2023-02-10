@@ -85,6 +85,20 @@
                 android:textColor="@color/white" />
 
             <Button
+                android:id="@+id/btn_health_ar"
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:layout_marginLeft="20dp"
+                android:layout_marginRight="20dp"
+                android:layout_marginBottom="20dp"
+                android:background="@drawable/selector_reset"
+                android:gravity="center"
+                android:onClick="onClick"
+                android:text="HealthAR"
+                android:textAllCaps="false"
+                android:textColor="@color/white" />
+
+            <Button
                 android:id="@+id/btn_scence_mesh"
                 android:layout_width="match_parent"
                 android:layout_height="40dp"
@@ -112,6 +126,33 @@
                 android:textAllCaps="false"
                 android:textColor="@color/white" />
 
+            <Button
+                android:id="@+id/btn_cloud_2DImage"
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:layout_marginBottom="20dp"
+                android:layout_marginLeft="20dp"
+                android:layout_marginRight="20dp"
+                android:background="@drawable/selector_reset"
+                android:gravity="center"
+                android:onClick="onClick"
+                android:text="Cloud2DImage"
+                android:textAllCaps="false"
+                android:textColor="@color/white" />
+
+            <Button
+                android:id="@+id/btn_cloud_3DObject"
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:layout_marginBottom="20dp"
+                android:layout_marginLeft="20dp"
+                android:layout_marginRight="20dp"
+                android:background="@drawable/selector_reset"
+                android:gravity="center"
+                android:onClick="onClick"
+                android:text="Cloud3DObject"
+                android:textAllCaps="false"
+                android:textColor="@color/white" />
         </LinearLayout>
     </ScrollView>
 </RelativeLayout>

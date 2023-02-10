@@ -1,5 +1,5 @@
-/**
- * Copyright 2021. Huawei Technologies Co., Ltd. All rights reserved.
+/*
+ * Copyright 2023. Huawei Technologies Co., Ltd. All rights reserved.
  *
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -108,8 +108,12 @@ class AugmentedImageRenderController(private val mActivity: Activity,
         try {
             arFrame = mSession!!.update()
         } catch (exception: ARSessionPausedException) {
-            LogUtil.error(TAG, "Invoke session.resume before invoking Session.update.");
+            LogUtil.error(TAG, "Invoke session.resume before invoking Session.update.")
             return;
+        } catch (exception: Exception) {
+            // This prevents the app from crashing due to unhandled exceptions.
+            LogUtil.warn(TAG, "Exception on the OpenGL thread, " + exception.javaClass)
+            return
         }
         val arCamera = arFrame.camera
         backgroundDisplay.renderBackgroundTexture(arFrame)

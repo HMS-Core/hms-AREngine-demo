@@ -1,0 +1,11 @@
+/**
+ * Authentication parameters required for 2D image recognition.
+ */
+{
+  // galleryId: ID of the gallery created in the cloud service.
+  "galleryId": "510c10d950e9f68584deed44f49861f85073280c36470cb1",
+  // appId: Indicates the unique ID of a Huawei app.
+  "appId": "105774055",
+  // appSecret: Indicates the private key of a Huawei app.
+  "appSecret": "e8932852359d81825d27f417fab6f7c0523a279522f4ed7cf1e372f477d415fd"
+}

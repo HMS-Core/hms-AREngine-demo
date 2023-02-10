@@ -1,5 +1,5 @@
-/**
- * Copyright 2021. Huawei Technologies Co., Ltd. All rights reserved.
+/*
+ * Copyright 2023. Huawei Technologies Co., Ltd. All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -97,7 +97,7 @@ class SceneMeshRenderController(private val mActivity: Activity,
             LogUtil.error(TAG, "Exception on the ArDemoRuntimeException!")
         } catch (t: Throwable) {
             // Prevent apps from crashing due to unprocessed exceptions.
-            LogUtil.error(TAG, "Exception on the OpenGL thread.")
+            LogUtil.error(TAG, "Exception on the OpenGL thread." + t.javaClass)
         }
     }
 
@@ -152,7 +152,7 @@ class SceneMeshRenderController(private val mActivity: Activity,
         GLES20.glClearColor(0.1f, 0.1f, 0.1f, 1.0f)
         mBackgroundTextureService.init()
         mHitResultService.init(mContext)
-        mSceneMeshService.init()
+        mSceneMeshService.init(mContext)
     }
 
     /**

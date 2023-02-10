@@ -1,0 +1,119 @@
+/*
+ * Copyright 2023. Huawei Technologies Co., Ltd. All rights reserved.
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+
+package com.huawei.arengine.demos.world.service
+
+import android.opengl.GLES20
+import android.opengl.Matrix
+
+import com.huawei.arengine.demos.common.util.checkGlError
+import com.huawei.arengine.demos.world.controller.TargetRenderController
+import com.huawei.hiar.ARTarget
+
+import java.nio.FloatBuffer
+
+import kotlin.math.PI
+import kotlin.math.abs
+import kotlin.math.cos
+import kotlin.math.sin
+
+/**
+ * A renderer for circles, configured to render a circle identified in target semantic recognition.
+ *
+ * @author HW
+ * @since 2022-06-16
+ */
+class CircleRendererService : TargetRenderController() {
+    companion object {
+        private const val TAG = "CircleRendererService"
+
+        private const val INITIAL_BUFFER_POINTS = 300
+
+        private const val SQUARE_SIZE = 50
+
+        private const val ELLIPSE_SIZE = 50
+
+        private const val MULTI_NUM = 2
+    }
+
+    private var linePoints = FloatArray(SQUARE_SIZE * CUBE_POINT_NUM * FLOATS_PER_POINT * MAX_BOX_NUM)
+
+    override fun getVboArraySize(): Int {
+        return INITIAL_BUFFER_POINTS * BYTES_PER_POINT
+    }
+
+    override fun updateParameters(target: ARTarget) {
+        arTarget = target
+        var boxMatrix = FloatArray(MATRIX_SIZE)
+        target.centerPose.toMatrix(boxMatrix, 0)
+        var axisAlignBoundingBox = target.axisAlignBoundingBox
+        radius = target.radius
+
+        extentX = abs(axisAlignBoundingBox[OFFSET_X]) * LENGTH_MULTIPLE_NUM
+        extentY = abs(axisAlignBoundingBox[OFFSET_Y]) * LENGTH_MULTIPLE_NUM
+        extentZ = abs(axisAlignBoundingBox[OFFSET_Z]) * LENGTH_MULTIPLE_NUM
+
+        var tempArray = FloatArray(QUATERNION_SIZE)
+        var idx = 0
+        var res = FloatArray(QUATERNION_SIZE)
+        var calcVertexes = FloatArray(ELLIPSE_SIZE * FLOATS_PER_POINT)
+        for (index in 0 until ELLIPSE_SIZE) {
+            tempArray[OFFSET_X] =radius * cos(MULTI_NUM * PI / ELLIPSE_SIZE * index).toFloat()
+            tempArray[OFFSET_Y] = 0f
+            tempArray[OFFSET_Z] =radius * sin(MULTI_NUM * PI / ELLIPSE_SIZE * index).toFloat()
+            tempArray[tempArray.size - 1] = W_VALUE
+            Matrix.multiplyMV(res, 0, boxMatrix, 0, tempArray, 0)
+            numericalNormalization(idx, res, calcVertexes)
+            idx += FLOATS_PER_POINT
+        }
+        vertices = calcVertexes.clone()
+    }
+
+    override fun updateVertices(vertices: FloatArray) {
+        var idx = 0
+        for (index in 0 until ELLIPSE_SIZE * FLOATS_PER_POINT step FLOATS_PER_POINT) {
+            System.arraycopy(vertices, index, linePoints, idx, FLOATS_PER_POINT)
+            idx += FLOATS_PER_POINT
+
+            val endIdx: Int = (index + FLOATS_PER_POINT) % (ELLIPSE_SIZE * FLOATS_PER_POINT)
+            System.arraycopy(vertices, endIdx, linePoints, idx, FLOATS_PER_POINT)
+            idx += FLOATS_PER_POINT
+        }
+        pointNum = ELLIPSE_SIZE * vertices.size
+
+        GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, vbo)
+        if (vboSize < pointNum * BYTES_PER_POINT) {
+            while (vboSize < pointNum * BYTES_PER_POINT) {
+                vboSize *= VBO_SIZE_GROWTH_FACTOR
+            }
+            GLES20.glBufferData(GLES20.GL_ARRAY_BUFFER, vboSize, null, GLES20.GL_DYNAMIC_DRAW)
+        }
+
+        val linePointBuffer = FloatBuffer.wrap(linePoints)
+        GLES20.glBufferSubData(GLES20.GL_ARRAY_BUFFER, 0, pointNum * BYTES_PER_POINT, linePointBuffer)
+        GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, 0)
+        checkGlError(TAG, "after update")
+    }
+
+    override fun getTargetInfo(): String {
+        var radius = radius * M_TO_CM + LENGTH_BASE_VALUE
+        var labelInfo = getTargetLabelInfo()
+        if (!labelInfo.isEmpty()) {
+            labelInfo = labelInfo + System.lineSeparator()
+        }
+        return labelInfo + "RADIUS(cm):" + radius.toInt().toString()
+    }
+}

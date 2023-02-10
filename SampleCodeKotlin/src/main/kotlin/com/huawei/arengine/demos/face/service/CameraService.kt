@@ -1,22 +1,22 @@
-/**
- * Copyright 2021. Huawei Technologies Co., Ltd. All rights reserved.
+/*
+ * Copyright 2023. Huawei Technologies Co., Ltd. All rights reserved.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
  */
+
 package com.huawei.arengine.demos.face.service
 
 import android.Manifest
-import android.app.Activity
 import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.SurfaceTexture
@@ -31,15 +31,19 @@ import android.os.HandlerThread
 import android.util.Range
 import android.util.Size
 import android.view.Surface
+
 import androidx.core.app.ActivityCompat
+
 import com.huawei.arengine.demos.MainApplication
 import com.huawei.arengine.demos.common.LogUtil
 import com.huawei.arengine.demos.common.exception.SampleAppException
+
 import java.io.Serializable
 import java.lang.Long.signum
-import java.util.*
+import java.util.Collections
 import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
+
 import kotlin.collections.ArrayList
 
 /**
@@ -74,7 +78,7 @@ class CameraService {
 
     private var mPreViewSurface: Surface? = null
 
-    private lateinit var mCameraId: String
+    private var mCameraId: String? = null
 
     private lateinit var mPreviewSize: Size
 
@@ -110,13 +114,13 @@ class CameraService {
      * @param width Device screen width, in pixels.
      * @param height Device screen height, in pixels.
      */
-    fun setupCamera(width: Int, height: Int) {
+    fun setupCamera(width: Int, height: Int, cameraFacing: Int) {
         val cameraManager = MainApplication.context.getSystemService(Context.CAMERA_SERVICE) as CameraManager
         try {
             for (id in cameraManager.cameraIdList) {
                 val characteristics = cameraManager.getCameraCharacteristics(id)
                 val cameraLensFacing = characteristics.get(CameraCharacteristics.LENS_FACING)
-                if (cameraLensFacing == null || cameraLensFacing != CameraCharacteristics.LENS_FACING_FRONT) {
+                if (cameraLensFacing == null || cameraLensFacing != cameraFacing) {
                     continue
                 }
                 val maps = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)
@@ -184,7 +188,11 @@ class CameraService {
             if (!mCameraOpenCloseLock.tryAcquire(2500, TimeUnit.MILLISECONDS)) {
                 throw SampleAppException("Time out waiting to lock camera opening.")
             }
-            cameraManager.openCamera(mCameraId, mStateCallback, mCameraHandler)
+            if (mCameraId == null) {
+                LogUtil.warn(TAG, "mCameraId is null!")
+                return false
+            }
+            cameraManager.openCamera(mCameraId!!, mStateCallback, mCameraHandler)
         } catch (e: CameraAccessException) {
             LogUtil.error(TAG, "OpenCamera error.")
             return false

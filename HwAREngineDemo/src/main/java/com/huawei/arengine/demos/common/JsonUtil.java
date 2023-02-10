@@ -1,5 +1,5 @@
-/**
- * Copyright 2021. Huawei Technologies Co., Ltd. All rights reserved.
+/*
+ * Copyright 2023. Huawei Technologies Co., Ltd. All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@ package com.huawei.arengine.demos.common;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.res.AssetManager;
-import android.util.Log;
 
 import com.huawei.arengine.demos.java.cloudaugmentedobject.ModeInformation;
 
@@ -78,21 +77,22 @@ public class JsonUtil {
                 }
                 stringBuilder.append(line);
             }
+            LogUtil.debug(TAG, "stringBuilder = " + stringBuilder.toString());
         } catch (IOException e) {
-            Log.w(TAG, "open json file error");
+            LogUtil.warn(TAG, "open json file error");
         } finally {
             if (reader != null) {
                 try {
                     reader.close();
                 } catch (IOException e) {
-                    Log.w(TAG, "close BufferedReader error");
+                    LogUtil.warn(TAG, "close BufferedReader error");
                 }
             }
             if (inputStreamReader != null) {
                 try {
                     inputStreamReader.close();
                 } catch (IOException e) {
-                    Log.w(TAG, "close inputStream error");
+                    LogUtil.warn(TAG, "close inputStream error");
                 }
             }
         }
@@ -149,8 +149,7 @@ public class JsonUtil {
             return json;
         }
         SharedPreferences sharedPreferences = context.getSharedPreferences(DEFAULT_FILE, Context.MODE_PRIVATE);
-        json = sharedPreferences.getString(DEFAULT_KEY, "");
-        return json;
+        return sharedPreferences.getString(DEFAULT_KEY, "");
     }
 
     /**

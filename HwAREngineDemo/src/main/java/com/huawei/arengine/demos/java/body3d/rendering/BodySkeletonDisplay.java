@@ -1,5 +1,5 @@
-/**
- * Copyright 2021. Huawei Technologies Co., Ltd. All rights reserved.
+/*
+ * Copyright 2023. Huawei Technologies Co., Ltd. All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -69,11 +69,11 @@ public class BodySkeletonDisplay implements BodyRelatedDisplay {
 
     /**
      * Create a body skeleton shader on the GL thread.
-     * This method is called when {@link BodyRenderManager#onSurfaceCreated}.
+     * This method is called when {@link BodyRendererManager#onSurfaceCreated}.
      */
     @Override
     public void init() {
-        ShaderUtil.checkGlError(TAG, "Init start.");
+        ShaderUtil.checkGlError(TAG, "Init body skeleton shader start.");
         int[] buffers = new int[1];
         GLES20.glGenBuffers(1, buffers, 0);
         mVbo = buffers[0];
@@ -82,14 +82,14 @@ public class BodySkeletonDisplay implements BodyRelatedDisplay {
         mVboSize = INITIAL_POINTS_SIZE * BYTES_PER_POINT;
         GLES20.glBufferData(GLES20.GL_ARRAY_BUFFER, mVboSize, null, GLES20.GL_DYNAMIC_DRAW);
         GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, 0);
-        ShaderUtil.checkGlError(TAG, "Before create gl program.");
+        ShaderUtil.checkGlError(TAG, "Before create body skeleton gl program.");
         createProgram();
-        ShaderUtil.checkGlError(TAG, "Init end.");
+        ShaderUtil.checkGlError(TAG, "Init body skeleton shader end.");
     }
 
     private void createProgram() {
         ShaderUtil.checkGlError(TAG, "Create gl program start.");
-        mProgram = BodyShaderUtil.createGlProgram();
+        mProgram = BodyShaderUtil.createSkeletonGlProgram();
         mColor = GLES20.glGetUniformLocation(mProgram, "inColor");
         mPosition = GLES20.glGetAttribLocation(mProgram, "inPosition");
         mPointSize = GLES20.glGetUniformLocation(mProgram, "inPointSize");
@@ -119,7 +119,7 @@ public class BodySkeletonDisplay implements BodyRelatedDisplay {
 
     /**
      * Update the node data and draw by using OpenGL.
-     * This method is called when {@link BodyRenderManager#onDrawFrame}.
+     * This method is called when {@link BodyRendererManager#onDrawFrame}.
      *
      * @param bodies Body data.
      * @param projectionMatrix projection matrix.
@@ -164,9 +164,7 @@ public class BodySkeletonDisplay implements BodyRelatedDisplay {
     }
 
     private void findValidSkeletonPoints(ARBody arBody) {
-        int index = 0;
         int[] isExists;
-        int validPointNum = 0;
         float[] points;
         float[] skeletonPoints;
 
@@ -183,6 +181,8 @@ public class BodySkeletonDisplay implements BodyRelatedDisplay {
         }
 
         // Save the three coordinates of each joint point(each point has three coordinates).
+        int index = 0;
+        int validPointNum = 0;
         for (int i = 0; i < isExists.length; i++) {
             if (isExists[i] != 0) {
                 points[index++] = skeletonPoints[3 * i];

@@ -1,5 +1,5 @@
-/**
- * Copyright 2021. Huawei Technologies Co., Ltd. All rights reserved.
+/*
+ * Copyright 2023. Huawei Technologies Co., Ltd. All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -60,11 +60,11 @@ class HandSkeletonDisplay implements HandRelatedDisplay {
 
     /**
      * Create and build a shader for the hand skeleton points on the OpenGL thread,
-     * which is called when {@link HandRenderManager#onSurfaceCreated}.
+     * which is called when {@link HandRendererManager#onSurfaceCreated}.
      */
     @Override
     public void init() {
-        ShaderUtil.checkGlError(TAG, "Init start.");
+        ShaderUtil.checkGlError(TAG, "Init hand skeleton points shader start.");
         int[] buffers = new int[1];
         GLES20.glGenBuffers(1, buffers, 0);
         mVbo = buffers[0];
@@ -73,22 +73,22 @@ class HandSkeletonDisplay implements HandRelatedDisplay {
         GLES20.glBufferData(GLES20.GL_ARRAY_BUFFER, mVboSize, null, GLES20.GL_DYNAMIC_DRAW);
         GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, 0);
         createProgram();
-        ShaderUtil.checkGlError(TAG, "Init end.");
+        ShaderUtil.checkGlError(TAG, "Init hand skeleton points shader end.");
     }
 
     private void createProgram() {
-        ShaderUtil.checkGlError(TAG, "Create program start.");
-        mProgram = HandShaderUtil.createGlProgram();
+        ShaderUtil.checkGlError(TAG, "Create hand skeleton points program start.");
+        mProgram = ShaderUtil.getGlProgram();
         ShaderUtil.checkGlError(TAG, "program");
         mPosition = GLES20.glGetAttribLocation(mProgram, "inPosition");
         mColor = GLES20.glGetUniformLocation(mProgram, "inColor");
         mPointSize = GLES20.glGetUniformLocation(mProgram, "inPointSize");
         mModelViewProjectionMatrix = GLES20.glGetUniformLocation(mProgram, "inMVPMatrix");
-        ShaderUtil.checkGlError(TAG, "Create program end.");
+        ShaderUtil.checkGlError(TAG, "Create hand skeleton points program end.");
     }
 
     /**
-     * Draw hand skeleton points. This method is called when {@link HandRenderManager#onDrawFrame}.
+     * Draw hand skeleton points. This method is called when {@link HandRendererManager#onDrawFrame}.
      *
      * @param hands ARHand data collection.
      * @param projectionMatrix Projection matrix(4 * 4).

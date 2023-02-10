@@ -1,23 +1,25 @@
-/**
- * Copyright 2021. Huawei Technologies Co., Ltd. All rights reserved.
+/*
+ * Copyright 2023. Huawei Technologies Co., Ltd. All rights reserved.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
  */
+
 package com.huawei.arengine.demos.face.controller
 
 import android.app.Activity
 import android.opengl.GLES20
 import android.opengl.GLSurfaceView
+
 import com.huawei.arengine.demos.R
 import com.huawei.arengine.demos.common.LogUtil
 import com.huawei.arengine.demos.common.controller.DisplayRotationController
@@ -27,13 +29,16 @@ import com.huawei.arengine.demos.common.service.TextService
 import com.huawei.arengine.demos.common.util.FramePerSecond
 import com.huawei.arengine.demos.common.util.findViewById
 import com.huawei.arengine.demos.common.util.showScreenTextView
+import com.huawei.arengine.demos.face.FaceActivity
 import com.huawei.arengine.demos.face.service.FaceGeometryService
 import com.huawei.arengine.demos.face.service.updateScreenText
+import com.huawei.hiar.ARConfigBase
 import com.huawei.hiar.ARFace
 import com.huawei.hiar.ARFrame
 import com.huawei.hiar.ARSession
 import com.huawei.hiar.ARTrackable.TrackingState
 import com.huawei.hiar.exceptions.ARSessionPausedException
+
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
 
@@ -44,8 +49,8 @@ import javax.microedition.khronos.opengles.GL10
  * @since 2020-10-10
  */
 class FaceRenderController(private val activity: Activity,
-    private var displayRotationController: DisplayRotationController,
-    private var isOpenCameraOutside: Boolean) : GLSurfaceView.Renderer {
+    private var displayRotationController: DisplayRotationController) : GLSurfaceView.Renderer {
+
     companion object {
         private const val TAG = "FaceRenderController"
     }
@@ -53,9 +58,13 @@ class FaceRenderController(private val activity: Activity,
     /**
      * Initialize the texture ID.
      */
-    var mTextureId: Int = -1
+    var textureId: Int = -1
+
+    private lateinit var arConfigBase: ARConfigBase
 
     private var arSession: ARSession? = null
+
+    private var isOpenCameraOutside: Boolean = false
 
     private val fps by lazy { FramePerSecond(0, 0f, 0) }
 
@@ -67,9 +76,9 @@ class FaceRenderController(private val activity: Activity,
 
     override fun onSurfaceCreated(gl: GL10, config: EGLConfig) {
         GLES20.glClearColor(0.1f, 0.1f, 0.1f, 1.0f)
-        LogUtil.info(TAG, "On surface created textureId= $mTextureId")
+        LogUtil.info(TAG, "On surface created textureId= $textureId")
         if (isOpenCameraOutside) {
-            backgroundTextureService.init(mTextureId)
+            backgroundTextureService.init(textureId)
         } else {
             backgroundTextureService.init()
         }
@@ -99,6 +108,7 @@ class FaceRenderController(private val activity: Activity,
                 setCameraTextureName(backgroundTextureService.externalTextureId)
                 update()
             } ?: return
+            resetCameraStatus()
             backgroundTextureService.renderBackgroundTexture(frame)
             renderFace(frame)
         } catch (exception: SampleAppException) {
@@ -120,8 +130,15 @@ class FaceRenderController(private val activity: Activity,
                 camera?.let { faceGeometryService.renderFace(it, face) }
             }
         }
+
+        // Obtain the data of main light source and ambient light
+        // when the ambient lighting estimation mode is enabled.
+        var lightEstimate = frame.lightEstimate
+        if (arConfigBase.lightingMode and ARConfigBase.LIGHT_MODE_ENVIRONMENT_LIGHTING == 0) {
+            lightEstimate = null
+        }
         StringBuilder().let {
-            updateScreenText(it, faces, fps)
+            updateScreenText(it, faces, lightEstimate, fps)
             faceTextService.drawText(it)
         }
     }
@@ -133,5 +150,19 @@ class FaceRenderController(private val activity: Activity,
      */
     fun setArSession(arSession: ARSession?) {
         this.arSession = arSession
+    }
+
+    fun setConfig(config : ARConfigBase) {
+        this.arConfigBase = config
+    }
+
+    fun setOpenCameraOutsideFlag(isOpenCameraOutsideFlag: Boolean) {
+        this.isOpenCameraOutside = isOpenCameraOutsideFlag
+    }
+
+    private fun resetCameraStatus() {
+        if (activity is FaceActivity) {
+            activity.resetCameraStatus()
+        }
     }
 }

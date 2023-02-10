@@ -1,5 +1,5 @@
-/**
- * Copyright 2021. Huawei Technologies Co., Ltd. All rights reserved.
+/*
+ * Copyright 2023. Huawei Technologies Co., Ltd. All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -16,30 +16,29 @@
 
 package com.huawei.arengine.demos.java.world;
 
-import android.content.Intent;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.os.Message;
-import android.view.GestureDetector;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
 import com.huawei.arengine.demos.R;
 import com.huawei.arengine.demos.common.BaseActivity;
-import com.huawei.arengine.demos.common.DisplayRotationManager;
+import com.huawei.arengine.demos.common.GestureDetectorUtils;
+import com.huawei.arengine.demos.common.GestureEvent;
 import com.huawei.arengine.demos.common.LogUtil;
-import com.huawei.arengine.demos.common.PermissionManager;
-import com.huawei.arengine.demos.java.world.rendering.WorldRenderManager;
+import com.huawei.arengine.demos.java.world.rendering.WorldRendererManager;
 import com.huawei.hiar.ARConfigBase;
-import com.huawei.hiar.AREnginesApk;
 import com.huawei.hiar.ARSession;
 import com.huawei.hiar.ARWorldTrackingConfig;
-import com.huawei.hiar.exceptions.ARCameraNotAvailableException;
 import com.huawei.hiar.exceptions.ARUnavailableServiceApkTooOldException;
 
 import java.util.concurrent.ArrayBlockingQueue;
@@ -67,9 +66,9 @@ public class WorldActivity extends BaseActivity {
 
     private static final int MSG_ENV_TEXTURE_BUTTON_CLICK_ENABLE = 2;
 
-    private ARSession mArSession;
+    private static final int MSG_CONFIG_MAP_SIZE_BUTTON_CLICK_ENABLE = 3;
 
-    private GLSurfaceView mSurfaceView;
+    private static final int DEFAULT_MAX_MAP_SIZE = 800;
 
     private ToggleButton mEnvLightingBtn;
 
@@ -77,23 +76,17 @@ public class WorldActivity extends BaseActivity {
 
     private RelativeLayout mEnvTextureLayout;
 
-    private WorldRenderManager mWorldRenderManager;
+    private Button mConfigMaxSizeButton;
 
-    private GestureDetector mGestureDetector;
-
-    private DisplayRotationManager mDisplayRotationManager;
-
-    private ARWorldTrackingConfig mConfig;
+    private WorldRendererManager mWorldRendererManager;
 
     private ArrayBlockingQueue<GestureEvent> mQueuedSingleTaps = new ArrayBlockingQueue<>(MOTIONEVENT_QUEUE_CAPACITY);
 
-    private boolean isRemindInstall = false;
+    private boolean mIsEnvLightModeOpen = false;
 
-    private boolean mEnvLightModeOpen = false;
+    private boolean mIsEnvTextureModeOpen = false;
 
-    private boolean mEnvTextureModeOpen = false;
-
-    private Handler handler = new Handler() {
+    private Handler handler = new Handler(Looper.getMainLooper()) {
         @Override
         public void handleMessage(Message msg) {
             switch (msg.what) {
@@ -102,6 +95,9 @@ public class WorldActivity extends BaseActivity {
                     break;
                 case MSG_ENV_TEXTURE_BUTTON_CLICK_ENABLE:
                     mEnvTextureBtn.setEnabled(true);
+                    break;
+                case MSG_CONFIG_MAP_SIZE_BUTTON_CLICK_ENABLE:
+                    mConfigMaxSizeButton.setClickable(true);
                     break;
                 default:
                     LogUtil.info(TAG, "handleMessage default in WorldActivity.");
@@ -118,8 +114,7 @@ public class WorldActivity extends BaseActivity {
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         initViews();
         initClickListener();
-        mDisplayRotationManager = new DisplayRotationManager(this);
-        initGestureDetector();
+        GestureDetectorUtils.initGestureDetector(this, TAG, mSurfaceView, mQueuedSingleTaps);
 
         mSurfaceView.setPreserveEGLContextOnPause(true);
         mSurfaceView.setEGLContextClientVersion(OPENGLES_VERSION);
@@ -128,11 +123,13 @@ public class WorldActivity extends BaseActivity {
         // bits of the color buffer and the number of depth bits.
         mSurfaceView.setEGLConfigChooser(8, 8, 8, 8, 16, 0);
 
-        mWorldRenderManager = new WorldRenderManager(this, this);
-        mWorldRenderManager.setDisplayRotationManage(mDisplayRotationManager);
-        mWorldRenderManager.setQueuedSingleTaps(mQueuedSingleTaps);
+        mWorldRendererManager = new WorldRendererManager(this);
+        mWorldRendererManager.setDisplayRotationManager(mDisplayRotationManager);
+        TextView textView = findViewById(R.id.wordTextView);
+        mWorldRendererManager.setTextView(textView);
+        mWorldRendererManager.setQueuedSingleTaps(mQueuedSingleTaps);
 
-        mSurfaceView.setRenderer(mWorldRenderManager);
+        mSurfaceView.setRenderer(mWorldRendererManager);
         mSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
     }
 
@@ -141,31 +138,96 @@ public class WorldActivity extends BaseActivity {
         mEnvLightingBtn = findViewById(R.id.btn_env_light_mode);
         mEnvTextureBtn = findViewById(R.id.btn_env_texture_mode);
         mEnvTextureLayout = findViewById(R.id.img_env_texture);
+        mConfigMaxSizeButton = findViewById(R.id.btn_config_session);
     }
 
     private void initClickListener() {
-        mEnvLightingBtn.setOnCheckedChangeListener((compoundButton, b) -> {
+        mEnvLightingBtn.setOnCheckedChangeListener((compoundButton, isChecked) -> {
             mEnvLightingBtn.setEnabled(false);
-            handler.sendEmptyMessageDelayed(MSG_ENV_LIGHT_BUTTON_CLICK_ENABLE,
-                    BUTTON_REPEAT_CLICK_INTERVAL_TIME);
-            mEnvLightModeOpen = !mEnvLightModeOpen;
-            int lightingMode = refreshLightMode(mEnvLightModeOpen, ARConfigBase.LIGHT_MODE_ENVIRONMENT_LIGHTING);
+            handler.sendEmptyMessageDelayed(MSG_ENV_LIGHT_BUTTON_CLICK_ENABLE, BUTTON_REPEAT_CLICK_INTERVAL_TIME);
+            mIsEnvLightModeOpen = !mIsEnvLightModeOpen;
+            int lightingMode = refreshLightMode(mIsEnvLightModeOpen, ARConfigBase.LIGHT_MODE_ENVIRONMENT_LIGHTING);
             refreshConfig(lightingMode);
         });
 
-        mEnvTextureBtn.setOnCheckedChangeListener((compoundButton, b) -> {
+        mEnvTextureBtn.setOnCheckedChangeListener((compoundButton, isChecked) -> {
             mEnvTextureBtn.setEnabled(false);
-            handler.sendEmptyMessageDelayed(MSG_ENV_TEXTURE_BUTTON_CLICK_ENABLE,
-                    BUTTON_REPEAT_CLICK_INTERVAL_TIME);
-            mEnvTextureModeOpen = !mEnvTextureModeOpen;
+            handler.sendEmptyMessageDelayed(MSG_ENV_TEXTURE_BUTTON_CLICK_ENABLE, BUTTON_REPEAT_CLICK_INTERVAL_TIME);
+            mIsEnvTextureModeOpen = !mIsEnvTextureModeOpen;
             refreshEnvTextureLayout();
-            int lightingMode = refreshLightMode(mEnvTextureModeOpen, ARConfigBase.LIGHT_MODE_ENVIRONMENT_TEXTURE);
+            int lightingMode = refreshLightMode(mIsEnvTextureModeOpen, ARConfigBase.LIGHT_MODE_ENVIRONMENT_TEXTURE);
             refreshConfig(lightingMode);
+        });
+
+        mConfigMaxSizeButton.setOnClickListener(view -> {
+            mConfigMaxSizeButton.setClickable(false);
+            resetAndConfigArSession();
+            handler.sendEmptyMessageDelayed(MSG_CONFIG_MAP_SIZE_BUTTON_CLICK_ENABLE, BUTTON_REPEAT_CLICK_INTERVAL_TIME);
         });
     }
 
+    private long getInputMaxMapSize() {
+        long maxMapSize = 0L;
+        EditText editText = findViewById(R.id.text_max_size);
+        if (editText == null) {
+            return maxMapSize;
+        }
+        try {
+            maxMapSize = Integer.parseInt(editText.getText().toString());
+        } catch (NumberFormatException exception) {
+            LogUtil.debug(TAG, "getInputMaxMapSize catch:" + exception.getClass());
+        }
+        return maxMapSize;
+    }
+
+    private long getMaxMapSize() {
+        long maxMapSize = 0L;
+        if (mArConfigBase == null) {
+            LogUtil.warn(TAG, "getMaxMapSize mConfig invalid.");
+            return maxMapSize;
+        }
+        try {
+            maxMapSize = mArConfigBase.getMaxMapSize();
+        } catch (ARUnavailableServiceApkTooOldException exception) {
+            LogUtil.warn(TAG, "getMaxMapSize catch:" + exception.getClass());
+        }
+        return maxMapSize;
+    }
+
+    private void setMaxMapSize() {
+        if (mArSession == null || mArConfigBase == null) {
+            LogUtil.warn(TAG, "setMaxMapSize mArSession or mConfig invalid.");
+            return;
+        }
+        long maxMapSize = getInputMaxMapSize();
+        if (maxMapSize == 0) {
+            return;
+        }
+        try {
+            mArConfigBase.setMaxMapSize(maxMapSize);
+        } catch (ARUnavailableServiceApkTooOldException exception) {
+            Toast
+                .makeText(WorldActivity.this.getApplicationContext(),
+                    "The current AR Engine version does not support the setMaxMapSize method.", Toast.LENGTH_LONG)
+                .show();
+        }
+    }
+
+    private void resetAndConfigArSession() {
+        stopArSession();
+        mWorldRendererManager.setArSession(mArSession);
+        mArSession = new ARSession(WorldActivity.this.getApplicationContext());
+        mArConfigBase = new ARWorldTrackingConfig(mArSession);
+        setMaxMapSize();
+        int lightMode = getCurrentLightingMode();
+        refreshConfig(lightMode);
+        mArSession.resume();
+        mWorldRendererManager.setArSession(mArSession);
+        mDisplayRotationManager.onDisplayChanged(0);
+    }
+
     private void refreshEnvTextureLayout() {
-        if (mEnvTextureModeOpen) {
+        if (mIsEnvTextureModeOpen) {
             mEnvTextureLayout.setVisibility(View.VISIBLE);
         } else {
             mEnvTextureLayout.setVisibility(View.GONE);
@@ -174,108 +236,74 @@ public class WorldActivity extends BaseActivity {
 
     private int refreshLightMode(boolean isOpen, int changeMode) {
         LogUtil.info(TAG, "isOPen = " + isOpen + "changeMode = " + changeMode);
-        int curLightMode = mConfig.getLightingMode();
-        curLightMode = isOpen ? (curLightMode | changeMode) : (curLightMode & ~changeMode);
-        return curLightMode;
+        int lightMode = getCurrentLightingMode();
+        return isOpen ? (lightMode | changeMode) : (lightMode & ~changeMode);
     }
 
-    private void initGestureDetector() {
-        mGestureDetector = new GestureDetector(this, new GestureDetector.SimpleOnGestureListener() {
-            @Override
-            public boolean onDoubleTap(MotionEvent motionEvent) {
-                onGestureEvent(GestureEvent.createDoubleTapEvent(motionEvent));
-                return true;
-            }
-
-            @Override
-            public boolean onSingleTapConfirmed(MotionEvent motionEvent) {
-                onGestureEvent(GestureEvent.createSingleTapConfirmEvent(motionEvent));
-                return true;
-            }
-
-            @Override
-            public boolean onDown(MotionEvent motionEvent) {
-                return true;
-            }
-
-            @Override
-            public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
-                onGestureEvent(GestureEvent.createScrollEvent(e1, e2, distanceX, distanceY));
-                return true;
-            }
-        });
-
-        mSurfaceView.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                return mGestureDetector.onTouchEvent(event);
-            }
-        });
-    }
-
-    private void onGestureEvent(GestureEvent e) {
-        boolean offerResult = mQueuedSingleTaps.offer(e);
-        if (offerResult) {
-            LogUtil.debug(TAG, "Successfully joined the queue.");
-        } else {
-            LogUtil.debug(TAG, "Failed to join queue.");
+    private int getCurrentLightingMode() {
+        int curLightMode = ARConfigBase.LIGHT_MODE_AMBIENT_INTENSITY;
+        if (mArConfigBase == null) {
+            return curLightMode;
         }
+        try {
+            curLightMode = mArConfigBase.getLightingMode();
+        } catch (ARUnavailableServiceApkTooOldException exception) {
+            LogUtil.warn(TAG, "getCurrentLightMode catch ARUnavailableServiceApkTooOldException.");
+        }
+        return curLightMode;
     }
 
     @Override
     protected void onResume() {
         LogUtil.debug(TAG, "onResume");
         super.onResume();
-        if (!PermissionManager.hasPermission(this)) {
-            this.finish();
-        }
-        errorMessage = null;
         if (mArSession == null) {
             try {
-                if (!arEngineAbilityCheck()) {
-                    finish();
-                    return;
-                }
                 mArSession = new ARSession(this.getApplicationContext());
-                mConfig = new ARWorldTrackingConfig(mArSession);
-                refreshConfig(ARConfigBase.LIGHT_MODE_ENVIRONMENT_LIGHTING | ARConfigBase.LIGHT_MODE_ENVIRONMENT_TEXTURE);
+                mArConfigBase = new ARWorldTrackingConfig(mArSession);
+                refreshConfig(ARConfigBase.LIGHT_MODE_NONE);
             } catch (Exception capturedException) {
                 setMessageWhenError(capturedException);
             }
 
             if (errorMessage != null) {
+                Toast.makeText(this, errorMessage, Toast.LENGTH_LONG).show();
                 stopArSession();
                 return;
             }
         }
 
-        try {
-            mArSession.resume();
-        } catch (ARCameraNotAvailableException e) {
-            Toast.makeText(this, "Camera open failed, please restart the app", Toast.LENGTH_LONG).show();
-            mArSession = null;
-            return;
-        }
-        mDisplayRotationManager.registerDisplayListener();
-        mSurfaceView.onResume();
+        sessionResume(mWorldRendererManager);
     }
 
     private void refreshConfig(int lightingMode) {
-        try {
-            mConfig.setFocusMode(ARConfigBase.FocusMode.AUTO_FOCUS);
-            mConfig.setSemanticMode(ARWorldTrackingConfig.SEMANTIC_PLANE | ARWorldTrackingConfig.SEMANTIC_TARGET);
-            mConfig.setLightingMode(lightingMode);
-            mArSession.configure(mConfig);
-        } catch (ARUnavailableServiceApkTooOldException capturedException) {
-            Toast.makeText(this, "Please update HuaweiARService.apk", Toast.LENGTH_LONG).show();
-        } finally {
-            mWorldRenderManager.setArSession(mArSession);
-            mWorldRenderManager.setArWorldTrackingConfig(mConfig);
-            showSemanticModeSupportedInfo();
+        if (mArConfigBase == null || mArSession == null) {
+            return;
         }
+        try {
+            mArConfigBase.setFocusMode(ARConfigBase.FocusMode.AUTO_FOCUS);
+            mArConfigBase.setSemanticMode(ARWorldTrackingConfig.SEMANTIC_PLANE | ARWorldTrackingConfig.SEMANTIC_TARGET);
+            mArConfigBase.setLightingMode(lightingMode);
+            mArSession.configure(mArConfigBase);
+        } catch (ARUnavailableServiceApkTooOldException capturedException) {
+            setMessageWhenError(capturedException);
+        } finally {
+            showEffectiveConfigInfo(lightingMode);
+        }
+        mWorldRendererManager.setArWorldTrackingConfig(mArConfigBase);
     }
 
-    private void showSemanticModeSupportedInfo() {
+    /**
+     * For HUAWEI AR Engine 3.18 or later versions, you can call configure of ARSession, then call getLightingMode to
+     * check whether the current device supports ambient light detection.
+     *
+     * @param lightingMode Lighting estimate mode enabled.
+     */
+    private void showEffectiveConfigInfo(int lightingMode) {
+        if (mArConfigBase == null || mArSession == null) {
+            LogUtil.warn(TAG, "showEffectiveConfigInfo params invalid.");
+            return;
+        }
         String toastMsg = "";
         switch (mArSession.getSupportedSemanticMode()) {
             case ARWorldTrackingConfig.SEMANTIC_NONE:
@@ -290,76 +318,29 @@ public class WorldActivity extends BaseActivity {
             default:
                 break;
         }
+        if (((lightingMode & ARConfigBase.LIGHT_MODE_ENVIRONMENT_LIGHTING) != 0)
+            && ((mArConfigBase.getLightingMode() & ARConfigBase.LIGHT_MODE_ENVIRONMENT_LIGHTING) == 0)) {
+            toastMsg += "The running environment does not support LIGHT_MODE_ENVIRONMENT_LIGHTING.";
+        }
+        long maxMapSize = getMaxMapSize();
+        if (maxMapSize != 0 && maxMapSize != DEFAULT_MAX_MAP_SIZE) {
+            toastMsg += "Config max map size:" + maxMapSize;
+        }
         if (!toastMsg.isEmpty()) {
             Toast.makeText(this, toastMsg, Toast.LENGTH_LONG).show();
         }
     }
 
-    /**
-     * Check whether HUAWEI AR Engine server (com.huawei.arengine.service) is installed on the current device.
-     * If not, redirect the user to HUAWEI AppGallery for installation.
-     *
-     * @return true:AR Engine ready
-     */
-    private boolean arEngineAbilityCheck() {
-        boolean isInstallArEngineApk = AREnginesApk.isAREngineApkReady(this);
-        if (!isInstallArEngineApk && isRemindInstall) {
-            Toast.makeText(this, "Please agree to install.", Toast.LENGTH_LONG).show();
-            finish();
-        }
-        LogUtil.debug(TAG, "Is Install AR Engine Apk: " + isInstallArEngineApk);
-        if (!isInstallArEngineApk) {
-            startActivity(new Intent(this, com.huawei.arengine.demos.common.ConnectAppMarketActivity.class));
-            isRemindInstall = true;
-        }
-        return AREnginesApk.isAREngineApkReady(this);
-    }
-
-    private void stopArSession() {
-        LogUtil.info(TAG, "stopArSession start.");
-        Toast.makeText(this, errorMessage, Toast.LENGTH_LONG).show();
-        if (mArSession != null) {
-            mArSession.stop();
-            mArSession = null;
-        }
-        LogUtil.info(TAG, "stopArSession end.");
-    }
-
-    @Override
-    protected void onPause() {
-        LogUtil.info(TAG, "onPause start.");
-        super.onPause();
-        if (mArSession != null) {
-            mDisplayRotationManager.unregisterDisplayListener();
-            mSurfaceView.onPause();
-            mArSession.pause();
-        }
-        LogUtil.info(TAG, "onPause end.");
-    }
-
     @Override
     protected void onDestroy() {
         LogUtil.info(TAG, "onDestroy start.");
-        if (mArSession != null) {
-            mArSession.stop();
-            mArSession = null;
+        if (mWorldRendererManager != null) {
+            mWorldRendererManager.releaseARAnchor();
         }
-        if (mWorldRenderManager != null) {
-            mWorldRenderManager.releaseARAnchor();
+        if (handler != null) {
+            handler.removeCallbacksAndMessages(null);
         }
         super.onDestroy();
         LogUtil.info(TAG, "onDestroy end.");
-    }
-
-    @Override
-    public void onWindowFocusChanged(boolean isHasFocus) {
-        LogUtil.debug(TAG, "onWindowFocusChanged");
-        super.onWindowFocusChanged(isHasFocus);
-        if (isHasFocus) {
-            getWindow().getDecorView()
-                .setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                    | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                    | View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
-        }
     }
 }

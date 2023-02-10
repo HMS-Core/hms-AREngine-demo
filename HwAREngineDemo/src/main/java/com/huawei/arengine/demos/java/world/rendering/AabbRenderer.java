@@ -1,5 +1,5 @@
-/**
- * Copyright 2021. Huawei Technologies Co., Ltd. All rights reserved.
+/*
+ * Copyright 2023. Huawei Technologies Co., Ltd. All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -105,52 +105,45 @@ public class AabbRenderer extends TargetRenderer {
 
     @Override
     public void updateVertices(float[] vertices) {
-        int idx = 0;
+        int verticeIndex = 0;
         for (int index = 0; index < SQUARE_SIZE * FLOATS_PER_POINT; index += FLOATS_PER_POINT) {
-            System.arraycopy(vertices, index, linePoints, idx, FLOATS_PER_POINT);
-            idx = idx + FLOATS_PER_POINT;
+            System.arraycopy(vertices, index, linePoints, verticeIndex, FLOATS_PER_POINT);
+            verticeIndex = verticeIndex + FLOATS_PER_POINT;
 
             int endIdx = (index + FLOATS_PER_POINT) % (SQUARE_SIZE * FLOATS_PER_POINT);
-            System.arraycopy(vertices, endIdx, linePoints, idx, FLOATS_PER_POINT);
-            idx = idx + FLOATS_PER_POINT;
+            System.arraycopy(vertices, endIdx, linePoints, verticeIndex, FLOATS_PER_POINT);
+            verticeIndex = verticeIndex + FLOATS_PER_POINT;
         }
 
         for (int index = SQUARE_SIZE * FLOATS_PER_POINT;
             index < SQUARE_SIZE * FLOATS_PER_POINT + SQUARE_SIZE * FLOATS_PER_POINT; index += FLOATS_PER_POINT) {
-            System.arraycopy(vertices, index, linePoints, idx, FLOATS_PER_POINT);
-            idx = idx + FLOATS_PER_POINT;
+            System.arraycopy(vertices, index, linePoints, verticeIndex, FLOATS_PER_POINT);
+            verticeIndex = verticeIndex + FLOATS_PER_POINT;
 
             int endIdx = (index + FLOATS_PER_POINT) % (SQUARE_SIZE * FLOATS_PER_POINT) + SQUARE_SIZE * FLOATS_PER_POINT;
-            System.arraycopy(vertices, endIdx, linePoints, idx, FLOATS_PER_POINT);
-            idx = idx + FLOATS_PER_POINT;
+            System.arraycopy(vertices, endIdx, linePoints, verticeIndex, FLOATS_PER_POINT);
+            verticeIndex = verticeIndex + FLOATS_PER_POINT;
         }
 
         for (int index = 0; index < SQUARE_SIZE * FLOATS_PER_POINT; index += FLOATS_PER_POINT) {
-            System.arraycopy(vertices, index, linePoints, idx, FLOATS_PER_POINT);
-            idx = idx + FLOATS_PER_POINT;
+            System.arraycopy(vertices, index, linePoints, verticeIndex, FLOATS_PER_POINT);
+            verticeIndex = verticeIndex + FLOATS_PER_POINT;
 
             int endIdx = index + SQUARE_SIZE * FLOATS_PER_POINT;
-            System.arraycopy(vertices, endIdx, linePoints, idx, FLOATS_PER_POINT);
-            idx = idx + FLOATS_PER_POINT;
+            System.arraycopy(vertices, endIdx, linePoints, verticeIndex, FLOATS_PER_POINT);
+            verticeIndex = verticeIndex + FLOATS_PER_POINT;
         }
 
         pointNum = SQUARE_SIZE * vertices.length;
 
-        ShaderUtil.checkGlError(TAG, "before update");
+        ShaderUtil.checkGlError(TAG, "before line points update");
         GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, vbo);
-
-        if (vboSize < pointNum * BYTES_PER_POINT) {
-            while (vboSize < pointNum * BYTES_PER_POINT) {
-                vboSize *= VBO_SIZE_GROWTH_FACTOR;
-            }
-            GLES20.glBufferData(GLES20.GL_ARRAY_BUFFER, vboSize, null, GLES20.GL_DYNAMIC_DRAW);
-        }
-
+        updateBufferSizeIfNeeded();
         FloatBuffer linePointsBuffer = FloatBuffer.wrap(linePoints);
         GLES20.glBufferSubData(GLES20.GL_ARRAY_BUFFER, 0, pointNum * BYTES_PER_POINT, linePointsBuffer);
         GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, 0);
 
-        ShaderUtil.checkGlError(TAG, "after update");
+        ShaderUtil.checkGlError(TAG, "after line points update");
     }
 
     @Override

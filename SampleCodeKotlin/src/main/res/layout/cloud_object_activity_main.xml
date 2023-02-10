@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.huawei.arengine.demos.cloudaugmentobject.CloudAugmentObjectActivity">
+
+    <android.opengl.GLSurfaceView
+        android:id="@+id/objectSurfaceview"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_gravity="top" />
+
+    <TextView
+        android:id="@+id/cloudAugmentObjectTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="TextView"
+        android:textColor="@color/red"
+        tools:layout_editor_absoluteX="315dp"
+        tools:layout_editor_absoluteY="4dp" />
+
+    <TextView
+        android:id="@+id/image_ar_object"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/label_border"
+        android:text="Object"
+        android:visibility="gone"
+        android:rotation="180"
+        android:textColor="#fafad2"
+        tools:layout_editor_absoluteX="315dp"
+        tools:layout_editor_absoluteY="4dp" />
+
+    <TextView
+        android:id="@+id/btn_change_mode_id"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_marginEnd="0dp"
+        android:onClick="onClick"
+        android:text="change mode ID" />
+</RelativeLayout>

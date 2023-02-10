@@ -1,5 +1,5 @@
-/**
- * Copyright 2021. Huawei Technologies Co., Ltd. All rights reserved.
+/*
+ * Copyright 2023. Huawei Technologies Co., Ltd. All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -71,7 +71,7 @@ public class BodySkeletonLineDisplay implements BodyRelatedDisplay {
 
     /**
      * Create a body skeleton line shader on the GL thread.
-     * This method is called when {@link BodyRenderManager#onSurfaceCreated}.
+     * This method is called when {@link BodyRendererManager#onSurfaceCreated}.
      */
     @Override
     public void init() {
@@ -91,7 +91,7 @@ public class BodySkeletonLineDisplay implements BodyRelatedDisplay {
 
     private void createProgram() {
         ShaderUtil.checkGlError(TAG, "Create gl program start.");
-        mProgram = BodyShaderUtil.createGlProgram();
+        mProgram = BodyShaderUtil.createSkeletonGlProgram();
         mPosition = GLES20.glGetAttribLocation(mProgram, "inPosition");
         mColor = GLES20.glGetUniformLocation(mProgram, "inColor");
         mPointSize = GLES20.glGetUniformLocation(mProgram, "inPointSize");
@@ -130,7 +130,7 @@ public class BodySkeletonLineDisplay implements BodyRelatedDisplay {
 
     /**
      * Rendering lines between body bones.
-     * This method is called when {@link BodyRenderManager#onDrawFrame}.
+     * This method is called when {@link BodyRendererManager#onDrawFrame}.
      *
      * @param bodies Bodies data.
      * @param projectionMatrix Projection matrix.

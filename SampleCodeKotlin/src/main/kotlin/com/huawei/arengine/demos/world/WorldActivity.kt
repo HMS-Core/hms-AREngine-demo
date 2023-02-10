@@ -1,26 +1,31 @@
-/**
- * Copyright 2021. Huawei Technologies Co., Ltd. All rights reserved.
+/*
+ * Copyright 2023. Huawei Technologies Co., Ltd. All rights reserved.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
  */
+
 package com.huawei.arengine.demos.world
 
 import android.opengl.GLSurfaceView
 import android.os.Bundle
+import android.os.Handler
+import android.os.Message
 import android.view.View
 import android.view.WindowManager
+import android.widget.EditText
 import android.widget.Toast
 
+import com.huawei.arengine.demos.R
 import com.huawei.arengine.demos.common.LogUtil
 import com.huawei.arengine.demos.common.controller.DisplayRotationController
 import com.huawei.arengine.demos.common.service.PermissionManageService
@@ -33,6 +38,7 @@ import com.huawei.hiar.ARConfigBase
 import com.huawei.hiar.ARSession
 import com.huawei.hiar.ARWorldTrackingConfig
 import com.huawei.hiar.exceptions.ARCameraNotAvailableException
+import com.huawei.hiar.exceptions.ARUnavailableServiceApkTooOldException
 
 /**
  * This AR example shows how to use the world AR scene of HUAWEI AR Engine,
@@ -45,6 +51,16 @@ import com.huawei.hiar.exceptions.ARCameraNotAvailableException
 class WorldActivity : BaseActivity() {
     companion object {
         private const val TAG = "WorldActivity"
+
+        private const val DEFAULT_MAX_MAP_SIZE = 800
+
+        private const val BUTTON_REPEAT_CLICK_INTERVAL_TIME = 2000L
+
+        private const val MSG_ENV_LIGHT_BUTTON_CLICK_ENABLE = 1
+
+        private const val MSG_ENV_TEXTURE_BUTTON_CLICK_ENABLE = 2
+
+        private const val MSG_CONFIG_MAP_SIZE_BUTTON_CLICK_ENABLE = 3
     }
 
     private var arSession: ARSession? = null
@@ -53,21 +69,35 @@ class WorldActivity : BaseActivity() {
 
     private val displayRotationController by lazy { DisplayRotationController() }
 
-    private val worldRenderController by lazy {
-        WorldRenderController(this, displayRotationController, gestureController)
-    }
+    private lateinit var mConfig: ARWorldTrackingConfig
+
+    private lateinit var worldRenderController: WorldRenderController
 
     private lateinit var worldActivityBinding: WorldJavaActivityMainBinding
+
+    private var mIsEnvLightModeOpen = false
+
+    private var mIsEnvTextureModeOpen = false
+
+    private val handler: Handler = object : Handler() {
+        override fun handleMessage(msg: Message) {
+            when (msg.what) {
+                MSG_ENV_LIGHT_BUTTON_CLICK_ENABLE -> worldActivityBinding.btnEnvLightMode.setEnabled(true)
+                MSG_ENV_TEXTURE_BUTTON_CLICK_ENABLE -> worldActivityBinding.btnEnvTextureMode.setEnabled(true)
+                MSG_CONFIG_MAP_SIZE_BUTTON_CLICK_ENABLE -> worldActivityBinding.btnConfigSession.setClickable(true)
+                else -> LogUtil.info(TAG, "handleMessage default in WorldActivity.")
+            }
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         worldActivityBinding = WorldJavaActivityMainBinding.inflate(layoutInflater)
         setContentView(worldActivityBinding.root)
-        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        worldRenderController = WorldRenderController(this, displayRotationController,
+            gestureController, worldActivityBinding)
         initUi()
-    }
-
-    private fun initUi() {
+        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         worldActivityBinding.surfaceView.apply {
             setOnTouchListener { v, event ->
                 v.performClick()
@@ -79,6 +109,29 @@ class WorldActivity : BaseActivity() {
             setRenderer(worldRenderController)
             renderMode = GLSurfaceView.RENDERMODE_CONTINUOUSLY
         }
+    }
+
+    private fun initUi() {
+        worldActivityBinding.btnEnvLightMode.setOnClickListener(View.OnClickListener {
+            it.isEnabled = false
+            mIsEnvLightModeOpen = !mIsEnvLightModeOpen
+            val lightingMode = refreshLightMode(mIsEnvLightModeOpen, ARConfigBase.LIGHT_MODE_ENVIRONMENT_LIGHTING)
+            refreshConfig(lightingMode)
+            handler.sendEmptyMessageDelayed(MSG_ENV_LIGHT_BUTTON_CLICK_ENABLE, BUTTON_REPEAT_CLICK_INTERVAL_TIME)
+        })
+        worldActivityBinding.btnEnvTextureMode.setOnClickListener(View.OnClickListener {
+            it.isEnabled = false
+            mIsEnvTextureModeOpen = !mIsEnvTextureModeOpen
+            refreshEnvTextureLayout();
+            val lightingMode = refreshLightMode(mIsEnvTextureModeOpen, ARConfigBase.LIGHT_MODE_ENVIRONMENT_TEXTURE)
+            refreshConfig(lightingMode)
+            handler.sendEmptyMessageDelayed(MSG_ENV_TEXTURE_BUTTON_CLICK_ENABLE, BUTTON_REPEAT_CLICK_INTERVAL_TIME)
+        })
+        worldActivityBinding.btnConfigSession.setOnClickListener(View.OnClickListener {
+            it.isClickable = false
+            resetAndConfigArSession()
+            handler.sendEmptyMessageDelayed(MSG_CONFIG_MAP_SIZE_BUTTON_CLICK_ENABLE, BUTTON_REPEAT_CLICK_INTERVAL_TIME)
+        })
     }
 
     override fun onResume() {
@@ -98,13 +151,8 @@ class WorldActivity : BaseActivity() {
                 return
             }
             arSession = ARSession(this.applicationContext)
-            ARWorldTrackingConfig(arSession).apply {
-                focusMode = ARConfigBase.FocusMode.AUTO_FOCUS
-                semanticMode = ARWorldTrackingConfig.SEMANTIC_PLANE
-            }.also {
-                arSession?.configure(it)
-            }
-            worldRenderController.setArSession(arSession)
+            mConfig = ARWorldTrackingConfig(arSession)
+            refreshConfig(ARConfigBase.LIGHT_MODE_NONE)
         } catch (capturedException: Exception) {
             setMessageWhenError(capturedException)
         }
@@ -118,6 +166,7 @@ class WorldActivity : BaseActivity() {
 
     private fun resumeView() {
         if (!isSuccessResumeSession()) return
+        worldRenderController.setArSession(arSession)
         displayRotationController.registerDisplayListener()
         worldActivityBinding.surfaceView.onResume()
     }
@@ -130,6 +179,141 @@ class WorldActivity : BaseActivity() {
             Toast.makeText(this, "Camera open failed, please restart the app", Toast.LENGTH_LONG).show()
             arSession = null
             false
+        }
+    }
+
+    private fun refreshConfig(lightingMode: Int) {
+        if (mConfig == null || arSession == null) {
+            return
+        }
+        try {
+            mConfig.focusMode = ARConfigBase.FocusMode.AUTO_FOCUS
+            mConfig.semanticMode = ARWorldTrackingConfig.SEMANTIC_PLANE or ARWorldTrackingConfig.SEMANTIC_TARGET
+            mConfig.lightingMode = lightingMode
+            arSession?.let {
+                it.configure(mConfig)
+            }
+        } catch (capturedException: ARUnavailableServiceApkTooOldException) {
+            setMessageWhenError(capturedException)
+        } finally {
+            showEffectiveConfigInfo(lightingMode)
+        }
+        worldRenderController.setArWorldTrackingConfig(mConfig)
+        worldRenderController.setArSession(arSession)
+        LogUtil.debug(TAG, "set config")
+    }
+
+    private fun showEffectiveConfigInfo(lightingMode: Int) {
+        if (mConfig == null || arSession == null) {
+            LogUtil.warn(TAG, "showEffectiveConfigInfo params invalid.")
+            return
+        }
+        var toastMsg = ""
+        when (arSession!!.supportedSemanticMode) {
+            ARWorldTrackingConfig.SEMANTIC_NONE -> toastMsg =
+                "The running environment does not support the semantic mode."
+            ARWorldTrackingConfig.SEMANTIC_PLANE -> toastMsg =
+                "The running environment supports only the plane semantic mode."
+            ARWorldTrackingConfig.SEMANTIC_TARGET -> toastMsg =
+                "The running environment supports only the target semantic mode."
+        }
+        if (lightingMode and ARConfigBase.LIGHT_MODE_ENVIRONMENT_LIGHTING != 0
+            && mConfig.lightingMode and ARConfigBase.LIGHT_MODE_ENVIRONMENT_LIGHTING == 0) {
+            toastMsg += "The running environment does not support LIGHT_MODE_ENVIRONMENT_LIGHTING."
+        }
+        val maxMapSize: Long = getMaxMapSize()
+        if (maxMapSize != 0L && maxMapSize != DEFAULT_MAX_MAP_SIZE.toLong()) {
+            toastMsg += "Config max map size:$maxMapSize"
+        }
+        if (!toastMsg.isEmpty()) {
+            Toast.makeText(this, toastMsg, Toast.LENGTH_LONG).show()
+        }
+    }
+
+    private fun refreshLightMode(isOpen: Boolean, changeMode: Int): Int {
+        val lightMode = getCurrentLightingMode()
+        return if (isOpen) {
+            lightMode or changeMode
+        } else {
+            lightMode and changeMode.inv()
+        }
+    }
+
+    private fun getCurrentLightingMode(): Int {
+        var curLightMode = ARConfigBase.LIGHT_MODE_AMBIENT_INTENSITY
+        if (mConfig == null) {
+            return curLightMode
+        }
+        try {
+            curLightMode = mConfig.lightingMode
+        } catch (exception: ARUnavailableServiceApkTooOldException) {
+            LogUtil.warn(TAG, "getCurrentLightMode catch ARUnavailableServiceApkTooOldException.")
+        }
+        return curLightMode
+    }
+
+    private fun getInputMaxMapSize(): Long {
+        var maxMapSize = 0L
+        val editText = findViewById<EditText>(R.id.text_max_size) ?: return maxMapSize
+        try {
+            maxMapSize = editText.text.toString().toInt().toLong()
+        } catch (exception: NumberFormatException) {
+            LogUtil.debug(TAG, "getInputMaxMapSize catch:" + exception.javaClass)
+        }
+        return maxMapSize
+    }
+
+    private fun getMaxMapSize(): Long {
+        var maxMapSize = 0L
+        if (mConfig == null) {
+            LogUtil.warn(TAG, "getMaxMapSize mConfig invalid.")
+            return maxMapSize
+        }
+        try {
+            maxMapSize = mConfig.maxMapSize
+        } catch (exception: ARUnavailableServiceApkTooOldException) {
+            LogUtil.warn(TAG, "getMaxMapSize catch:" + exception.javaClass)
+        }
+        return maxMapSize
+    }
+
+    private fun setMaxMapSize() {
+        if (arSession == null || mConfig == null) {
+            LogUtil.warn(TAG, "setMaxMapSize mArSession or mConfig invalid.")
+            return
+        }
+        val maxMapSize: Long = getInputMaxMapSize()
+        if (maxMapSize == 0L) {
+            return
+        }
+        try {
+            mConfig.maxMapSize = maxMapSize
+        } catch (exception: ARUnavailableServiceApkTooOldException) {
+            Toast.makeText(
+                this@WorldActivity.applicationContext,
+                "The current AR Engine version does not support the setMaxMapSize method.", Toast.LENGTH_LONG)
+                .show()
+        }
+    }
+
+    private fun resetAndConfigArSession() {
+        var lightMode = getCurrentLightingMode()
+        stopArSession()
+        worldRenderController.setArSession(arSession)
+        arSession = ARSession(this@WorldActivity.applicationContext)
+        mConfig = ARWorldTrackingConfig(arSession)
+        setMaxMapSize()
+        refreshConfig(lightMode)
+        arSession?.resume()
+        worldRenderController.setArSession(arSession)
+        displayRotationController.onDisplayChanged(0)
+    }
+
+    private fun refreshEnvTextureLayout() {
+        if (mIsEnvTextureModeOpen) {
+            worldActivityBinding.imgEnvTexture.setVisibility(View.VISIBLE)
+        } else {
+            worldActivityBinding.imgEnvTexture.setVisibility(View.GONE)
         }
     }
 
@@ -155,14 +339,5 @@ class WorldActivity : BaseActivity() {
         arSession?.stop()
         arSession = null
         LogUtil.info(TAG, "onDestroy end.")
-    }
-
-    override fun onWindowFocusChanged(isHasFocus: Boolean) {
-        super.onWindowFocusChanged(isHasFocus)
-        if (!isHasFocus) return
-        window.decorView.systemUiVisibility = (
-            View.SYSTEM_UI_FLAG_LAYOUT_STABLE or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                or View.SYSTEM_UI_FLAG_FULLSCREEN or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY)
     }
 }

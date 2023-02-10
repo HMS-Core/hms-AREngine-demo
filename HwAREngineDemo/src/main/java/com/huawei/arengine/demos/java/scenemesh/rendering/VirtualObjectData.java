@@ -1,5 +1,5 @@
-/**
- * Copyright 2021. Huawei Technologies Co., Ltd. All rights reserved.
+/*
+ * Copyright 2023. Huawei Technologies Co., Ltd. All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -395,7 +395,7 @@ public class VirtualObjectData {
      * Three-dimensional data standardization method, which divides each number by the root of the
      * sum of squares of all numbers.
      *
-     * @param vector: 3D vector.
+     * @param vector 3D vector.
      */
     public static void normalizeVec3(float[] vector) {
         // The data has three dimensions (0, 1, and 2).

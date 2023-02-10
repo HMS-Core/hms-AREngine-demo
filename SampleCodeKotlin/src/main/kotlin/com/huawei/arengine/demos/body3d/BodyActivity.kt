@@ -1,18 +1,19 @@
-/**
- * Copyright 2021. Huawei Technologies Co., Ltd. All rights reserved.
+/*
+ * Copyright 2023. Huawei Technologies Co., Ltd. All rights reserved.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
  */
+
 package com.huawei.arengine.demos.body3d
 
 import android.opengl.GLSurfaceView
@@ -57,11 +58,13 @@ class BodyActivity : BaseActivity() {
     private lateinit var bodyActivityBinding: Body3dActivityMainBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        LogUtil.debug(TAG, "onCreate start")
         super.onCreate(savedInstanceState)
         bodyActivityBinding = Body3dActivityMainBinding.inflate(layoutInflater)
         setContentView(bodyActivityBinding.root)
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         initUi()
+        LogUtil.debug(TAG, "onCreate end")
     }
 
     private fun initUi() {
@@ -75,7 +78,7 @@ class BodyActivity : BaseActivity() {
     }
 
     override fun onResume() {
-        LogUtil.debug(TAG, "onResume")
+        LogUtil.debug(TAG, "onResume start")
         super.onResume()
         if (!PermissionManageService.hasPermission()) {
             finish()
@@ -93,10 +96,12 @@ class BodyActivity : BaseActivity() {
             arSession = ARSession(this.applicationContext)
             ARBodyTrackingConfig(arSession).apply {
                 enableItem = (ARConfigBase.ENABLE_DEPTH or ARConfigBase.ENABLE_MASK).toLong()
+                arConfigBase = this
             }.also { arSession?.configure(it) }
-            bodyRenderController.setArSession(arSession)
         } catch (capturedException: Exception) {
             setMessageWhenError(capturedException)
+        } finally {
+            showCapabilitySupportInfo()
         }
         errorMessage?.let {
             Toast.makeText(this, it, Toast.LENGTH_LONG).show()
@@ -104,10 +109,12 @@ class BodyActivity : BaseActivity() {
             return
         }
         resumeView()
+        LogUtil.debug(TAG, "onResume end")
     }
 
     private fun resumeView() {
         if (!isSuccessResumeSession()) return
+        bodyRenderController.setArSession(arSession)
         displayRotationController.registerDisplayListener()
         bodyActivityBinding.bodySurfaceView.onResume()
     }
@@ -148,12 +155,14 @@ class BodyActivity : BaseActivity() {
         LogUtil.info(TAG, "onDestroy end.")
     }
 
-    override fun onWindowFocusChanged(isHasFocus: Boolean) {
-        super.onWindowFocusChanged(isHasFocus)
-        if (!isHasFocus) return
-        window.decorView.systemUiVisibility = (
-            View.SYSTEM_UI_FLAG_LAYOUT_STABLE or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                or View.SYSTEM_UI_FLAG_FULLSCREEN or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY)
+    private fun showCapabilitySupportInfo() {
+        if (arConfigBase == null) {
+            LogUtil.warn(TAG, "showCapabilitySupportInfo arConfigBase is null.")
+            return
+        }
+        val runningDetectionInfo =
+            if (arConfigBase!!.enableItem and ARConfigBase.ENABLE_DEPTH.toLong() != 0L) "3D" else "2D"
+        Toast.makeText(this, String.format("%s detection mode is enabled.", runningDetectionInfo), Toast.LENGTH_LONG)
+            .show()
     }
 }
